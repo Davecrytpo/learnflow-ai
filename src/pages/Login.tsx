@@ -22,6 +22,7 @@ const Login = () => {
     if (error) {
       toast({ title: "Login failed", description: error.message, variant: "destructive" });
     } else {
+      // Redirect to /dashboard which will route by role
       navigate("/dashboard");
     }
   };
@@ -29,7 +30,7 @@ const Login = () => {
   return (
     <div className="flex min-h-screen">
       {/* Left panel */}
-      <div className="hidden w-1/2 bg-gradient-to-br from-primary to-primary/70 lg:flex lg:items-center lg:justify-center">
+      <div className="hidden w-1/2 bg-gradient-to-br from-primary to-accent lg:flex lg:items-center lg:justify-center">
         <div className="max-w-md px-8 text-primary-foreground">
           <GraduationCap className="mb-6 h-12 w-12" />
           <h2 className="text-3xl font-bold">Welcome back</h2>
@@ -52,7 +53,9 @@ const Login = () => {
           <h1 className="text-2xl font-bold text-foreground">Sign in</h1>
           <p className="mt-2 text-sm text-muted-foreground">
             Don't have an account?{" "}
-            <Link to="/signup" className="text-primary hover:underline">Sign up</Link>
+            <Link to="/signup" className="text-primary hover:underline">Sign up as Student</Link>
+            {" or "}
+            <Link to="/signup?role=instructor" className="text-accent hover:underline">Register as Instructor</Link>
           </p>
 
           <form onSubmit={handleLogin} className="mt-8 space-y-4">
