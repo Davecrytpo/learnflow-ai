@@ -9,6 +9,13 @@ import Signup from "./pages/Signup";
 import Onboarding from "./pages/Onboarding";
 import Dashboard from "./pages/Dashboard";
 import NotFound from "./pages/NotFound";
+import CourseCatalog from "./pages/CourseCatalog";
+import CourseDetail from "./pages/CourseDetail";
+import StudentDashboard from "./pages/student/StudentDashboard";
+import InstructorDashboard from "./pages/instructor/InstructorDashboard";
+import CreateCourse from "./pages/instructor/CreateCourse";
+import EditCourse from "./pages/instructor/EditCourse";
+import Grading from "./pages/instructor/Grading";
 
 const queryClient = new QueryClient();
 
@@ -24,6 +31,13 @@ const App = () => (
           <Route path="/signup" element={<Signup />} />
           <Route path="/onboarding" element={<Onboarding />} />
           <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/dashboard/student" element={<StudentDashboard />} />
+          <Route path="/courses" element={<CourseCatalog />} />
+          <Route path="/course/:courseId" element={<CourseDetail />} />
+          <Route path="/instructor" element={<InstructorDashboard />} />
+          <Route path="/instructor/courses/new" element={<CreateCourse />} />
+          <Route path="/instructor/courses/:courseId" element={<EditCourse />} />
+          <Route path="/instructor/grading" element={<Grading />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>

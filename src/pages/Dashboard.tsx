@@ -11,33 +11,18 @@ const Dashboard = () => {
 
   useEffect(() => {
     if (authLoading || roleLoading) return;
-    if (!user) {
-      navigate("/login");
-      return;
-    }
-    if (!role) {
-      navigate("/onboarding");
-      return;
-    }
+    if (!user) { navigate("/login"); return; }
+    if (!role) { navigate("/onboarding"); return; }
+
+    // Redirect to role-specific dashboard
+    if (role === "student") navigate("/dashboard/student", { replace: true });
+    else if (role === "instructor") navigate("/instructor", { replace: true });
+    else if (role === "admin") navigate("/admin", { replace: true });
   }, [user, role, authLoading, roleLoading, navigate]);
 
-  if (authLoading || roleLoading) {
-    return (
-      <div className="flex min-h-screen items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-      </div>
-    );
-  }
-
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background">
-      <div className="text-center">
-        <h1 className="text-3xl font-bold text-foreground">Welcome to your Dashboard</h1>
-        <p className="mt-2 text-muted-foreground">
-          You're signed in as <span className="font-semibold capitalize text-primary">{role}</span>
-        </p>
-        <p className="mt-1 text-sm text-muted-foreground">{user?.email}</p>
-      </div>
+    <div className="flex min-h-screen items-center justify-center">
+      <Loader2 className="h-8 w-8 animate-spin text-primary" />
     </div>
   );
 };
