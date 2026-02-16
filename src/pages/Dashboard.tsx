@@ -18,6 +18,7 @@ const Dashboard = () => {
     if (role === "student") navigate("/dashboard/student", { replace: true });
     else if (role === "instructor") navigate("/instructor", { replace: true });
     else if (role === "admin") navigate("/admin", { replace: true });
+    else navigate("/onboarding", { replace: true });
   }, [user, role, authLoading, roleLoading, navigate]);
 
   return (

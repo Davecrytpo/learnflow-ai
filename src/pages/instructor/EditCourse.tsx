@@ -10,8 +10,9 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, PlusCircle, Trash2, GripVertical } from "lucide-react";
+import { Loader2, PlusCircle, Trash2, GripVertical, ClipboardCheck } from "lucide-react";
 
 const EditCourse = () => {
   const { courseId } = useParams<{ courseId: string }>();
@@ -20,20 +21,31 @@ const EditCourse = () => {
   const [course, setCourse] = useState<any>(null);
   const [modules, setModules] = useState<any[]>([]);
   const [lessons, setLessons] = useState<any[]>([]);
+  const [quizzes, setQuizzes] = useState<any[]>([]);
+  const [quizQuestions, setQuizQuestions] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     if (!courseId) return;
     const fetch = async () => {
-      const [courseRes, modRes, lessonRes] = await Promise.all([
+      const [courseRes, modRes, lessonRes, quizRes] = await Promise.all([
         supabase.from("courses").select("*").eq("id", courseId).single(),
         supabase.from("modules").select("*").eq("course_id", courseId).order("order"),
         supabase.from("lessons").select("*").eq("course_id", courseId).order("order"),
+        supabase.from("quizzes").select("*").eq("course_id", courseId).order("order"),
       ]);
       setCourse(courseRes.data);
       setModules(modRes.data || []);
       setLessons(lessonRes.data || []);
+      setQuizzes(quizRes.data || []);
+
+      // Load questions for all quizzes
+      if (quizRes.data && quizRes.data.length > 0) {
+        const qIds = quizRes.data.map((q: any) => q.id);
+        const { data: questionsData } = await supabase.from("quiz_questions").select("*").in("quiz_id", qIds).order("order");
+        setQuizQuestions(questionsData || []);
+      }
       setLoading(false);
     };
     fetch();
@@ -43,12 +55,8 @@ const EditCourse = () => {
     if (!course) return;
     setSaving(true);
     const { error } = await supabase.from("courses").update({
-      title: course.title,
-      description: course.description,
-      summary: course.summary,
-      category: course.category,
-      price_cents: course.price_cents,
-      published: course.published,
+      title: course.title, description: course.description, summary: course.summary,
+      category: course.category, published: course.published,
     }).eq("id", course.id);
     setSaving(false);
     if (error) toast({ title: "Error", description: error.message, variant: "destructive" });
@@ -58,9 +66,7 @@ const EditCourse = () => {
   const addModule = async () => {
     if (!courseId) return;
     const { data, error } = await supabase.from("modules").insert({
-      course_id: courseId,
-      title: "New Module",
-      order: modules.length,
+      course_id: courseId, title: "New Module", order: modules.length,
     }).select().single();
     if (data) setModules([...modules, data]);
     if (error) toast({ title: "Error", description: error.message, variant: "destructive" });
@@ -70,10 +76,7 @@ const EditCourse = () => {
     if (!courseId) return;
     const moduleLessons = lessons.filter((l) => l.module_id === moduleId);
     const { data, error } = await supabase.from("lessons").insert({
-      course_id: courseId,
-      module_id: moduleId,
-      title: "New Lesson",
-      order: moduleLessons.length,
+      course_id: courseId, module_id: moduleId, title: "New Lesson", order: moduleLessons.length,
     }).select().single();
     if (data) setLessons([...lessons, data]);
     if (error) toast({ title: "Error", description: error.message, variant: "destructive" });
@@ -100,6 +103,54 @@ const EditCourse = () => {
     setLessons(lessons.filter((l) => l.id !== id));
   };
 
+  // Quiz management
+  const addQuiz = async (type: string, moduleId?: string) => {
+    if (!courseId) return;
+    const { data, error } = await supabase.from("quizzes").insert({
+      course_id: courseId,
+      module_id: moduleId || null,
+      title: `New ${type.charAt(0).toUpperCase() + type.slice(1)}`,
+      quiz_type: type,
+      order: quizzes.length,
+    }).select().single();
+    if (data) setQuizzes([...quizzes, data]);
+    if (error) toast({ title: "Error", description: error.message, variant: "destructive" });
+  };
+
+  const updateQuiz = async (id: string, updates: Record<string, any>) => {
+    await supabase.from("quizzes").update(updates).eq("id", id);
+    setQuizzes(quizzes.map(q => q.id === id ? { ...q, ...updates } : q));
+  };
+
+  const deleteQuiz = async (id: string) => {
+    await supabase.from("quizzes").delete().eq("id", id);
+    setQuizzes(quizzes.filter(q => q.id !== id));
+    setQuizQuestions(quizQuestions.filter(qq => qq.quiz_id !== id));
+  };
+
+  const addQuestion = async (quizId: string) => {
+    const { data, error } = await supabase.from("quiz_questions").insert({
+      quiz_id: quizId,
+      question_text: "New Question",
+      question_type: "multiple_choice",
+      options: JSON.stringify(["Option A", "Option B", "Option C", "Option D"]),
+      correct_answer: "Option A",
+      order: quizQuestions.filter(q => q.quiz_id === quizId).length,
+    }).select().single();
+    if (data) setQuizQuestions([...quizQuestions, data]);
+    if (error) toast({ title: "Error", description: error.message, variant: "destructive" });
+  };
+
+  const updateQuestion = async (id: string, updates: Record<string, any>) => {
+    await supabase.from("quiz_questions").update(updates).eq("id", id);
+    setQuizQuestions(quizQuestions.map(q => q.id === id ? { ...q, ...updates } : q));
+  };
+
+  const deleteQuestion = async (id: string) => {
+    await supabase.from("quiz_questions").delete().eq("id", id);
+    setQuizQuestions(quizQuestions.filter(q => q.id !== id));
+  };
+
   if (loading) {
     return (
       <DashboardLayout allowedRoles={["instructor"]} sidebar={<InstructorSidebar />}>
@@ -124,7 +175,7 @@ const EditCourse = () => {
         <div className="flex items-center justify-between">
           <h1 className="text-2xl font-bold text-foreground">Edit Course</h1>
           <div className="flex gap-2">
-            <Button variant="outline" onClick={() => setCourse({ ...course, published: !course.published })}>
+            <Button variant="outline" onClick={() => { setCourse({ ...course, published: !course.published }); }}>
               {course.published ? "Unpublish" : "Publish"}
             </Button>
             <Button onClick={saveCourse} disabled={saving}>
@@ -137,6 +188,7 @@ const EditCourse = () => {
           <TabsList>
             <TabsTrigger value="details">Details</TabsTrigger>
             <TabsTrigger value="curriculum">Curriculum</TabsTrigger>
+            <TabsTrigger value="assessments">Assessments</TabsTrigger>
           </TabsList>
 
           <TabsContent value="details">
@@ -154,15 +206,9 @@ const EditCourse = () => {
                   <Label>Description</Label>
                   <Textarea value={course.description || ""} onChange={(e) => setCourse({ ...course, description: e.target.value })} rows={5} />
                 </div>
-                <div className="grid gap-4 sm:grid-cols-2">
-                  <div className="space-y-2">
-                    <Label>Category</Label>
-                    <Input value={course.category || ""} onChange={(e) => setCourse({ ...course, category: e.target.value })} />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Price (cents)</Label>
-                    <Input type="number" value={course.price_cents || 0} onChange={(e) => setCourse({ ...course, price_cents: Number(e.target.value) })} />
-                  </div>
+                <div className="space-y-2">
+                  <Label>Category</Label>
+                  <Input value={course.category || ""} onChange={(e) => setCourse({ ...course, category: e.target.value })} />
                 </div>
               </CardContent>
             </Card>
@@ -174,31 +220,23 @@ const EditCourse = () => {
                 <Card key={mod.id}>
                   <CardHeader className="flex flex-row items-center gap-2 pb-2">
                     <GripVertical className="h-4 w-4 text-muted-foreground" />
-                    <Input
-                      value={mod.title}
-                      onChange={(e) => updateModule(mod.id, e.target.value)}
-                      className="flex-1 border-none text-base font-semibold shadow-none focus-visible:ring-0"
-                    />
+                    <Input value={mod.title} onChange={(e) => updateModule(mod.id, e.target.value)}
+                      className="flex-1 border-none text-base font-semibold shadow-none focus-visible:ring-0" />
                     <Button variant="ghost" size="icon" onClick={() => deleteModule(mod.id)}>
                       <Trash2 className="h-4 w-4 text-destructive" />
                     </Button>
                   </CardHeader>
                   <CardContent className="space-y-2">
-                    {lessons
-                      .filter((l) => l.module_id === mod.id)
-                      .map((lesson) => (
-                        <div key={lesson.id} className="flex items-center gap-2 rounded-md border border-border p-3">
-                          <GripVertical className="h-3 w-3 text-muted-foreground" />
-                          <Input
-                            value={lesson.title}
-                            onChange={(e) => updateLesson(lesson.id, { title: e.target.value })}
-                            className="flex-1 border-none text-sm shadow-none focus-visible:ring-0"
-                          />
-                          <Button variant="ghost" size="icon" onClick={() => deleteLesson(lesson.id)}>
-                            <Trash2 className="h-3 w-3 text-destructive" />
-                          </Button>
-                        </div>
-                      ))}
+                    {lessons.filter((l) => l.module_id === mod.id).map((lesson) => (
+                      <div key={lesson.id} className="flex items-center gap-2 rounded-md border border-border p-3">
+                        <GripVertical className="h-3 w-3 text-muted-foreground" />
+                        <Input value={lesson.title} onChange={(e) => updateLesson(lesson.id, { title: e.target.value })}
+                          className="flex-1 border-none text-sm shadow-none focus-visible:ring-0" />
+                        <Button variant="ghost" size="icon" onClick={() => deleteLesson(lesson.id)}>
+                          <Trash2 className="h-3 w-3 text-destructive" />
+                        </Button>
+                      </div>
+                    ))}
                     <Button variant="ghost" size="sm" onClick={() => addLesson(mod.id)} className="mt-1">
                       <PlusCircle className="mr-1 h-3 w-3" /> Add Lesson
                     </Button>
@@ -208,6 +246,131 @@ const EditCourse = () => {
               <Button variant="outline" onClick={addModule}>
                 <PlusCircle className="mr-2 h-4 w-4" /> Add Module
               </Button>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="assessments">
+            <div className="space-y-6">
+              <div className="flex flex-wrap gap-2">
+                {["exercise", "quiz", "test", "exam"].map(type => (
+                  <Button key={type} variant="outline" size="sm" onClick={() => addQuiz(type)}>
+                    <PlusCircle className="mr-1 h-3 w-3" /> Add {type.charAt(0).toUpperCase() + type.slice(1)}
+                  </Button>
+                ))}
+              </div>
+
+              {quizzes.length === 0 ? (
+                <Card className="p-8 text-center">
+                  <ClipboardCheck className="mx-auto h-12 w-12 text-muted-foreground/40" />
+                  <p className="mt-4 text-muted-foreground">No assessments yet. Add exercises, quizzes, tests, or exams above.</p>
+                </Card>
+              ) : (
+                quizzes.map(quiz => (
+                  <Card key={quiz.id}>
+                    <CardHeader className="pb-3">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${
+                            quiz.quiz_type === "exam" ? "bg-destructive/10 text-destructive" :
+                            quiz.quiz_type === "test" ? "bg-primary/10 text-primary" :
+                            quiz.quiz_type === "quiz" ? "bg-accent/10 text-accent" :
+                            "bg-muted text-muted-foreground"
+                          }`}>
+                            {quiz.quiz_type.toUpperCase()}
+                          </span>
+                          <Input value={quiz.title} onChange={e => updateQuiz(quiz.id, { title: e.target.value })}
+                            className="border-none text-base font-semibold shadow-none focus-visible:ring-0 max-w-xs" />
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <div className="flex items-center gap-1">
+                            <Label className="text-xs">Pass %</Label>
+                            <Input type="number" className="w-16 h-8 text-xs" value={quiz.passing_score}
+                              onChange={e => updateQuiz(quiz.id, { passing_score: Number(e.target.value) })} />
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <Label className="text-xs">Time (min)</Label>
+                            <Input type="number" className="w-16 h-8 text-xs" value={quiz.time_limit_minutes || ""}
+                              onChange={e => updateQuiz(quiz.id, { time_limit_minutes: Number(e.target.value) || null })} />
+                          </div>
+                          <Button variant="ghost" size="sm" onClick={() => updateQuiz(quiz.id, { published: !quiz.published })}>
+                            {quiz.published ? "Unpublish" : "Publish"}
+                          </Button>
+                          <Button variant="ghost" size="icon" onClick={() => deleteQuiz(quiz.id)}>
+                            <Trash2 className="h-4 w-4 text-destructive" />
+                          </Button>
+                        </div>
+                      </div>
+                    </CardHeader>
+                    <CardContent className="space-y-3">
+                      {quizQuestions.filter(q => q.quiz_id === quiz.id).map((question, qi) => (
+                        <div key={question.id} className="rounded-lg border border-border p-4 space-y-3">
+                          <div className="flex items-start gap-2">
+                            <span className="mt-2 text-xs font-medium text-muted-foreground">Q{qi + 1}</span>
+                            <div className="flex-1 space-y-2">
+                              <Input value={question.question_text}
+                                onChange={e => updateQuestion(question.id, { question_text: e.target.value })}
+                                placeholder="Enter question..." />
+                              <div className="flex gap-2">
+                                <Select value={question.question_type}
+                                  onValueChange={v => updateQuestion(question.id, { question_type: v })}>
+                                  <SelectTrigger className="w-40 h-8"><SelectValue /></SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="multiple_choice">Multiple Choice</SelectItem>
+                                    <SelectItem value="true_false">True/False</SelectItem>
+                                    <SelectItem value="short_answer">Short Answer</SelectItem>
+                                  </SelectContent>
+                                </Select>
+                                <Input className="w-20 h-8 text-xs" type="number" value={question.points}
+                                  onChange={e => updateQuestion(question.id, { points: Number(e.target.value) })}
+                                  placeholder="Points" />
+                              </div>
+                              {question.question_type === "multiple_choice" && (
+                                <div className="space-y-1">
+                                  {(typeof question.options === 'string' ? JSON.parse(question.options) : (question.options || [])).map((opt: string, oi: number) => (
+                                    <div key={oi} className="flex items-center gap-2">
+                                      <input type="radio" name={`correct-${question.id}`} checked={question.correct_answer === opt}
+                                        onChange={() => updateQuestion(question.id, { correct_answer: opt })}
+                                        className="accent-primary" />
+                                      <Input className="h-7 text-xs" value={opt}
+                                        onChange={e => {
+                                          const opts = typeof question.options === 'string' ? JSON.parse(question.options) : [...(question.options || [])];
+                                          const oldOpt = opts[oi];
+                                          opts[oi] = e.target.value;
+                                          const updates: Record<string, any> = { options: JSON.stringify(opts) };
+                                          if (question.correct_answer === oldOpt) updates.correct_answer = e.target.value;
+                                          updateQuestion(question.id, updates);
+                                        }} />
+                                    </div>
+                                  ))}
+                                </div>
+                              )}
+                              {question.question_type === "true_false" && (
+                                <Select value={question.correct_answer} onValueChange={v => updateQuestion(question.id, { correct_answer: v })}>
+                                  <SelectTrigger className="w-24 h-8"><SelectValue /></SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="True">True</SelectItem>
+                                    <SelectItem value="False">False</SelectItem>
+                                  </SelectContent>
+                                </Select>
+                              )}
+                              {question.question_type === "short_answer" && (
+                                <Input className="h-8 text-xs" value={question.correct_answer} placeholder="Correct answer"
+                                  onChange={e => updateQuestion(question.id, { correct_answer: e.target.value })} />
+                              )}
+                            </div>
+                            <Button variant="ghost" size="icon" className="mt-1" onClick={() => deleteQuestion(question.id)}>
+                              <Trash2 className="h-3 w-3 text-destructive" />
+                            </Button>
+                          </div>
+                        </div>
+                      ))}
+                      <Button variant="ghost" size="sm" onClick={() => addQuestion(quiz.id)}>
+                        <PlusCircle className="mr-1 h-3 w-3" /> Add Question
+                      </Button>
+                    </CardContent>
+                  </Card>
+                ))
+              )}
             </div>
           </TabsContent>
         </Tabs>
