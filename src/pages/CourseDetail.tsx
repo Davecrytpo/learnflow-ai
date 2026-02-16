@@ -8,7 +8,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
-import { BookOpen, Clock, Users, CheckCircle, Loader2 } from "lucide-react";
+import { BookOpen, Clock, Users, CheckCircle, Loader2, ClipboardCheck, Award } from "lucide-react";
 
 const CourseDetail = () => {
   const { courseId } = useParams<{ courseId: string }>();
@@ -18,6 +18,7 @@ const CourseDetail = () => {
   const [course, setCourse] = useState<any>(null);
   const [modules, setModules] = useState<any[]>([]);
   const [lessons, setLessons] = useState<any[]>([]);
+  const [quizzes, setQuizzes] = useState<any[]>([]);
   const [enrollmentCount, setEnrollmentCount] = useState(0);
   const [isEnrolled, setIsEnrolled] = useState(false);
   const [enrolling, setEnrolling] = useState(false);
@@ -26,15 +27,17 @@ const CourseDetail = () => {
   useEffect(() => {
     if (!courseId) return;
     const fetch = async () => {
-      const [courseRes, modRes, lessonRes, enrollCountRes] = await Promise.all([
+      const [courseRes, modRes, lessonRes, quizRes, enrollCountRes] = await Promise.all([
         supabase.from("courses").select("*, profiles:author_id(display_name, avatar_url)").eq("id", courseId).single(),
         supabase.from("modules").select("*").eq("course_id", courseId).order("order"),
         supabase.from("lessons").select("id, title, module_id, duration_seconds, order").eq("course_id", courseId).eq("published", true).order("order"),
+        supabase.from("quizzes").select("id, title, quiz_type, module_id").eq("course_id", courseId).eq("published", true).order("order"),
         supabase.from("enrollments").select("id").eq("course_id", courseId),
       ]);
       setCourse(courseRes.data);
       setModules(modRes.data || []);
       setLessons(lessonRes.data || []);
+      setQuizzes(quizRes.data || []);
       setEnrollmentCount(enrollCountRes.data?.length || 0);
 
       if (user) {
@@ -56,6 +59,7 @@ const CourseDetail = () => {
       toast({ title: "Error", description: error.message, variant: "destructive" });
     } else {
       setIsEnrolled(true);
+      setEnrollmentCount(prev => prev + 1);
       toast({ title: "Enrolled!", description: "You can now access the course." });
     }
   };
@@ -64,9 +68,7 @@ const CourseDetail = () => {
     return (
       <div className="min-h-screen bg-background">
         <Navbar />
-        <div className="container mx-auto px-4 py-12">
-          <Skeleton className="h-64 rounded-lg" />
-        </div>
+        <div className="container mx-auto px-4 py-12"><Skeleton className="h-64 rounded-lg" /></div>
       </div>
     );
   }
@@ -89,14 +91,14 @@ const CourseDetail = () => {
       <Navbar />
       <main className="container mx-auto px-4 py-12">
         <div className="grid gap-8 lg:grid-cols-3">
-          {/* Main content */}
           <div className="lg:col-span-2 space-y-6">
-            <div className="rounded-xl bg-gradient-to-br from-primary/10 to-accent/10 p-8">
+            <div className="rounded-2xl bg-gradient-to-br from-primary/10 to-accent/10 p-8">
               <span className="rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary">{course.category || "General"}</span>
               <h1 className="mt-4 text-3xl font-bold text-foreground">{course.title}</h1>
               <p className="mt-2 text-muted-foreground">{course.summary}</p>
               <div className="mt-4 flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
                 <span className="flex items-center gap-1"><BookOpen className="h-4 w-4" /> {lessons.length} lessons</span>
+                <span className="flex items-center gap-1"><ClipboardCheck className="h-4 w-4" /> {quizzes.length} assessments</span>
                 <span className="flex items-center gap-1"><Clock className="h-4 w-4" /> {Math.round(totalDuration / 60)} min</span>
                 <span className="flex items-center gap-1"><Users className="h-4 w-4" /> {enrollmentCount} students</span>
               </div>
@@ -121,36 +123,60 @@ const CourseDetail = () => {
                             <span>{lesson.title}</span>
                           </div>
                         ))}
+                        {quizzes.filter(q => q.module_id === mod.id).map(quiz => (
+                          <div key={quiz.id} className="flex items-center gap-2 text-sm text-muted-foreground">
+                            <ClipboardCheck className="h-3 w-3 text-accent" />
+                            <span>{quiz.title}</span>
+                            <span className="rounded-full bg-accent/10 px-1.5 py-0.5 text-xs text-accent">{quiz.quiz_type}</span>
+                          </div>
+                        ))}
                       </div>
                     </CardContent>
                   </Card>
                 ))}
+                {/* Course-level assessments */}
+                {quizzes.filter(q => !q.module_id).length > 0 && (
+                  <Card>
+                    <CardContent className="py-4">
+                      <h3 className="font-semibold text-foreground">Course Assessments</h3>
+                      <div className="mt-2 space-y-1">
+                        {quizzes.filter(q => !q.module_id).map(quiz => (
+                          <div key={quiz.id} className="flex items-center gap-2 text-sm text-muted-foreground">
+                            <ClipboardCheck className="h-3 w-3 text-accent" />
+                            <span>{quiz.title}</span>
+                            <span className={`rounded-full px-1.5 py-0.5 text-xs ${
+                              quiz.quiz_type === "exam" ? "bg-destructive/10 text-destructive" : "bg-accent/10 text-accent"
+                            }`}>{quiz.quiz_type}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
                 {modules.length === 0 && <p className="text-sm text-muted-foreground">Curriculum coming soon.</p>}
               </div>
             </div>
           </div>
 
-          {/* Sidebar */}
           <div>
             <Card className="sticky top-20">
               <CardContent className="space-y-4 pt-6">
-                <p className="text-3xl font-bold text-foreground">
-                  {course.price_cents > 0 ? `$${(course.price_cents / 100).toFixed(2)}` : "Free"}
-                </p>
+                <p className="text-3xl font-bold text-accent">Free</p>
                 {isEnrolled ? (
-                  <Button className="w-full" asChild>
-                    <a href={`/course/${courseId}/learn`}>Continue Learning</a>
+                  <Button className="w-full" onClick={() => navigate(`/dashboard/student`)}>
+                    Continue Learning
                   </Button>
                 ) : (
                   <Button className="w-full" onClick={handleEnroll} disabled={enrolling}>
                     {enrolling && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                    {course.price_cents > 0 ? "Buy & Enroll" : "Enroll for Free"}
+                    Enroll for Free
                   </Button>
                 )}
                 <div className="space-y-2 text-sm text-muted-foreground">
-                  <p>✓ Full lifetime access</p>
-                  <p>✓ Certificate of completion</p>
-                  <p>✓ {lessons.length} lessons</p>
+                  <p className="flex items-center gap-2"><CheckCircle className="h-3.5 w-3.5 text-accent" /> Full lifetime access</p>
+                  <p className="flex items-center gap-2"><Award className="h-3.5 w-3.5 text-accent" /> Certificate of completion</p>
+                  <p className="flex items-center gap-2"><BookOpen className="h-3.5 w-3.5 text-accent" /> {lessons.length} lessons</p>
+                  <p className="flex items-center gap-2"><ClipboardCheck className="h-3.5 w-3.5 text-accent" /> {quizzes.length} assessments</p>
                 </div>
                 {course.profiles && (
                   <div className="border-t border-border pt-4">

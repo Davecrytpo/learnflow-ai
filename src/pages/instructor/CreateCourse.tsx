@@ -9,8 +9,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2 } from "lucide-react";
+
+const categories = ["Technology", "Science", "Mathematics", "English/Language Arts", "Social Studies", "Business", "Arts", "Health Sciences", "Engineering", "Other"];
 
 const CreateCourse = () => {
   const { user } = useAuth();
@@ -22,7 +25,6 @@ const CreateCourse = () => {
     description: "",
     summary: "",
     category: "",
-    price_cents: 0,
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -30,31 +32,18 @@ const CreateCourse = () => {
     if (!user) return;
     setLoading(true);
 
-    const slug = form.title
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, "-")
-      .replace(/^-|-$/g, "") + "-" + Date.now().toString(36);
+    const slug = form.title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") + "-" + Date.now().toString(36);
 
-    const { data, error } = await supabase
-      .from("courses")
-      .insert({
-        title: form.title,
-        description: form.description,
-        summary: form.summary,
-        category: form.category || null,
-        price_cents: form.price_cents,
-        slug,
-        author_id: user.id,
-        published: false,
-      })
-      .select("id")
-      .single();
+    const { data, error } = await supabase.from("courses").insert({
+      title: form.title, description: form.description, summary: form.summary,
+      category: form.category || null, price_cents: 0, slug, author_id: user.id, published: false,
+    }).select("id").single();
 
     setLoading(false);
     if (error) {
       toast({ title: "Error", description: error.message, variant: "destructive" });
     } else {
-      toast({ title: "Course created!", description: "Now add modules and lessons." });
+      toast({ title: "Course created!", description: "Now add modules, lessons, and assessments." });
       navigate(`/instructor/courses/${data.id}`);
     }
   };
@@ -68,7 +57,7 @@ const CreateCourse = () => {
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="title">Course Title</Label>
+                <Label htmlFor="title">Course Title *</Label>
                 <Input id="title" placeholder="e.g. Introduction to Web Development" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} required />
               </div>
               <div className="space-y-2">
@@ -79,15 +68,14 @@ const CreateCourse = () => {
                 <Label htmlFor="description">Full Description</Label>
                 <Textarea id="description" placeholder="Detailed description of what students will learn" value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} rows={5} />
               </div>
-              <div className="grid gap-4 sm:grid-cols-2">
-                <div className="space-y-2">
-                  <Label htmlFor="category">Category</Label>
-                  <Input id="category" placeholder="e.g. Technology, Business" value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })} />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="price">Price (cents, 0 = free)</Label>
-                  <Input id="price" type="number" min={0} value={form.price_cents} onChange={(e) => setForm({ ...form, price_cents: Number(e.target.value) })} />
-                </div>
+              <div className="space-y-2">
+                <Label>Category</Label>
+                <Select value={form.category} onValueChange={(v) => setForm({ ...form, category: v })}>
+                  <SelectTrigger><SelectValue placeholder="Select a category" /></SelectTrigger>
+                  <SelectContent>
+                    {categories.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+                  </SelectContent>
+                </Select>
               </div>
               <Button type="submit" disabled={loading} className="w-full">
                 {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
