@@ -134,7 +134,6 @@ const CourseDetail = () => {
                     </CardContent>
                   </Card>
                 ))}
-                {/* Course-level assessments */}
                 {quizzes.filter(q => !q.module_id).length > 0 && (
                   <Card>
                     <CardContent className="py-4">
@@ -163,7 +162,7 @@ const CourseDetail = () => {
               <CardContent className="space-y-4 pt-6">
                 <p className="text-3xl font-bold text-accent">Free</p>
                 {isEnrolled ? (
-                  <Button className="w-full" onClick={() => navigate(`/dashboard/student`)}>
+                  <Button className="w-full" onClick={() => navigate(`/course/${courseId}/learn`)}>
                     Continue Learning
                   </Button>
                 ) : (

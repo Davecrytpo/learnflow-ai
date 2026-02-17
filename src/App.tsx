@@ -13,6 +13,7 @@ import NotFound from "./pages/NotFound";
 import CourseCatalog from "./pages/CourseCatalog";
 import CourseDetail from "./pages/CourseDetail";
 import StudentDashboard from "./pages/student/StudentDashboard";
+import CourseLearning from "./pages/student/CourseLearning";
 import InstructorDashboard from "./pages/instructor/InstructorDashboard";
 import CreateCourse from "./pages/instructor/CreateCourse";
 import EditCourse from "./pages/instructor/EditCourse";
@@ -37,6 +38,7 @@ const App = () => (
           <Route path="/dashboard/*" element={<StudentDashboard />} />
           <Route path="/courses" element={<CourseCatalog />} />
           <Route path="/course/:courseId" element={<CourseDetail />} />
+          <Route path="/course/:courseId/learn" element={<CourseLearning />} />
           <Route path="/instructor" element={<InstructorDashboard />} />
           <Route path="/instructor/courses/new" element={<CreateCourse />} />
           <Route path="/instructor/courses/:courseId" element={<EditCourse />} />
