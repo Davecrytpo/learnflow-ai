@@ -3,13 +3,25 @@ import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import Navbar from "@/components/landing/Navbar";
 import Footer from "@/components/landing/Footer";
-import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Search, BookOpen, Users } from "lucide-react";
+import { Search, BookOpen, Users, Sparkles, GraduationCap } from "lucide-react";
+import { motion } from "framer-motion";
 
 const categories = ["All", "Technology", "Science", "Mathematics", "English/Language Arts", "Social Studies", "Business", "Arts", "Health Sciences", "Engineering", "Other"];
+
+const categoryColors: Record<string, string> = {
+  Technology: "from-primary to-blue-600",
+  Science: "from-emerald-500 to-teal-600",
+  Mathematics: "from-violet-500 to-purple-600",
+  "English/Language Arts": "from-rose-500 to-pink-600",
+  "Social Studies": "from-accent to-orange-500",
+  Business: "from-cyan-500 to-blue-600",
+  Arts: "from-fuchsia-500 to-pink-600",
+  "Health Sciences": "from-green-500 to-emerald-600",
+  Engineering: "from-orange-500 to-red-500",
+};
 
 const CourseCatalog = () => {
   const [courses, setCourses] = useState<any[]>([]);
@@ -39,60 +51,121 @@ const CourseCatalog = () => {
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
-      <main className="container mx-auto px-4 py-12">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-foreground">Course Catalog</h1>
-          <p className="mt-2 text-muted-foreground">Browse all available courses — completely free to enroll.</p>
-        </div>
+      <main>
+        {/* Header */}
+        <section className="relative overflow-hidden border-b border-border pt-32 pb-16">
+          <div className="absolute inset-0 bg-grid-pattern bg-grid opacity-[0.025]" />
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_60%_70%_at_50%_-10%,hsl(213_94%_58%/0.12),transparent)]" />
+          <div className="container relative mx-auto px-4">
+            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="mx-auto max-w-2xl text-center">
+              <p className="text-sm font-semibold uppercase tracking-[0.2em] text-primary">Course Catalog</p>
+              <h1 className="mt-3 font-display text-4xl font-bold tracking-tight text-foreground sm:text-5xl">
+                Explore All Courses
+              </h1>
+              <p className="mt-4 text-lg text-muted-foreground">
+                {courses.length} courses across every subject — completely free to enroll.
+              </p>
+            </motion.div>
 
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-            <Input placeholder="Search courses..." value={search} onChange={(e) => setSearch(e.target.value)} className="pl-10" />
-          </div>
-          <div className="flex flex-wrap gap-2">
-            {categories.map((cat) => (
-              <Button key={cat} size="sm" variant={category === cat ? "default" : "outline"} onClick={() => setCategory(cat)}>
-                {cat}
-              </Button>
-            ))}
-          </div>
-        </div>
-
-        <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {loading
-            ? Array.from({ length: 6 }).map((_, i) => <Skeleton key={i} className="h-64 rounded-lg" />)
-            : filtered.length === 0
-            ? (
-              <div className="col-span-full py-20 text-center">
-                <BookOpen className="mx-auto h-12 w-12 text-muted-foreground/40" />
-                <p className="mt-4 text-muted-foreground">No courses found.</p>
+            {/* Search */}
+            <div className="mx-auto mt-10 max-w-xl">
+              <div className="relative">
+                <Search className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  placeholder="Search courses, topics, instructors..."
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  className="h-13 rounded-xl border-border bg-card pl-11 pr-4 text-sm focus:border-primary"
+                />
               </div>
-            )
-            : filtered.map((course) => (
-              <Link to={`/course/${course.id}`} key={course.id}>
-                <Card className="overflow-hidden transition-all hover:shadow-lg hover:shadow-primary/5 hover:border-primary/20">
-                  <div className="h-36 bg-gradient-to-br from-primary/15 to-accent/15 flex items-center justify-center">
-                    <BookOpen className="h-10 w-10 text-primary/30" />
-                  </div>
-                  <CardContent className="pt-4">
-                    <h3 className="font-semibold text-foreground line-clamp-1">{course.title}</h3>
-                    <p className="mt-1 text-sm text-muted-foreground line-clamp-2">{course.summary || "No description"}</p>
-                    <div className="mt-3 flex items-center justify-between">
-                      <span className="text-xs text-muted-foreground">{course.category || "General"}</span>
-                      <span className="rounded-full bg-accent/10 px-2 py-0.5 text-xs font-medium text-accent">Free</span>
-                    </div>
-                    {course.profiles && (
-                      <div className="mt-2 flex items-center gap-1 text-xs text-muted-foreground">
-                        <Users className="h-3 w-3" />
-                        <span>{course.profiles.display_name || "Instructor"}</span>
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-              </Link>
+            </div>
+          </div>
+        </section>
+
+        <section className="container mx-auto px-4 py-10">
+          {/* Category filters */}
+          <div className="mb-8 flex flex-wrap gap-2">
+            {categories.map((cat) => (
+              <button
+                key={cat}
+                onClick={() => setCategory(cat)}
+                className={`rounded-full border px-4 py-1.5 text-sm font-medium transition-all ${
+                  category === cat
+                    ? "border-primary bg-primary text-primary-foreground"
+                    : "border-border bg-card text-muted-foreground hover:border-primary/40 hover:text-foreground"
+                }`}
+              >
+                {cat}
+              </button>
             ))}
-        </div>
+          </div>
+
+          {/* Course grid */}
+          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            {loading
+              ? Array.from({ length: 8 }).map((_, i) => <Skeleton key={i} className="h-72 rounded-2xl" />)
+              : filtered.length === 0
+              ? (
+                <div className="col-span-full flex flex-col items-center py-24 text-center">
+                  <div className="flex h-16 w-16 items-center justify-center rounded-2xl border border-border bg-card">
+                    <BookOpen className="h-8 w-8 text-muted-foreground/40" />
+                  </div>
+                  <p className="mt-4 font-display text-lg font-semibold text-foreground">No courses found</p>
+                  <p className="mt-1 text-sm text-muted-foreground">Try a different search or category</p>
+                </div>
+              )
+              : filtered.map((course, i) => {
+                const gradColor = categoryColors[course.category] || "from-primary to-blue-600";
+                return (
+                  <motion.div
+                    key={course.id}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: i * 0.04 }}
+                  >
+                    <Link to={`/course/${course.id}`} className="group block overflow-hidden rounded-2xl border border-border bg-card transition-all duration-300 hover:border-primary/40 hover:shadow-xl hover:shadow-primary/5">
+                      {/* Cover */}
+                      <div className={`relative h-40 bg-gradient-to-br ${gradColor} overflow-hidden`}>
+                        <div className="absolute inset-0 bg-grid-pattern bg-grid opacity-10" />
+                        <div className="absolute bottom-3 left-3">
+                          <span className="rounded-md border border-white/20 bg-black/30 px-2.5 py-1 text-xs font-medium text-white backdrop-blur-sm">
+                            {course.category || "General"}
+                          </span>
+                        </div>
+                        <div className="absolute right-3 top-3">
+                          <span className="rounded-md border border-white/20 bg-black/20 px-2.5 py-1 text-xs font-medium text-white backdrop-blur-sm">
+                            Free
+                          </span>
+                        </div>
+                        <GraduationCap className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 h-12 w-12 text-white/10" />
+                      </div>
+
+                      {/* Content */}
+                      <div className="p-4">
+                        <h3 className="font-display font-semibold text-foreground line-clamp-2 group-hover:text-primary transition-colors">{course.title}</h3>
+                        <p className="mt-1.5 text-sm text-muted-foreground line-clamp-2">{course.summary || "No description"}</p>
+                        {course.profiles && (
+                          <div className="mt-3 flex items-center gap-1.5 text-xs text-muted-foreground">
+                            <div className="flex h-5 w-5 items-center justify-center rounded-full bg-primary/10 text-[9px] font-bold text-primary">
+                              {(course.profiles.display_name || "I").charAt(0)}
+                            </div>
+                            <span>{course.profiles.display_name || "Instructor"}</span>
+                          </div>
+                        )}
+                        <div className="mt-3 flex items-center justify-between">
+                          <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                            <Sparkles className="h-3 w-3 text-accent" />
+                            <span>Includes certificate</span>
+                          </div>
+                          <span className="text-xs font-semibold text-primary group-hover:underline">View →</span>
+                        </div>
+                      </div>
+                    </Link>
+                  </motion.div>
+                );
+              })}
+          </div>
+        </section>
       </main>
       <Footer />
     </div>

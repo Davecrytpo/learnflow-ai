@@ -8,75 +8,80 @@ import { motion } from "framer-motion";
 import { BookOpen, ClipboardCheck, Award, ArrowRight } from "lucide-react";
 import { Link } from "react-router-dom";
 
-const HowItWorks = () => {
-  const steps = [
-    { icon: BookOpen, title: "Create or Enroll", description: "Instructors create structured courses with modules and lessons. Students browse and enroll for free.", color: "bg-primary/10 text-primary" },
-    { icon: ClipboardCheck, title: "Learn & Assess", description: "Complete lessons, take quizzes and exams. Track your progress in real-time from your personal dashboard.", color: "bg-accent/10 text-accent" },
-    { icon: Award, title: "Earn Certificates", description: "Complete all course requirements and receive a verifiable digital certificate of achievement.", color: "bg-primary/10 text-primary" },
-  ];
+const steps = [
+  { icon: BookOpen, step: "01", title: "Enroll or Create", description: "Students browse and enroll for free. Instructors build structured courses with modules, lessons, and rich media.", color: "from-primary to-blue-600" },
+  { icon: ClipboardCheck, step: "02", title: "Learn & Assess", description: "Work through lessons, take exercises and quizzes, sit for tests and final examinations — all tracked in real-time.", color: "from-accent to-orange-500" },
+  { icon: Award, step: "03", title: "Earn & Verify", description: "Complete all requirements and receive a digitally-signed certificate with a unique verification ID.", color: "from-violet-500 to-purple-600" },
+];
 
-  return (
-    <section className="border-t border-border py-28">
-      <div className="container mx-auto px-4">
-        <motion.div
-          initial={{ opacity: 0, y: 24 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          className="mx-auto max-w-2xl text-center"
-        >
-          <h2 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">How it works</h2>
-          <p className="mt-4 text-lg text-muted-foreground">Three simple steps to get started</p>
-        </motion.div>
+const HowItWorks = () => (
+  <section className="border-t border-border py-28">
+    <div className="container mx-auto px-4">
+      <motion.div
+        initial={{ opacity: 0, y: 24 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true }}
+        className="mx-auto max-w-2xl text-center"
+      >
+        <p className="text-sm font-semibold uppercase tracking-[0.2em] text-primary">How It Works</p>
+        <h2 className="mt-4 font-display text-4xl font-bold tracking-tight text-foreground sm:text-5xl">
+          Three steps to mastery
+        </h2>
+      </motion.div>
 
-        <div className="mx-auto mt-16 grid max-w-4xl gap-8 md:grid-cols-3">
-          {steps.map((step, i) => (
+      <div className="mx-auto mt-20 max-w-5xl">
+        <div className="relative grid gap-12 md:grid-cols-3">
+          {/* Connecting line */}
+          <div className="absolute left-1/4 right-1/4 top-8 hidden h-px bg-gradient-to-r from-primary/20 via-accent/20 to-violet-500/20 md:block" />
+
+          {steps.map((s, i) => (
             <motion.div
-              key={step.title}
-              initial={{ opacity: 0, y: 24 }}
+              key={s.step}
+              initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              transition={{ delay: i * 0.1 }}
+              transition={{ delay: i * 0.12 }}
               className="relative text-center"
             >
-              {i < steps.length - 1 && (
-                <ArrowRight className="absolute -right-6 top-8 hidden h-5 w-5 text-border md:block" />
-              )}
-              <div className={`mx-auto flex h-16 w-16 items-center justify-center rounded-2xl ${step.color.split(" ")[0]}`}>
-                <step.icon className={`h-7 w-7 ${step.color.split(" ")[1]}`} />
+              <div className={`mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br ${s.color} shadow-xl`}>
+                <s.icon className="h-7 w-7 text-primary-foreground" />
               </div>
-              <div className="mx-auto mt-2 flex h-7 w-7 items-center justify-center rounded-full bg-foreground text-xs font-bold text-background">
+              <div className="absolute -top-2 left-1/2 -translate-x-1/2 flex h-6 w-6 items-center justify-center rounded-full bg-card border border-border text-[10px] font-bold text-muted-foreground">
                 {i + 1}
               </div>
-              <h3 className="mt-4 text-lg font-semibold text-foreground">{step.title}</h3>
-              <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{step.description}</p>
+              <h3 className="mt-5 font-display text-xl font-bold text-foreground">{s.title}</h3>
+              <p className="mt-3 text-sm leading-relaxed text-muted-foreground">{s.description}</p>
             </motion.div>
           ))}
         </div>
 
-        <div className="mt-12 text-center">
-          <Link to="/signup" className="inline-flex items-center gap-2 text-sm font-medium text-primary hover:underline">
-            Get started now <ArrowRight className="h-3.5 w-3.5" />
+        <motion.div
+          initial={{ opacity: 0 }}
+          whileInView={{ opacity: 1 }}
+          viewport={{ once: true }}
+          className="mt-14 text-center"
+        >
+          <Link to="/signup" className="inline-flex items-center gap-2 text-sm font-semibold text-primary transition-colors hover:text-primary/80">
+            Begin your journey <ArrowRight className="h-4 w-4" />
           </Link>
-        </div>
+        </motion.div>
       </div>
-    </section>
-  );
-};
-
-const Index = () => {
-  return (
-    <div className="min-h-screen bg-background">
-      <Navbar />
-      <main>
-        <Hero />
-        <Features />
-        <HowItWorks />
-        <Testimonials />
-        <CTA />
-      </main>
-      <Footer />
     </div>
-  );
-};
+  </section>
+);
+
+const Index = () => (
+  <div className="min-h-screen bg-background">
+    <Navbar />
+    <main>
+      <Hero />
+      <Features />
+      <HowItWorks />
+      <Testimonials />
+      <CTA />
+    </main>
+    <Footer />
+  </div>
+);
 
 export default Index;

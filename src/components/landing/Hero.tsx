@@ -1,220 +1,190 @@
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Sparkles, BookOpen, Users, Award, Shield, CheckCircle, Play } from "lucide-react";
+import { ArrowRight, Zap, BookOpen, Users, Award, GraduationCap, TrendingUp, Shield } from "lucide-react";
 import { motion } from "framer-motion";
+
+const statsItems = [
+  { value: "50K+", label: "Active Learners" },
+  { value: "2,800+", label: "Courses Published" },
+  { value: "98%", label: "Completion Rate" },
+  { value: "120+", label: "Institutions" },
+];
 
 const Hero = () => {
   return (
-    <section className="relative overflow-hidden bg-background">
-      {/* Layered background */}
-      <div className="absolute inset-0">
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_60%_50%_at_20%_-10%,hsl(220_90%_53%/0.15),transparent_60%)]" />
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_50%_60%_at_80%_110%,hsl(168_76%_42%/0.10),transparent_60%)]" />
-        <div className="absolute inset-0 bg-[linear-gradient(180deg,transparent_0%,hsl(var(--background))_100%)]" />
-        {/* Grid pattern */}
-        <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg width=\'60\' height=\'60\' viewBox=\'0 0 60 60\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cg fill=\'none\' fill-rule=\'evenodd\'%3E%3Cg fill=\'%23000\' fill-opacity=\'1\'%3E%3Cpath d=\'M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z\'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")' }} />
-      </div>
+    <section className="relative min-h-screen overflow-hidden bg-background pt-20">
+      {/* Background layers */}
+      <div className="absolute inset-0 bg-grid-pattern bg-grid opacity-[0.035]" />
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_50%_at_50%_-20%,hsl(213_94%_58%/0.18),transparent)]" />
+      <div className="absolute bottom-0 left-0 right-0 h-1/2 bg-[radial-gradient(ellipse_60%_80%_at_50%_120%,hsl(250_84%_64%/0.10),transparent)]" />
 
-      <div className="container relative mx-auto px-4 pb-20 pt-16 md:pb-32 md:pt-24 lg:pb-40 lg:pt-32">
-        <div className="grid items-center gap-16 lg:grid-cols-2">
-          {/* Left — Content */}
-          <div className="max-w-xl">
-            <motion.div
-              initial={{ opacity: 0, y: 24 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5 }}
-            >
-              <div className="mb-8 inline-flex items-center gap-2 rounded-full border border-accent/20 bg-accent/5 px-4 py-2 text-sm font-medium text-accent">
-                <Sparkles className="h-3.5 w-3.5" />
-                100% Free for Students & Educators
-              </div>
-            </motion.div>
-
-            <motion.h1
-              initial={{ opacity: 0, y: 24 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.08 }}
-              className="text-4xl font-extrabold leading-[1.1] tracking-tight text-foreground sm:text-5xl lg:text-[3.5rem]"
-            >
-              The Modern{" "}
-              <span className="relative">
-                <span className="bg-gradient-to-r from-primary via-primary/90 to-accent bg-clip-text text-transparent">
-                  Learning Platform
-                </span>
-                <svg className="absolute -bottom-2 left-0 w-full" viewBox="0 0 300 12" fill="none">
-                  <path d="M2 8C50 2 100 2 150 6C200 10 250 4 298 8" stroke="hsl(168 76% 42%)" strokeWidth="3" strokeLinecap="round" opacity="0.3" />
-                </svg>
-              </span>
-              <br />
-              Built for Results
-            </motion.h1>
-
-            <motion.p
-              initial={{ opacity: 0, y: 24 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.16 }}
-              className="mt-6 text-lg leading-relaxed text-muted-foreground sm:text-xl"
-            >
-              Create courses, deliver assessments, track progress, and issue certificates — all in one platform designed for K-12 and higher education.
-            </motion.p>
-
-            <motion.div
-              initial={{ opacity: 0, y: 24 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.24 }}
-              className="mt-10 flex flex-col gap-4 sm:flex-row"
-            >
-              <Button size="lg" className="h-14 gap-2 px-8 text-base shadow-xl shadow-primary/20" asChild>
-                <Link to="/signup">
-                  Start Learning Free
-                  <ArrowRight className="h-4 w-4" />
-                </Link>
-              </Button>
-              <Button size="lg" variant="outline" className="h-14 gap-2 px-8 text-base" asChild>
-                <Link to="/signup?role=instructor">
-                  <Play className="h-4 w-4" />
-                  Become an Instructor
-                </Link>
-              </Button>
-            </motion.div>
-
-            {/* Trust indicators */}
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 0.6, delay: 0.5 }}
-              className="mt-12 grid grid-cols-2 gap-4 sm:grid-cols-4"
-            >
-              {[
-                { label: "Active Learners", value: "10K+", icon: Users },
-                { label: "Courses", value: "500+", icon: BookOpen },
-                { label: "Certificates", value: "25K+", icon: Award },
-                { label: "US Standards", value: "100%", icon: Shield },
-              ].map((stat) => (
-                <div key={stat.label} className="text-center">
-                  <stat.icon className="mx-auto h-4 w-4 text-accent" />
-                  <p className="mt-1 text-xl font-bold text-foreground">{stat.value}</p>
-                  <p className="text-xs text-muted-foreground">{stat.label}</p>
-                </div>
-              ))}
-            </motion.div>
+      <div className="container relative mx-auto px-4 py-24 md:py-32 lg:py-40">
+        {/* Top badge */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4 }}
+          className="flex justify-center"
+        >
+          <div className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-5 py-2 text-sm font-medium text-primary">
+            <Zap className="h-3.5 w-3.5 fill-primary" />
+            The Future of Education is Here — 100% Free
           </div>
+        </motion.div>
 
-          {/* Right — Interactive dashboard mockup */}
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95, y: 20 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.3 }}
-            className="relative hidden lg:block"
-          >
-            <div className="relative">
-              {/* Glow behind card */}
-              <div className="absolute -inset-8 rounded-3xl bg-gradient-to-br from-primary/20 via-transparent to-accent/20 blur-3xl" />
+        {/* Main headline */}
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.1 }}
+          className="mx-auto mt-8 max-w-5xl text-center"
+        >
+          <h1 className="font-display text-5xl font-bold leading-[1.05] tracking-tight text-foreground sm:text-6xl lg:text-7xl xl:text-8xl">
+            Where Knowledge{" "}
+            <span className="relative inline-block">
+              <span className="bg-gradient-to-r from-primary via-blue-400 to-violet-400 bg-clip-text text-transparent">
+                Transforms
+              </span>
+            </span>
+            <br />
+            Into Excellence
+          </h1>
+          <p className="mx-auto mt-8 max-w-2xl text-lg leading-relaxed text-muted-foreground sm:text-xl">
+            MERIDIAN is the enterprise-grade learning management system built for modern education institutions — from K-12 classrooms to universities. Create, teach, assess, and certify.
+          </p>
+        </motion.div>
 
-              {/* Main dashboard card */}
-              <div className="relative rounded-2xl border border-border bg-card shadow-2xl">
-                {/* Header bar */}
-                <div className="flex items-center gap-2 border-b border-border px-5 py-3">
-                  <div className="flex gap-1.5">
-                    <div className="h-3 w-3 rounded-full bg-destructive/60" />
-                    <div className="h-3 w-3 rounded-full bg-accent/60" />
-                    <div className="h-3 w-3 rounded-full bg-primary/60" />
-                  </div>
-                  <div className="ml-4 flex-1 rounded-md bg-secondary px-3 py-1 text-center text-xs text-muted-foreground">
-                    classroom.edu/dashboard
-                  </div>
+        {/* CTA buttons */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.25 }}
+          className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row"
+        >
+          <Button size="lg" className="h-14 gap-2 bg-gradient-brand px-10 text-base font-semibold text-primary-foreground shadow-xl shadow-primary/30 hover:opacity-90" asChild>
+            <Link to="/signup">
+              Start for Free
+              <ArrowRight className="h-4 w-4" />
+            </Link>
+          </Button>
+          <Button size="lg" variant="outline" className="h-14 gap-2 border-border px-10 text-base font-medium hover:bg-secondary/60" asChild>
+            <Link to="/courses">
+              <BookOpen className="h-4 w-4" />
+              Browse Courses
+            </Link>
+          </Button>
+        </motion.div>
+
+        {/* Stats bar */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.6, delay: 0.5 }}
+          className="mx-auto mt-20 grid max-w-3xl grid-cols-2 gap-px overflow-hidden rounded-2xl border border-border bg-border md:grid-cols-4"
+        >
+          {statsItems.map((s) => (
+            <div key={s.label} className="flex flex-col items-center justify-center bg-card px-6 py-6 text-center">
+              <p className="font-display text-2xl font-bold text-foreground sm:text-3xl">{s.value}</p>
+              <p className="mt-1 text-xs text-muted-foreground">{s.label}</p>
+            </div>
+          ))}
+        </motion.div>
+
+        {/* Dashboard visual */}
+        <motion.div
+          initial={{ opacity: 0, y: 60 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.9, delay: 0.4 }}
+          className="relative mx-auto mt-20 max-w-5xl"
+        >
+          {/* Glow */}
+          <div className="absolute -inset-x-20 -top-10 h-60 bg-gradient-to-r from-primary/20 via-violet-500/10 to-primary/20 blur-3xl" />
+
+          <div className="relative overflow-hidden rounded-2xl border border-border/60 bg-card shadow-2xl shadow-primary/10">
+            {/* App bar */}
+            <div className="flex items-center gap-2 border-b border-border bg-background/40 px-5 py-3.5">
+              <div className="flex gap-1.5">
+                <div className="h-3 w-3 rounded-full bg-destructive/70" />
+                <div className="h-3 w-3 rounded-full bg-accent/70" />
+                <div className="h-3 w-3 rounded-full bg-primary/70" />
+              </div>
+              <div className="mx-auto w-64 rounded-md bg-secondary/60 px-3 py-1 text-center text-xs text-muted-foreground">
+                meridian.edu/dashboard/student
+              </div>
+            </div>
+
+            {/* Dashboard content mockup */}
+            <div className="grid gap-0 md:grid-cols-[220px_1fr]">
+              {/* Sidebar */}
+              <div className="hidden border-r border-border bg-sidebar p-4 md:block">
+                <div className="mb-4 flex items-center gap-2 px-2">
+                  <div className="h-7 w-7 rounded-md bg-gradient-brand" />
+                  <span className="font-display text-sm font-bold text-foreground">MERIDIAN</span>
                 </div>
-
-                <div className="p-6">
-                  {/* Mini stats row */}
-                  <div className="grid grid-cols-3 gap-3">
-                    {[
-                      { label: "In Progress", value: "4", color: "text-primary" },
-                      { label: "Completed", value: "12", color: "text-accent" },
-                      { label: "Certificates", value: "8", color: "text-accent" },
-                    ].map((s) => (
-                      <div key={s.label} className="rounded-xl border border-border bg-background p-3 text-center">
-                        <p className={`text-2xl font-bold ${s.color}`}>{s.value}</p>
-                        <p className="text-[10px] text-muted-foreground">{s.label}</p>
-                      </div>
-                    ))}
+                {["Dashboard", "My Courses", "Assessments", "Certificates", "Notifications"].map((item, i) => (
+                  <div key={item} className={`flex items-center gap-2 rounded-lg px-2.5 py-2 text-xs ${i === 0 ? "bg-primary/10 text-primary font-medium" : "text-muted-foreground"}`}>
+                    <div className="h-1.5 w-1.5 rounded-full bg-current" />
+                    {item}
                   </div>
-
-                  {/* Course progress items */}
-                  <div className="mt-5 space-y-3">
-                    <p className="text-xs font-semibold text-foreground">Continue Learning</p>
-                    {[
-                      { title: "Introduction to Computer Science", progress: 87, cat: "CS" },
-                      { title: "Advanced Mathematics", progress: 64, cat: "Math" },
-                      { title: "English Literature", progress: 95, cat: "ELA" },
-                    ].map((course) => (
-                      <div key={course.title} className="rounded-lg border border-border bg-background p-3">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-2">
-                            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10 text-[10px] font-bold text-primary">
-                              {course.cat}
-                            </div>
-                            <div>
-                              <p className="text-xs font-medium text-foreground">{course.title}</p>
-                              <p className="text-[10px] text-muted-foreground">{course.progress}% complete</p>
-                            </div>
-                          </div>
-                          <CheckCircle className={`h-4 w-4 ${course.progress > 80 ? "text-accent" : "text-muted-foreground/30"}`} />
-                        </div>
-                        <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-secondary">
-                          <motion.div
-                            initial={{ width: 0 }}
-                            animate={{ width: `${course.progress}%` }}
-                            transition={{ duration: 1.2, delay: 0.8 }}
-                            className="h-full rounded-full bg-gradient-to-r from-primary to-accent"
-                          />
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
+                ))}
               </div>
 
-              {/* Floating certificate badge */}
-              <motion.div
-                initial={{ opacity: 0, x: 20, y: -10 }}
-                animate={{ opacity: 1, x: 0, y: 0 }}
-                transition={{ duration: 0.6, delay: 1.2 }}
-                className="absolute -right-6 -top-4 rounded-xl border border-border bg-card p-3 shadow-xl"
-              >
-                <div className="flex items-center gap-2">
-                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-accent/10">
-                    <Award className="h-4 w-4 text-accent" />
-                  </div>
+              {/* Main area */}
+              <div className="p-6">
+                <div className="mb-4 flex items-center justify-between">
                   <div>
-                    <p className="text-xs font-bold text-foreground">Certificate Earned!</p>
-                    <p className="text-[10px] text-muted-foreground">Web Development</p>
+                    <p className="font-display text-base font-bold text-foreground">Welcome back, Alex</p>
+                    <p className="text-xs text-muted-foreground">You have 3 pending assessments</p>
                   </div>
+                  <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-brand text-xs font-bold text-primary-foreground">A</div>
                 </div>
-              </motion.div>
 
-              {/* Floating active users */}
-              <motion.div
-                initial={{ opacity: 0, x: -20, y: 10 }}
-                animate={{ opacity: 1, x: 0, y: 0 }}
-                transition={{ duration: 0.6, delay: 1.4 }}
-                className="absolute -bottom-4 -left-6 rounded-xl border border-border bg-card p-3 shadow-xl"
-              >
-                <div className="flex items-center gap-2">
-                  <div className="flex -space-x-2">
-                    {["bg-primary", "bg-accent", "bg-primary/70"].map((bg, i) => (
-                      <div key={i} className={`h-6 w-6 rounded-full ${bg} border-2 border-card`} />
-                    ))}
-                  </div>
-                  <div>
-                    <p className="text-xs font-bold text-foreground">2,847 online</p>
-                    <p className="text-[10px] text-muted-foreground">Students active now</p>
-                  </div>
+                <div className="mb-4 grid grid-cols-3 gap-3">
+                  {[
+                    { label: "Courses", val: "4", icon: BookOpen, color: "text-primary", bg: "bg-primary/10" },
+                    { label: "Progress", val: "78%", icon: TrendingUp, color: "text-accent", bg: "bg-accent/10" },
+                    { label: "Certs", val: "3", icon: Award, color: "text-violet-400", bg: "bg-violet-400/10" },
+                  ].map((s) => (
+                    <div key={s.label} className="rounded-xl border border-border bg-secondary/30 p-3">
+                      <div className={`flex h-7 w-7 items-center justify-center rounded-lg ${s.bg}`}>
+                        <s.icon className={`h-3.5 w-3.5 ${s.color}`} />
+                      </div>
+                      <p className="mt-2 font-display text-lg font-bold text-foreground">{s.val}</p>
+                      <p className="text-[10px] text-muted-foreground">{s.label}</p>
+                    </div>
+                  ))}
                 </div>
-              </motion.div>
+
+                <p className="mb-2 text-xs font-semibold text-foreground">Continue Learning</p>
+                <div className="space-y-2">
+                  {[
+                    { name: "Advanced Calculus", pct: 72, cat: "Math" },
+                    { name: "Computer Science Fundamentals", pct: 45, cat: "CS" },
+                    { name: "World History", pct: 89, cat: "History" },
+                  ].map((c) => (
+                    <div key={c.name} className="flex items-center gap-3 rounded-lg border border-border bg-secondary/20 p-2.5">
+                      <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-primary/10 text-[9px] font-bold text-primary">{c.cat}</div>
+                      <div className="flex-1 min-w-0">
+                        <p className="truncate text-xs font-medium text-foreground">{c.name}</p>
+                        <div className="mt-1 flex items-center gap-2">
+                          <div className="h-1 flex-1 overflow-hidden rounded-full bg-secondary">
+                            <motion.div
+                              initial={{ width: 0 }}
+                              animate={{ width: `${c.pct}%` }}
+                              transition={{ duration: 1.2, delay: 1 }}
+                              className="h-full rounded-full bg-gradient-brand"
+                            />
+                          </div>
+                          <span className="text-[9px] text-muted-foreground">{c.pct}%</span>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
             </div>
-          </motion.div>
-        </div>
+          </div>
+        </motion.div>
       </div>
     </section>
   );

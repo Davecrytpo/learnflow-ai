@@ -1,71 +1,76 @@
 import { Link } from "react-router-dom";
-import { GraduationCap, Github, Twitter, Linkedin } from "lucide-react";
+import { Github, Twitter, Linkedin, Youtube } from "lucide-react";
 
-const Footer = () => {
-  return (
-    <footer className="border-t border-border bg-card/50">
-      <div className="container mx-auto px-4 py-16">
-        <div className="grid gap-10 md:grid-cols-2 lg:grid-cols-4">
-          {/* Brand */}
-          <div className="lg:col-span-1">
-            <Link to="/" className="flex items-center gap-2.5">
-              <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br from-primary to-accent shadow-md">
-                <GraduationCap className="h-5 w-5 text-primary-foreground" />
-              </div>
-              <span className="text-lg font-bold text-foreground">Classroom</span>
-            </Link>
-            <p className="mt-4 max-w-xs text-sm leading-relaxed text-muted-foreground">
-              A comprehensive, free learning management system designed for modern education and built to US educational standards.
-            </p>
-            <div className="mt-6 flex gap-3">
-              {[Github, Twitter, Linkedin].map((Icon, i) => (
-                <a key={i} href="#" className="flex h-9 w-9 items-center justify-center rounded-lg border border-border bg-background text-muted-foreground transition-colors hover:border-primary/30 hover:text-foreground">
-                  <Icon className="h-4 w-4" />
-                </a>
-              ))}
+const Footer = () => (
+  <footer className="relative border-t border-border bg-background">
+    <div className="container mx-auto px-4 py-16">
+      <div className="grid gap-10 lg:grid-cols-5">
+        {/* Brand col */}
+        <div className="lg:col-span-2">
+          <Link to="/" className="flex items-center gap-3">
+            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-brand shadow-md shadow-primary/20">
+              <svg className="h-5 w-5 text-primary-foreground" viewBox="0 0 24 24" fill="none">
+                <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
             </div>
-          </div>
-
-          {/* Platform */}
-          <div>
-            <h4 className="text-sm font-semibold text-foreground">Platform</h4>
-            <ul className="mt-4 space-y-3">
-              <li><Link to="/courses" className="text-sm text-muted-foreground transition-colors hover:text-foreground">Course Catalog</Link></li>
-              <li><a href="/#features" className="text-sm text-muted-foreground transition-colors hover:text-foreground">Features</a></li>
-              <li><Link to="/about" className="text-sm text-muted-foreground transition-colors hover:text-foreground">About Us</Link></li>
-            </ul>
-          </div>
-
-          {/* Get Started */}
-          <div>
-            <h4 className="text-sm font-semibold text-foreground">Get Started</h4>
-            <ul className="mt-4 space-y-3">
-              <li><Link to="/signup" className="text-sm text-muted-foreground transition-colors hover:text-foreground">Student Signup</Link></li>
-              <li><Link to="/signup?role=instructor" className="text-sm text-muted-foreground transition-colors hover:text-foreground">Instructor Registration</Link></li>
-              <li><Link to="/login" className="text-sm text-muted-foreground transition-colors hover:text-foreground">Sign In</Link></li>
-            </ul>
-          </div>
-
-          {/* Legal */}
-          <div>
-            <h4 className="text-sm font-semibold text-foreground">Legal</h4>
-            <ul className="mt-4 space-y-3">
-              <li><a href="#" className="text-sm text-muted-foreground transition-colors hover:text-foreground">Privacy Policy</a></li>
-              <li><a href="#" className="text-sm text-muted-foreground transition-colors hover:text-foreground">Terms of Service</a></li>
-              <li><a href="#" className="text-sm text-muted-foreground transition-colors hover:text-foreground">Accessibility</a></li>
-            </ul>
+            <span className="font-display text-lg font-bold tracking-tight text-foreground">MERIDIAN</span>
+          </Link>
+          <p className="mt-4 max-w-xs text-sm leading-relaxed text-muted-foreground">
+            The enterprise-grade LMS built for modern education. Free for every student, every instructor, every institution.
+          </p>
+          <div className="mt-6 flex gap-3">
+            {[Github, Twitter, Linkedin, Youtube].map((Icon, i) => (
+              <a
+                key={i}
+                href="#"
+                className="flex h-9 w-9 items-center justify-center rounded-lg border border-border text-muted-foreground transition-all hover:border-primary/40 hover:text-primary"
+              >
+                <Icon className="h-4 w-4" />
+              </a>
+            ))}
           </div>
         </div>
 
-        <div className="mt-16 flex flex-col items-center justify-between gap-4 border-t border-border pt-8 sm:flex-row">
-          <p className="text-sm text-muted-foreground">
-            © {new Date().getFullYear()} Classroom LMS. All rights reserved.
-          </p>
-          <p className="text-sm text-muted-foreground">Free for educational use worldwide.</p>
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-[0.15em] text-foreground">Platform</p>
+          <ul className="mt-4 space-y-3">
+            {[["Course Catalog", "/courses"], ["Features", "/#features"], ["About", "/about"]].map(([label, href]) => (
+              <li key={label}>
+                <Link to={href} className="text-sm text-muted-foreground transition-colors hover:text-foreground">{label}</Link>
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-[0.15em] text-foreground">Get Started</p>
+          <ul className="mt-4 space-y-3">
+            {[["Student Signup", "/signup"], ["Instructor Registration", "/signup?role=instructor"], ["Sign In", "/login"]].map(([label, href]) => (
+              <li key={label}>
+                <Link to={href} className="text-sm text-muted-foreground transition-colors hover:text-foreground">{label}</Link>
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-[0.15em] text-foreground">Legal</p>
+          <ul className="mt-4 space-y-3">
+            {["Privacy Policy", "Terms of Service", "Accessibility Statement", "FERPA Compliance"].map((item) => (
+              <li key={item}>
+                <a href="#" className="text-sm text-muted-foreground transition-colors hover:text-foreground">{item}</a>
+              </li>
+            ))}
+          </ul>
         </div>
       </div>
-    </footer>
-  );
-};
+
+      <div className="mt-16 flex flex-col items-center justify-between gap-4 border-t border-border pt-8 sm:flex-row">
+        <p className="text-sm text-muted-foreground">© {new Date().getFullYear()} MERIDIAN LMS. All rights reserved.</p>
+        <p className="text-sm text-muted-foreground">Free for educational use worldwide · Built with ❤️ for educators</p>
+      </div>
+    </div>
+  </footer>
+);
 
 export default Footer;

@@ -1,54 +1,77 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Menu, X, GraduationCap } from "lucide-react";
+import { Menu, X } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 
 const Navbar = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 20);
+    window.addEventListener("scroll", onScroll);
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/80 backdrop-blur-xl supports-[backdrop-filter]:bg-background/60">
-      <nav className="container mx-auto flex h-16 items-center justify-between px-4">
-        <Link to="/" className="flex items-center gap-2.5">
-          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br from-primary to-accent shadow-md shadow-primary/20">
-            <GraduationCap className="h-5 w-5 text-primary-foreground" />
+    <header className={`fixed top-0 z-50 w-full transition-all duration-300 ${scrolled ? "bg-background/90 backdrop-blur-xl border-b border-border/50" : "bg-transparent"}`}>
+      <nav className="container mx-auto flex h-18 items-center justify-between px-4 py-4">
+        {/* Logo */}
+        <Link to="/" className="flex items-center gap-3 group">
+          <div className="relative flex h-9 w-9 items-center justify-center">
+            <div className="absolute inset-0 rounded-lg bg-gradient-brand opacity-90" />
+            <div className="absolute inset-0 rounded-lg bg-gradient-brand opacity-0 blur-md transition-opacity group-hover:opacity-60" />
+            <svg className="relative h-5 w-5 text-primary-foreground" viewBox="0 0 24 24" fill="none">
+              <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
           </div>
-          <span className="text-xl font-bold tracking-tight text-foreground">Classroom</span>
+          <span className="font-display text-xl font-bold tracking-tight text-foreground">
+            MERIDIAN
+          </span>
         </Link>
 
-        <div className="hidden items-center gap-8 md:flex">
+        {/* Desktop nav */}
+        <div className="hidden items-center gap-10 md:flex">
           <Link to="/courses" className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground">Courses</Link>
           <a href="/#features" className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground">Features</a>
           <Link to="/about" className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground">About</Link>
         </div>
 
         <div className="hidden items-center gap-3 md:flex">
-          <Button variant="ghost" className="text-sm" asChild>
-            <Link to="/login">Log in</Link>
+          <Button variant="ghost" className="text-muted-foreground hover:text-foreground" asChild>
+            <Link to="/login">Sign in</Link>
           </Button>
-          <Button asChild className="shadow-md shadow-primary/20">
+          <Button className="bg-gradient-brand font-semibold text-primary-foreground shadow-lg shadow-primary/20 hover:opacity-90" asChild>
             <Link to="/signup">Get Started Free</Link>
           </Button>
         </div>
 
-        <button className="md:hidden" onClick={() => setMobileOpen(!mobileOpen)}>
+        <button className="md:hidden text-foreground" onClick={() => setMobileOpen(!mobileOpen)}>
           {mobileOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
         </button>
       </nav>
 
-      {mobileOpen && (
-        <div className="border-t border-border bg-background px-4 pb-6 pt-4 md:hidden">
-          <div className="flex flex-col gap-4">
-            <Link to="/courses" className="text-sm font-medium text-muted-foreground" onClick={() => setMobileOpen(false)}>Courses</Link>
-            <a href="/#features" className="text-sm font-medium text-muted-foreground" onClick={() => setMobileOpen(false)}>Features</a>
-            <Link to="/about" className="text-sm font-medium text-muted-foreground" onClick={() => setMobileOpen(false)}>About</Link>
-            <div className="flex flex-col gap-2 pt-2">
-              <Button variant="outline" asChild><Link to="/login">Log in</Link></Button>
-              <Button asChild><Link to="/signup">Get Started Free</Link></Button>
+      <AnimatePresence>
+        {mobileOpen && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: "auto" }}
+            exit={{ opacity: 0, height: 0 }}
+            className="border-t border-border bg-background/95 backdrop-blur-xl px-4 pb-6 pt-4 md:hidden"
+          >
+            <div className="flex flex-col gap-4">
+              <Link to="/courses" className="text-sm font-medium text-muted-foreground" onClick={() => setMobileOpen(false)}>Courses</Link>
+              <a href="/#features" className="text-sm font-medium text-muted-foreground" onClick={() => setMobileOpen(false)}>Features</a>
+              <Link to="/about" className="text-sm font-medium text-muted-foreground" onClick={() => setMobileOpen(false)}>About</Link>
+              <div className="flex flex-col gap-2 pt-2 border-t border-border">
+                <Button variant="outline" asChild><Link to="/login">Sign in</Link></Button>
+                <Button className="bg-gradient-brand text-primary-foreground" asChild><Link to="/signup">Get Started Free</Link></Button>
+              </div>
             </div>
-          </div>
-        </div>
-      )}
+          </motion.div>
+        )}
+      </AnimatePresence>
     </header>
   );
 };

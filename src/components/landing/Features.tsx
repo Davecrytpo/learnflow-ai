@@ -1,99 +1,70 @@
-import { Sparkles, BarChart3, Award, Users, BookOpen, ClipboardCheck, GraduationCap, Shield } from "lucide-react";
 import { motion } from "framer-motion";
+import { Sparkles, BarChart3, Award, Users, BookOpen, ClipboardCheck, GraduationCap, Shield, Zap, Brain, FileCheck, Globe } from "lucide-react";
 
 const features = [
-  {
-    icon: Sparkles,
-    title: "AI-Powered Content",
-    description: "Generate course outlines, lesson content, and quiz questions with AI assistance.",
-  },
-  {
-    icon: ClipboardCheck,
-    title: "Full Assessment Suite",
-    description: "Exercises, quizzes, tests, and final examinations with auto-grading support.",
-  },
-  {
-    icon: BarChart3,
-    title: "Real-Time Analytics",
-    description: "Track enrollment, progress, completion rates, and performance metrics live.",
-  },
-  {
-    icon: Award,
-    title: "Digital Certificates",
-    description: "Auto-generate verifiable PDF certificates upon course completion.",
-  },
-  {
-    icon: Users,
-    title: "Role-Based Access",
-    description: "Dedicated dashboards for students, instructors, and administrators.",
-  },
-  {
-    icon: BookOpen,
-    title: "Rich Curriculum",
-    description: "Markdown lessons, video embeds, file uploads, and modular course structure.",
-  },
-  {
-    icon: GraduationCap,
-    title: "US Education Standards",
-    description: "Grade levels, subject areas, and institutional tracking for K-12 & higher ed.",
-  },
-  {
-    icon: Shield,
-    title: "Enterprise Security",
-    description: "Row-level security, encrypted data, and comprehensive audit trails.",
-  },
+  { icon: Brain, title: "AI-Powered Creation", description: "Generate complete course outlines, lesson content, and assessments with built-in AI assistance.", tag: "AI" },
+  { icon: ClipboardCheck, title: "Full Assessment Suite", description: "Exercises, quizzes, tests, and final exams. Auto-grade MCQ or manually review short answers.", tag: "Core" },
+  { icon: BarChart3, title: "Live Analytics", description: "Track student progress, enrollment trends, completion rates, and performance in real time.", tag: "Analytics" },
+  { icon: Award, title: "Digital Certificates", description: "Professionally designed certificates auto-generated upon completion with verifiable IDs.", tag: "Certification" },
+  { icon: Users, title: "Role-Based Access", description: "Separate, purpose-built dashboards for students, instructors, and platform administrators.", tag: "Security" },
+  { icon: BookOpen, title: "Rich Curriculum Builder", description: "Markdown lessons, video embeds, structured modules, and file attachments.", tag: "Content" },
+  { icon: GraduationCap, title: "US Education Standards", description: "Grade levels, subject areas, and institutional tracking for K-12 and higher education.", tag: "Compliance" },
+  { icon: Shield, title: "Enterprise Security", description: "Row-level security, encrypted data storage, role-based permissions, and audit trails.", tag: "Security" },
 ];
 
-const Features = () => {
-  return (
-    <section id="features" className="relative overflow-hidden py-28">
-      {/* Subtle bg */}
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,hsl(220_90%_53%/0.03),transparent_70%)]" />
+const Features = () => (
+  <section id="features" className="relative overflow-hidden border-t border-border py-28">
+    <div className="absolute inset-0 bg-grid-pattern bg-grid opacity-[0.02]" />
 
-      <div className="container relative mx-auto px-4">
-        <motion.div
-          initial={{ opacity: 0, y: 24 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          className="mx-auto max-w-2xl text-center"
-        >
-          <div className="mx-auto mb-4 inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-4 py-1.5 text-sm font-medium text-primary">
-            <Shield className="h-3.5 w-3.5" />
-            Enterprise-Grade Platform
-          </div>
-          <h2 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl lg:text-5xl">
-            Everything your institution needs
-          </h2>
-          <p className="mt-4 text-lg text-muted-foreground">
-            A complete LMS — 100% free for educators and students, with no compromises.
-          </p>
-        </motion.div>
+    <div className="container relative mx-auto px-4">
+      <motion.div
+        initial={{ opacity: 0, y: 24 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true }}
+        className="mx-auto max-w-3xl text-center"
+      >
+        <p className="text-sm font-semibold uppercase tracking-[0.2em] text-primary">Platform Capabilities</p>
+        <h2 className="mt-4 font-display text-4xl font-bold tracking-tight text-foreground sm:text-5xl">
+          Built for the{" "}
+          <span className="bg-gradient-to-r from-primary to-violet-400 bg-clip-text text-transparent">
+            Serious Educator
+          </span>
+        </h2>
+        <p className="mt-5 text-lg text-muted-foreground">
+          Everything you need to deliver world-class education — without the enterprise price tag.
+        </p>
+      </motion.div>
 
-        <div className="mx-auto mt-20 grid max-w-6xl gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {features.map((feature, i) => (
-            <motion.div
-              key={feature.title}
-              initial={{ opacity: 0, y: 24 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.4, delay: i * 0.05 }}
-              className="group relative rounded-2xl border border-border bg-card p-6 transition-all duration-300 hover:border-primary/30 hover:shadow-xl hover:shadow-primary/5"
-            >
-              {/* Gradient hover effect */}
-              <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-primary/5 to-accent/5 opacity-0 transition-opacity group-hover:opacity-100" />
-              <div className="relative">
-                <div className={`mb-4 flex h-12 w-12 items-center justify-center rounded-xl ${i % 2 === 0 ? "bg-primary/10" : "bg-accent/10"}`}>
-                  <feature.icon className={`h-6 w-6 ${i % 2 === 0 ? "text-primary" : "text-accent"}`} />
+      <div className="mx-auto mt-20 grid max-w-6xl gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        {features.map((f, i) => (
+          <motion.div
+            key={f.title}
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.4, delay: i * 0.04 }}
+            className="group relative overflow-hidden rounded-2xl border border-border bg-card p-6 transition-all duration-300 hover:border-primary/40"
+          >
+            {/* Hover glow */}
+            <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-primary/5 to-violet-500/5 opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+
+            <div className="relative">
+              <div className="mb-4 flex items-start justify-between">
+                <div className={`flex h-12 w-12 items-center justify-center rounded-xl border border-border bg-secondary/50`}>
+                  <f.icon className="h-5 w-5 text-primary" />
                 </div>
-                <h3 className="text-base font-semibold text-foreground">{feature.title}</h3>
-                <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{feature.description}</p>
+                <span className="rounded-md border border-border bg-secondary/50 px-2 py-0.5 text-[10px] font-medium text-muted-foreground">
+                  {f.tag}
+                </span>
               </div>
-            </motion.div>
-          ))}
-        </div>
+              <h3 className="font-display text-base font-semibold text-foreground">{f.title}</h3>
+              <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{f.description}</p>
+            </div>
+          </motion.div>
+        ))}
       </div>
-    </section>
-  );
-};
+    </div>
+  </section>
+);
 
 export default Features;
