@@ -6,7 +6,7 @@ import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import InstructorSidebar from "@/components/dashboard/InstructorSidebar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Skeleton } from "@/components/ui/skeleton";
+
 import { BookOpen, Users, ClipboardCheck, PlusCircle } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
 
@@ -71,7 +71,7 @@ const InstructorDashboard = () => {
               <BookOpen className="h-4 w-4 text-primary" />
             </CardHeader>
             <CardContent>
-              {loading ? <Skeleton className="h-8 w-16" /> : <p className="text-2xl font-bold">{courses.length}</p>}
+              {loading ? <div className="h-8 w-16 animate-pulse rounded-md bg-muted" /> : <p className="text-2xl font-bold">{courses.length}</p>}
             </CardContent>
           </Card>
           <Card>
@@ -80,7 +80,7 @@ const InstructorDashboard = () => {
               <Users className="h-4 w-4 text-accent" />
             </CardHeader>
             <CardContent>
-              {loading ? <Skeleton className="h-8 w-16" /> : <p className="text-2xl font-bold">{enrollmentCount}</p>}
+              {loading ? <div className="h-8 w-16 animate-pulse rounded-md bg-muted" /> : <p className="text-2xl font-bold">{enrollmentCount}</p>}
             </CardContent>
           </Card>
           <Card>
@@ -89,7 +89,7 @@ const InstructorDashboard = () => {
               <ClipboardCheck className="h-4 w-4 text-destructive" />
             </CardHeader>
             <CardContent>
-              {loading ? <Skeleton className="h-8 w-16" /> : <p className="text-2xl font-bold">{pendingSubmissions}</p>}
+              {loading ? <div className="h-8 w-16 animate-pulse rounded-md bg-muted" /> : <p className="text-2xl font-bold">{pendingSubmissions}</p>}
             </CardContent>
           </Card>
         </div>
@@ -114,7 +114,7 @@ const InstructorDashboard = () => {
           <h2 className="mb-4 text-lg font-semibold text-foreground">Your Courses</h2>
           {loading ? (
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {[1, 2, 3].map((i) => <Skeleton key={i} className="h-32 rounded-lg" />)}
+              {[1, 2, 3].map((i) => <div key={i} className="h-32 animate-pulse rounded-lg bg-muted" />)}
             </div>
           ) : courses.length === 0 ? (
             <Card className="p-8 text-center">

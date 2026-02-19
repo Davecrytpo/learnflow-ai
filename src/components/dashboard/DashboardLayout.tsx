@@ -1,8 +1,8 @@
 import { ReactNode, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { useAuth } from "@/hooks/useAuth";
-import { useUserRole, AppRole } from "@/hooks/useUserRole";
-import { Loader2, LogOut, Bell } from "lucide-react";
+import { useAuthContext } from "@/contexts/AuthContext";
+import { AppRole } from "@/hooks/useUserRole";
+import { Loader2, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
@@ -14,18 +14,17 @@ interface DashboardLayoutProps {
 }
 
 const DashboardLayout = ({ children, allowedRoles, sidebar }: DashboardLayoutProps) => {
-  const { user, loading: authLoading } = useAuth();
-  const { role, loading: roleLoading } = useUserRole();
+  const { user, role, loading } = useAuthContext();
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (authLoading || roleLoading) return;
-    if (!user) { navigate("/login"); return; }
-    if (!role) { navigate("/onboarding"); return; }
-    if (allowedRoles && !allowedRoles.includes(role)) navigate("/dashboard");
-  }, [user, role, authLoading, roleLoading, navigate, allowedRoles]);
+    if (loading) return;
+    if (!user) { navigate("/login", { replace: true }); return; }
+    if (!role) { navigate("/onboarding", { replace: true }); return; }
+    if (allowedRoles && !allowedRoles.includes(role)) navigate("/dashboard", { replace: true });
+  }, [user, role, loading, navigate, allowedRoles]);
 
-  if (authLoading || roleLoading) {
+  if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background">
         <div className="text-center">
@@ -50,7 +49,6 @@ const DashboardLayout = ({ children, allowedRoles, sidebar }: DashboardLayoutPro
       <div className="flex min-h-screen w-full bg-background">
         {sidebar}
         <div className="flex flex-1 flex-col">
-          {/* Top bar */}
           <header className="flex h-14 items-center gap-3 border-b border-border bg-card/60 px-4 backdrop-blur-sm">
             <SidebarTrigger className="text-muted-foreground hover:text-foreground" />
             <div className="flex-1" />
