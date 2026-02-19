@@ -1,9 +1,11 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { GraduationCap, BookOpen, Users, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/useAuth";
+import { useUserRole } from "@/hooks/useUserRole";
 import { motion } from "framer-motion";
 
 const roles = [
@@ -23,23 +25,31 @@ const roles = [
 
 const Onboarding = () => {
   const [selected, setSelected] = useState<"student" | "instructor" | null>(null);
-  const [loading, setLoading] = useState(false);
+  const [saving, setSaving] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { user, loading: authLoading } = useAuth();
+  const { role, loading: roleLoading } = useUserRole();
+
+  // If user already has a role, redirect them immediately
+  useEffect(() => {
+    if (authLoading || roleLoading) return;
+    if (!user) { navigate("/login"); return; }
+    if (role === "student") navigate("/dashboard/student", { replace: true });
+    else if (role === "instructor") navigate("/instructor", { replace: true });
+    else if (role === "admin") navigate("/admin", { replace: true });
+  }, [user, role, authLoading, roleLoading, navigate]);
 
   const handleContinue = async () => {
-    if (!selected) return;
-    setLoading(true);
+    if (!selected || !user) return;
+    setSaving(true);
 
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) {
-      toast({ title: "Error", description: "Not authenticated", variant: "destructive" });
-      setLoading(false);
-      return;
-    }
+    // Use upsert to handle cases where role might already exist
+    const { error } = await supabase
+      .from("user_roles")
+      .upsert({ user_id: user.id, role: selected }, { onConflict: "user_id,role" });
 
-    const { error } = await supabase.from("user_roles").insert({ user_id: user.id, role: selected });
-    setLoading(false);
+    setSaving(false);
 
     if (error) {
       toast({ title: "Error", description: error.message, variant: "destructive" });
@@ -47,6 +57,14 @@ const Onboarding = () => {
       navigate("/dashboard");
     }
   };
+
+  if (authLoading || roleLoading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
@@ -76,8 +94,8 @@ const Onboarding = () => {
           ))}
         </div>
 
-        <Button onClick={handleContinue} disabled={!selected || loading} className="mt-8 w-full" size="lg">
-          {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+        <Button onClick={handleContinue} disabled={!selected || saving} className="mt-8 w-full" size="lg">
+          {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
           Continue
         </Button>
       </div>

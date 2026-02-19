@@ -11,8 +11,10 @@ const Dashboard = () => {
 
   useEffect(() => {
     if (authLoading || roleLoading) return;
-    if (!user) { navigate("/login"); return; }
-    if (!role) { navigate("/onboarding"); return; }
+    if (!user) { navigate("/login", { replace: true }); return; }
+
+    // Only redirect to onboarding if loading is fully complete and still no role
+    if (!role) { navigate("/onboarding", { replace: true }); return; }
 
     // Redirect to role-specific dashboard
     if (role === "student") navigate("/dashboard/student", { replace: true });
