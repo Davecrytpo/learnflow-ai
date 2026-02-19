@@ -1,142 +1,106 @@
 
+# Fix: Onboarding Loop, Auth Architecture & Full Platform Stability
 
-# Classroom — Professional LMS Platform
+## Root Cause Diagnosis
 
-A full-featured Learning Management System with courses, lessons, assignments, progress tracking, certificates, AI-assisted content creation, and Stripe payments — built with React, Supabase, and Lovable AI.
+The blinking/looping issue has **three compounding problems**:
 
----
+### Problem 1 — Duplicate roles in the database
+The logged-in user has **two rows** in `user_roles`: both `instructor` AND `student`. The `useUserRole` hook queries with `.limit(1)` but **no ORDER BY**, so the database returns a random role on each call. One call returns `instructor` (redirects to `/instructor`), the next call returns `student` (redirects to `/dashboard/student`), causing the infinite flicker.
 
-## Phase 1: Foundation & Authentication
+### Problem 2 — No shared auth state (root architecture issue)
+Every component that uses `useAuth()` or `useUserRole()` creates its **own isolated state and its own Supabase API calls**. When `Onboarding.tsx` mounts, it creates fresh hook instances starting at `loading: true`. `DashboardLayout.tsx` does the same. `Dashboard.tsx` does the same. This means:
+- Multiple simultaneous DB queries for the same user's role
+- Each query can return different results due to timing
+- The loading/loaded states flicker between components independently
 
-### Supabase Setup & Database Schema
-- Set up Supabase with all core tables: profiles, courses, modules, lessons, assignments, submissions, enrollments, certificates, notifications
-- Separate `user_roles` table for role-based access control (Admin, Instructor, Student)
-- Row-Level Security policies for all tables based on user roles
-- Storage buckets for course covers, lesson files, assignment submissions, and certificates
-
-### Authentication System
-- Email/password signup and login
-- Google OAuth integration
-- Role selection during onboarding (Student or Instructor — Admin assigned manually)
-- Protected routes based on authentication and role
-
----
-
-## Phase 2: Public-Facing Pages
-
-### Professional Homepage
-- Hero section with headline: "Teach what you love. Launch courses that work."
-- Feature cards: AI course creation, professional dashboards, certificates & monetization
-- Testimonials section
-- Pricing section (Free, Pro, Enterprise tiers)
-- Call-to-action buttons for signup
-- Responsive footer with links
-
-### Public Course Catalog
-- Browse all published courses with search and filters (category, price, instructor)
-- Course cards showing cover image, title, instructor, price, enrollment count
-- Individual course landing page with curriculum overview, instructor bio, reviews, and enroll/purchase CTA
-
-### Additional Marketing Pages
-- About page
-- Features deep-dive page
-- Pricing page
+### Problem 3 — Redirect chain creates loops
+```text
+/dashboard → (role=null briefly) → /onboarding
+/onboarding → (role=instructor) → /instructor
+/instructor DashboardLayout → (role=student this time) → /dashboard
+/dashboard → (role=null) → /onboarding
+... infinite loop
+```
 
 ---
 
-## Phase 3: Student Dashboard & Experience
+## The Fix Plan
 
-### Student Dashboard
-- Overview: enrolled courses, progress summary, upcoming assignments
-- "Continue Learning" quick-resume button for last active lesson
-- Progress visualization with charts (using Recharts)
-- Notifications feed
+### Step 1 — Clean duplicate roles (Database fix)
+Remove the duplicate role entry for the current user. The user signed up as an instructor, so we remove the `student` role and keep `instructor`. This is a one-time data fix via SQL.
 
-### Course Learning Experience
-- Module/lesson navigation sidebar
-- Lesson content viewer (markdown-rendered content, embedded videos)
-- Lesson completion tracking with progress bar
-- Assignment submission (text entry + file upload to Supabase Storage)
-- View grades and instructor feedback
+### Step 2 — Create a global AuthContext (`src/contexts/AuthContext.tsx`)
+Replace the fragmented `useAuth` + `useUserRole` hook pattern with a single **React Context** that wraps the entire app. This means:
+- Auth state is fetched **once** at app startup
+- All components share the same `user`, `role`, and `loading` values — no race conditions
+- Role is fetched immediately after auth resolves, in sequence
+- Role query includes `ORDER BY created_at ASC LIMIT 1` to always get the first/primary role
 
-### Certificates
-- Auto-generated when course is completed
-- PDF certificate with student name, course title, date, and certificate ID
-- Downloadable from student dashboard
+```text
+App
+└── AuthProvider (one fetch, shared state)
+    ├── Dashboard (reads from context — no extra fetch)
+    ├── Onboarding (reads from context — no extra fetch)  
+    ├── DashboardLayout (reads from context — no extra fetch)
+    └── All other pages
+```
 
----
+### Step 3 — Rewrite `useAuth` and `useUserRole` to use the context
+Both hooks become simple context consumers — they read from the single global store instead of creating their own state. All existing code continues to work because the hook API (`{ user, loading }` and `{ role, loading }`) stays the same.
 
-## Phase 4: Instructor Dashboard & Course Management
+### Step 4 — Fix redirect logic in `Onboarding.tsx` and `Dashboard.tsx`
+- `Onboarding.tsx`: Only show if user is authenticated AND has NO role. If role exists, redirect immediately. If no user, go to login.
+- `Dashboard.tsx`: Pure redirect page — waits for single loading state, then routes once.
+- Add `navigate` with `replace: true` everywhere to prevent back-button loops.
 
-### Instructor Dashboard
-- Overview: total students, active courses, pending assignments to grade
-- Course analytics (enrollment trends, completion rates) with Recharts charts
-- Earnings overview (from paid courses)
+### Step 5 — Add role priority ordering to DB query
+Change the role query to `ORDER BY created_at ASC LIMIT 1` so the first role assigned always wins, making behavior deterministic.
 
-### Course Creation Wizard
-- Step-by-step: Course details → Modules → Lessons → Pricing → Publish
-- Rich text editor for lesson content
-- File/video upload for lesson materials
-- Course cover image upload
-- Draft/publish toggle
-
-### Assignment & Grading
-- Create assignments with due dates and max scores
-- Grading queue: view submissions, provide scores and feedback
-- Student roster per course with progress overview
-
-### AI Content Generation (Lovable AI)
-- Generate course outlines from a topic prompt
-- Draft lesson content from an outline
-- Suggest quiz/assignment questions
-- All AI-generated content appears as editable drafts in the editor
+### Step 6 — Fix the `Skeleton` ref warning in `InstructorDashboard`
+The console shows a React warning: "Function components cannot be given refs" on `Skeleton`. This is caused by passing a `ref` directly to the `Skeleton` component. Fix by wrapping with a `div` or using `forwardRef`.
 
 ---
 
-## Phase 5: Admin Panel
+## Files to Change
 
-### Admin Dashboard
-- Platform metrics: total users, courses, enrollments, revenue
-- User management: search, view, promote/demote roles
-- Course moderation: review, approve, or flag courses
-- Activity feed of recent platform events
-
----
-
-## Phase 6: Payments (Stripe)
-
-### Course Purchases
-- Stripe integration for one-time course purchases
-- Checkout flow on course landing page
-- Webhook handling for payment confirmation → auto-enroll student
-- Purchase history for students
-
-### Instructor Earnings
-- Revenue tracking per course for instructors
-- Earnings dashboard
+| File | Change |
+|------|--------|
+| `src/contexts/AuthContext.tsx` | **NEW** — single source of truth for auth + role state |
+| `src/hooks/useAuth.tsx` | Rewritten to read from context |
+| `src/hooks/useUserRole.tsx` | Rewritten to read from context |
+| `src/App.tsx` | Wrap with `<AuthProvider>` |
+| `src/pages/Onboarding.tsx` | Fix redirect logic, remove redundant loading |
+| `src/pages/Dashboard.tsx` | Simplified redirect logic using shared context |
+| `src/components/dashboard/DashboardLayout.tsx` | Uses shared context, no extra fetches |
+| `src/pages/instructor/InstructorDashboard.tsx` | Fix Skeleton ref warning |
 
 ---
 
-## Phase 7: Notifications & Polish
+## Database Fix (runs first)
 
-### Notification System
-- In-app notifications for: enrollment confirmations, assignment grades, new course content, certificate issued
-- Notification bell with unread count in navbar
-- Mark as read functionality
+```sql
+-- Remove duplicate student role for user who is an instructor
+-- Keep only the earliest assigned role per user
+DELETE FROM user_roles
+WHERE id NOT IN (
+  SELECT DISTINCT ON (user_id) id
+  FROM user_roles
+  ORDER BY user_id, created_at ASC
+);
+```
 
-### UI/UX Polish
-- Skeleton loaders for all data-fetching states
-- Responsive design across mobile, tablet, desktop
-- Consistent design system with professional styling
-- Toast notifications for actions (enroll, submit, grade)
-- Keyboard accessibility and proper focus management
+This ensures every user has exactly one role — whichever they first selected.
 
 ---
 
-## Design Direction
-- Clean, modern, enterprise-grade aesthetic
-- Blue primary (#0F62FF) with teal accent (#00BFA6)
-- Card-based layouts with soft shadows
-- Sidebar navigation for dashboards
-- Inter font for UI, clear typography hierarchy
+## Technical Implementation Detail
 
+The new `AuthContext` will:
+1. Set up `onAuthStateChange` listener FIRST (as required by Supabase best practices)
+2. Call `getSession()` to hydrate immediately
+3. Once `user` is known, fetch the role with `ORDER BY created_at ASC LIMIT 1`
+4. Expose `{ user, role, loading, isAuthLoading, isRoleLoading }` to all consumers
+5. Include a `refreshRole()` function so `Onboarding.tsx` can trigger a re-fetch after saving a new role, instead of navigating to `/dashboard` and hoping for the best
+
+After `handleContinue` saves the role successfully, it will call `refreshRole()` then navigate directly to the correct dashboard — skipping the `/dashboard` redirect entirely.
