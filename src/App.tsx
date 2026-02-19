@@ -3,6 +3,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { AuthProvider } from "@/contexts/AuthContext";
 import Index from "./pages/Index";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
@@ -28,27 +29,29 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/signup" element={<Signup />} />
-          <Route path="/onboarding" element={<Onboarding />} />
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/dashboard/student" element={<StudentDashboard />} />
-          <Route path="/dashboard/*" element={<StudentDashboard />} />
-          <Route path="/courses" element={<CourseCatalog />} />
-          <Route path="/course/:courseId" element={<CourseDetail />} />
-          <Route path="/course/:courseId/learn" element={<CourseLearning />} />
-          <Route path="/instructor" element={<InstructorDashboard />} />
-          <Route path="/instructor/courses/new" element={<CreateCourse />} />
-          <Route path="/instructor/courses/:courseId" element={<EditCourse />} />
-          <Route path="/instructor/grading" element={<Grading />} />
-          <Route path="/instructor/*" element={<InstructorDashboard />} />
-          <Route path="/admin" element={<AdminDashboard />} />
-          <Route path="/admin/*" element={<AdminDashboard />} />
-          <Route path="/about" element={<About />} />
-          <Route path="*" element={<NotFound />} />
-        </Routes>
+        <AuthProvider>
+          <Routes>
+            <Route path="/" element={<Index />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/signup" element={<Signup />} />
+            <Route path="/onboarding" element={<Onboarding />} />
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/dashboard/student" element={<StudentDashboard />} />
+            <Route path="/dashboard/*" element={<StudentDashboard />} />
+            <Route path="/courses" element={<CourseCatalog />} />
+            <Route path="/course/:courseId" element={<CourseDetail />} />
+            <Route path="/course/:courseId/learn" element={<CourseLearning />} />
+            <Route path="/instructor" element={<InstructorDashboard />} />
+            <Route path="/instructor/courses/new" element={<CreateCourse />} />
+            <Route path="/instructor/courses/:courseId" element={<EditCourse />} />
+            <Route path="/instructor/grading" element={<Grading />} />
+            <Route path="/instructor/*" element={<InstructorDashboard />} />
+            <Route path="/admin" element={<AdminDashboard />} />
+            <Route path="/admin/*" element={<AdminDashboard />} />
+            <Route path="/about" element={<About />} />
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>
