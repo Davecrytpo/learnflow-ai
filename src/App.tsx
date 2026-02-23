@@ -27,6 +27,8 @@ const InstructorSurveys = lazy(() => import("./pages/instructor/Surveys"));
 const InstructorCompetencies = lazy(() => import("./pages/instructor/CompetencyFrameworks"));
 const InstructorContentLibrary = lazy(() => import("./pages/instructor/ContentLibrary"));
 const InstructorAssessments = lazy(() => import("./pages/instructor/Assessments"));
+const InstructorProctoring = lazy(() => import("./pages/instructor/Proctoring"));
+const InstructorIntegrity = lazy(() => import("./pages/instructor/Integrity"));
 const StudentAnnouncements = lazy(() => import("./pages/student/Announcements"));
 const StudentCertificates = lazy(() => import("./pages/student/Certificates"));
 const StudentNotifications = lazy(() => import("./pages/student/Notifications"));
@@ -43,6 +45,8 @@ const StudentBookmarks = lazy(() => import("./pages/student/Bookmarks"));
 const StudentCompetencies = lazy(() => import("./pages/student/Competencies"));
 const StudentPortfolio = lazy(() => import("./pages/student/Portfolio"));
 const StudentAdaptive = lazy(() => import("./pages/student/AdaptiveLearning"));
+const StudentProctoredExams = lazy(() => import("./pages/student/ProctoredExams"));
+const StudentPurchases = lazy(() => import("./pages/student/Purchases"));
 const AdminUsers = lazy(() => import("./pages/admin/Users"));
 const AdminCourses = lazy(() => import("./pages/admin/Courses"));
 const AdminAnalytics = lazy(() => import("./pages/admin/Analytics"));
@@ -60,6 +64,11 @@ const AdminCompliance = lazy(() => import("./pages/admin/Compliance"));
 const AdminMarketplace = lazy(() => import("./pages/admin/Marketplace"));
 const AdminAIGovernance = lazy(() => import("./pages/admin/AIGovernance"));
 const AdminDataExports = lazy(() => import("./pages/admin/DataExports"));
+const AdminProctoring = lazy(() => import("./pages/admin/Proctoring"));
+const AdminPlagiarism = lazy(() => import("./pages/admin/Plagiarism"));
+const AdminPipelines = lazy(() => import("./pages/admin/DataPipelines"));
+const AdminCommerce = lazy(() => import("./pages/admin/Commerce"));
+const AdminMarketplaceOrders = lazy(() => import("./pages/admin/MarketplaceOrders"));
 const Login = lazy(() => import("./pages/Login"));
 const Signup = lazy(() => import("./pages/Signup"));
 const Onboarding = lazy(() => import("./pages/Onboarding"));
@@ -121,6 +130,8 @@ const App = () => (
                 <Route path="/dashboard/competencies" element={<StudentCompetencies />} />
                 <Route path="/dashboard/portfolio" element={<StudentPortfolio />} />
                 <Route path="/dashboard/adaptive" element={<StudentAdaptive />} />
+                <Route path="/dashboard/proctored-exams" element={<StudentProctoredExams />} />
+                <Route path="/dashboard/purchases" element={<StudentPurchases />} />
                 <Route path="/dashboard/certificates" element={<StudentCertificates />} />
                 <Route path="/dashboard/groups" element={<StudentGroups />} />
                 <Route path="/dashboard/notifications" element={<StudentNotifications />} />
@@ -149,6 +160,8 @@ const App = () => (
                 <Route path="/instructor/competencies" element={<InstructorCompetencies />} />
                 <Route path="/instructor/content-library" element={<InstructorContentLibrary />} />
                 <Route path="/instructor/assessments" element={<InstructorAssessments />} />
+                <Route path="/instructor/proctoring" element={<InstructorProctoring />} />
+                <Route path="/instructor/integrity" element={<InstructorIntegrity />} />
                 <Route path="/instructor/question-bank" element={<InstructorQuestionBank />} />
                 <Route path="/instructor/scorm" element={<InstructorScormImport />} />
                 <Route path="/instructor/*" element={<InstructorDashboard />} />
@@ -170,6 +183,11 @@ const App = () => (
                 <Route path="/admin/marketplace" element={<AdminMarketplace />} />
                 <Route path="/admin/ai-governance" element={<AdminAIGovernance />} />
                 <Route path="/admin/data-exports" element={<AdminDataExports />} />
+                <Route path="/admin/proctoring" element={<AdminProctoring />} />
+                <Route path="/admin/plagiarism" element={<AdminPlagiarism />} />
+                <Route path="/admin/data-pipelines" element={<AdminPipelines />} />
+                <Route path="/admin/commerce" element={<AdminCommerce />} />
+                <Route path="/admin/marketplace-orders" element={<AdminMarketplaceOrders />} />
                 <Route path="/admin/*" element={<AdminDashboard />} />
                 <Route path="/about" element={<About />} />
                 <Route path="*" element={<NotFound />} />
