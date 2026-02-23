@@ -135,6 +135,9 @@ const InstructorDashboard = () => {
                     <Button size="sm" variant="outline" asChild>
                       <Link to={`/instructor/courses/${c.id}`}>Edit</Link>
                     </Button>
+                    <Button size="sm" variant="outline" asChild>
+                      <Link to={`/instructor/courses/${c.id}/gradebook`}>Gradebook</Link>
+                    </Button>
                   </div>
                 </Card>
               ))}

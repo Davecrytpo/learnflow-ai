@@ -15,10 +15,14 @@ import CourseCatalog from "./pages/CourseCatalog";
 import CourseDetail from "./pages/CourseDetail";
 import StudentDashboard from "./pages/student/StudentDashboard";
 import CourseLearning from "./pages/student/CourseLearning";
+import StudentCalendar from "./pages/student/Calendar";
+import Profile from "./pages/student/Profile";
 import InstructorDashboard from "./pages/instructor/InstructorDashboard";
 import CreateCourse from "./pages/instructor/CreateCourse";
 import EditCourse from "./pages/instructor/EditCourse";
 import Grading from "./pages/instructor/Grading";
+import Gradebook from "./pages/instructor/Gradebook";
+import Attendance from "./pages/instructor/Attendance";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 
 const queryClient = new QueryClient();
@@ -37,6 +41,8 @@ const App = () => (
             <Route path="/onboarding" element={<Onboarding />} />
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/dashboard/student" element={<StudentDashboard />} />
+            <Route path="/dashboard/calendar" element={<StudentCalendar />} />
+            <Route path="/dashboard/profile" element={<Profile />} />
             <Route path="/dashboard/*" element={<StudentDashboard />} />
             <Route path="/courses" element={<CourseCatalog />} />
             <Route path="/course/:courseId" element={<CourseDetail />} />
@@ -44,7 +50,9 @@ const App = () => (
             <Route path="/instructor" element={<InstructorDashboard />} />
             <Route path="/instructor/courses/new" element={<CreateCourse />} />
             <Route path="/instructor/courses/:courseId" element={<EditCourse />} />
+            <Route path="/instructor/courses/:courseId/gradebook" element={<Gradebook />} />
             <Route path="/instructor/grading" element={<Grading />} />
+            <Route path="/instructor/attendance" element={<Attendance />} />
             <Route path="/instructor/*" element={<InstructorDashboard />} />
             <Route path="/admin" element={<AdminDashboard />} />
             <Route path="/admin/*" element={<AdminDashboard />} />

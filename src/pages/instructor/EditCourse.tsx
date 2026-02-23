@@ -11,8 +11,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useToast } from "@/hooks/use-toast";
-import { Loader2, PlusCircle, Trash2, GripVertical, ClipboardCheck } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import RichTextEditor from "@/components/ui/rich-text-editor";
+import { Loader2, PlusCircle, Trash2, GripVertical, ClipboardCheck, Edit3 } from "lucide-react";
 
 const EditCourse = () => {
   const { courseId } = useParams<{ courseId: string }>();
@@ -26,19 +27,28 @@ const EditCourse = () => {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
+  // Lesson Content Editing State
+  const [editingLesson, setEditingLesson] = useState<any>(null);
+  const [lessonContent, setLessonContent] = useState("");
+  const [savingContent, setSavingContent] = useState(false);
+
   useEffect(() => {
     if (!courseId) return;
     const fetch = async () => {
-      const [courseRes, modRes, lessonRes, quizRes] = await Promise.all([
+      const [courseRes, modRes, lessonRes, quizRes, assignRes, resRes] = await Promise.all([
         supabase.from("courses").select("*").eq("id", courseId).single(),
         supabase.from("modules").select("*").eq("course_id", courseId).order("order"),
         supabase.from("lessons").select("*").eq("course_id", courseId).order("order"),
         supabase.from("quizzes").select("*").eq("course_id", courseId).order("order"),
+        supabase.from("assignments").select("*").eq("course_id", courseId).order("created_at"),
+        supabase.from("course_resources").select("*").eq("course_id", courseId).order("created_at"),
       ]);
       setCourse(courseRes.data);
       setModules(modRes.data || []);
       setLessons(lessonRes.data || []);
       setQuizzes(quizRes.data || []);
+      setAssignments(assignRes.data || []);
+      setResources(resRes.data || []);
 
       // Load questions for all quizzes
       if (quizRes.data && quizRes.data.length > 0) {
@@ -103,6 +113,30 @@ const EditCourse = () => {
     setLessons(lessons.filter((l) => l.id !== id));
   };
 
+  const openLessonEditor = (lesson: any) => {
+    setEditingLesson(lesson);
+    setLessonContent(lesson.content || "");
+  };
+
+  const saveLessonContent = async () => {
+    if (!editingLesson) return;
+    setSavingContent(true);
+    const { error } = await supabase
+      .from("lessons")
+      .update({ content: lessonContent, updated_at: new Date().toISOString() })
+      .eq("id", editingLesson.id);
+    
+    setSavingContent(false);
+    
+    if (error) {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    } else {
+      toast({ title: "Content saved!" });
+      setLessons(lessons.map(l => l.id === editingLesson.id ? { ...l, content: lessonContent } : l));
+      setEditingLesson(null);
+    }
+  };
+
   // Quiz management
   const addQuiz = async (type: string, moduleId?: string) => {
     if (!courseId) return;
@@ -126,6 +160,51 @@ const EditCourse = () => {
     await supabase.from("quizzes").delete().eq("id", id);
     setQuizzes(quizzes.filter(q => q.id !== id));
     setQuizQuestions(quizQuestions.filter(qq => qq.quiz_id !== id));
+  };
+
+  const addAssignment = async (moduleId?: string) => {
+    if (!courseId) return;
+    const { data, error } = await supabase.from("assignments").insert({
+      course_id: courseId,
+      module_id: moduleId || null,
+      title: "New Assignment",
+      max_score: 100,
+    }).select().single();
+    if (data) setAssignments([...assignments, data]);
+    if (error) toast({ title: "Error", description: error.message, variant: "destructive" });
+  };
+
+  const updateAssignment = async (id: string, updates: Record<string, any>) => {
+    await supabase.from("assignments").update(updates).eq("id", id);
+    setAssignments(assignments.map(a => a.id === id ? { ...a, ...updates } : a));
+  };
+
+  const deleteAssignment = async (id: string) => {
+    await supabase.from("assignments").delete().eq("id", id);
+    setAssignments(assignments.filter(a => a.id !== id));
+  };
+
+  const addResource = async (moduleId?: string) => {
+    if (!courseId) return;
+    const { data, error } = await supabase.from("course_resources").insert({
+      course_id: courseId,
+      module_id: moduleId || null,
+      title: "New Resource Link",
+      url: "https://",
+      type: "link",
+    }).select().single();
+    if (data) setResources([...resources, data]);
+    if (error) toast({ title: "Error", description: error.message, variant: "destructive" });
+  };
+
+  const updateResource = async (id: string, updates: Record<string, any>) => {
+    await supabase.from("course_resources").update(updates).eq("id", id);
+    setResources(resources.map(r => r.id === id ? { ...r, ...updates } : r));
+  };
+
+  const deleteResource = async (id: string) => {
+    await supabase.from("course_resources").delete().eq("id", id);
+    setResources(resources.filter(r => r.id !== id));
   };
 
   const addQuestion = async (quizId: string) => {
@@ -227,19 +306,74 @@ const EditCourse = () => {
                     </Button>
                   </CardHeader>
                   <CardContent className="space-y-2">
-                    {lessons.filter((l) => l.module_id === mod.id).map((lesson) => (
-                      <div key={lesson.id} className="flex items-center gap-2 rounded-md border border-border p-3">
-                        <GripVertical className="h-3 w-3 text-muted-foreground" />
-                        <Input value={lesson.title} onChange={(e) => updateLesson(lesson.id, { title: e.target.value })}
-                          className="flex-1 border-none text-sm shadow-none focus-visible:ring-0" />
-                        <Button variant="ghost" size="icon" onClick={() => deleteLesson(lesson.id)}>
-                          <Trash2 className="h-3 w-3 text-destructive" />
-                        </Button>
-                      </div>
-                    ))}
-                    <Button variant="ghost" size="sm" onClick={() => addLesson(mod.id)} className="mt-1">
-                      <PlusCircle className="mr-1 h-3 w-3" /> Add Lesson
-                    </Button>
+                    {/* Module Activities */}
+                    <div className="space-y-2">
+                      {lessons.filter((l) => l.module_id === mod.id).map((lesson) => (
+                        <div key={lesson.id} className="flex items-center gap-2 rounded-md border border-border p-3">
+                          <GripVertical className="h-3 w-3 text-muted-foreground" />
+                          <Input value={lesson.title} onChange={(e) => updateLesson(lesson.id, { title: e.target.value })}
+                            className="flex-1 border-none text-sm shadow-none focus-visible:ring-0" />
+                          <Button variant="ghost" size="sm" onClick={() => openLessonEditor(lesson)} title="Edit Content">
+                            <Edit3 className="h-3 w-3 text-primary" />
+                          </Button>
+                          <Button variant="ghost" size="icon" onClick={() => deleteLesson(lesson.id)}>
+                            <Trash2 className="h-3 w-3 text-destructive" />
+                          </Button>
+                        </div>
+                      ))}
+                      
+                      {quizzes.filter((q) => q.module_id === mod.id).map((quiz) => (
+                        <div key={quiz.id} className="flex items-center gap-2 rounded-md border border-accent/20 bg-accent/5 p-3">
+                          <ClipboardCheck className="h-3 w-3 text-accent" />
+                          <Input value={quiz.title} onChange={(e) => updateQuiz(quiz.id, { title: e.target.value })}
+                            className="flex-1 border-none text-sm shadow-none focus-visible:ring-0 bg-transparent" />
+                          <Badge variant="outline" className="text-[10px]">{quiz.quiz_type}</Badge>
+                          <Button variant="ghost" size="icon" onClick={() => deleteQuiz(quiz.id)}>
+                            <Trash2 className="h-3 w-3 text-destructive" />
+                          </Button>
+                        </div>
+                      ))}
+
+                      {assignments.filter((a) => a.module_id === mod.id).map((assignment) => (
+                        <div key={assignment.id} className="flex items-center gap-2 rounded-md border border-primary/20 bg-primary/5 p-3">
+                          <FileText className="h-3 w-3 text-primary" />
+                          <Input value={assignment.title} onChange={(e) => updateAssignment(assignment.id, { title: e.target.value })}
+                            className="flex-1 border-none text-sm shadow-none focus-visible:ring-0 bg-transparent" />
+                          <Badge variant="outline" className="text-[10px]">Assignment</Badge>
+                          <Button variant="ghost" size="icon" onClick={() => deleteAssignment(assignment.id)}>
+                            <Trash2 className="h-3 w-3 text-destructive" />
+                          </Button>
+                        </div>
+                      ))}
+
+                      {resources.filter((r) => r.module_id === mod.id).map((resource) => (
+                        <div key={resource.id} className="flex items-center gap-2 rounded-md border border-border p-3">
+                          <LinkIcon className="h-3 w-3 text-muted-foreground" />
+                          <Input value={resource.title} onChange={(e) => updateResource(resource.id, { title: e.target.value })}
+                            className="flex-1 border-none text-sm shadow-none focus-visible:ring-0" />
+                          <Input value={resource.url} onChange={(e) => updateResource(resource.id, { url: e.target.value })}
+                            className="w-1/3 border-none text-xs shadow-none focus-visible:ring-0 text-muted-foreground" />
+                          <Button variant="ghost" size="icon" onClick={() => deleteResource(resource.id)}>
+                            <Trash2 className="h-3 w-3 text-destructive" />
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+
+                    <div className="flex flex-wrap gap-2 mt-4 pt-2 border-t border-border/50">
+                      <Button variant="ghost" size="sm" onClick={() => addLesson(mod.id)} className="h-7 text-[10px]">
+                        <PlusCircle className="mr-1 h-3 w-3" /> Add Lesson
+                      </Button>
+                      <Button variant="ghost" size="sm" onClick={() => addQuiz('quiz', mod.id)} className="h-7 text-[10px]">
+                        <ClipboardList className="mr-1 h-3 w-3" /> Add Quiz
+                      </Button>
+                      <Button variant="ghost" size="sm" onClick={() => addAssignment(mod.id)} className="h-7 text-[10px]">
+                        <FileText className="mr-1 h-3 w-3" /> Add Assignment
+                      </Button>
+                      <Button variant="ghost" size="sm" onClick={() => addResource(mod.id)} className="h-7 text-[10px]">
+                        <LinkIcon className="mr-1 h-3 w-3" /> Add Resource
+                      </Button>
+                    </div>
                   </CardContent>
                 </Card>
               ))}
@@ -374,6 +508,29 @@ const EditCourse = () => {
             </div>
           </TabsContent>
         </Tabs>
+
+        <Dialog open={!!editingLesson} onOpenChange={(open) => !open && setEditingLesson(null)}>
+          <DialogContent className="max-w-4xl h-[80vh] flex flex-col">
+            <DialogHeader>
+              <DialogTitle>Edit Lesson Content: {editingLesson?.title}</DialogTitle>
+            </DialogHeader>
+            <div className="flex-1 overflow-hidden border border-border rounded-md">
+              {editingLesson && (
+                <RichTextEditor 
+                  content={lessonContent} 
+                  onChange={setLessonContent} 
+                  className="h-full border-none"
+                />
+              )}
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setEditingLesson(null)}>Cancel</Button>
+              <Button onClick={saveLessonContent} disabled={savingContent}>
+                {savingContent && <Loader2 className="mr-2 h-4 w-4 animate-spin" />} Save Content
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
     </DashboardLayout>
   );

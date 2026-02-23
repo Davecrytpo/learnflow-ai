@@ -74,7 +74,7 @@ const Onboarding = () => {
         <div className="mx-auto mb-6 flex h-14 w-14 items-center justify-center rounded-xl bg-primary">
           <GraduationCap className="h-7 w-7 text-primary-foreground" />
         </div>
-        <h1 className="text-2xl font-bold text-foreground">How will you use MERIDIAN?</h1>
+        <h1 className="text-2xl font-bold text-foreground">How will you use Learnflow AI?</h1>
         <p className="mt-2 text-muted-foreground">Select your role to personalize your experience.</p>
 
         <div className="mt-10 grid gap-4 sm:grid-cols-2">

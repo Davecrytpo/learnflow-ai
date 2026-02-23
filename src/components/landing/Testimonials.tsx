@@ -8,7 +8,7 @@ const testimonials = [
     org: "MIT",
     initials: "SC",
     color: "from-primary to-violet-400",
-    quote: "MERIDIAN fundamentally changed how I structure my courses. The AI content generation and the exam system are robust enough for graduate-level work. My students are more engaged than ever.",
+    quote: "Learnflow AI fundamentally changed how I structure my courses. The AI content generation and the exam system are robust enough for graduate-level work. My students are more engaged than ever.",
     rating: 5,
   },
   {
@@ -17,7 +17,7 @@ const testimonials = [
     org: "California",
     initials: "MJ",
     color: "from-accent to-orange-400",
-    quote: "I've earned 12 certificates through MERIDIAN. The progress tracking keeps me accountable and the dashboards are actually fun to look at — not like the old boring LMS systems.",
+    quote: "I've earned 12 certificates through Learnflow AI. The progress tracking keeps me accountable and the dashboards are actually fun to look at — not like the old boring LMS systems.",
     rating: 5,
   },
   {
@@ -26,7 +26,7 @@ const testimonials = [
     org: "Dallas ISD, Texas",
     initials: "ER",
     color: "from-emerald-400 to-teal-500",
-    quote: "We deployed MERIDIAN across 47 schools in under two weeks. The admin controls, reporting, and assessment flexibility is something we used to pay $200K/yr for. This is transformational.",
+    quote: "We deployed Learnflow AI across 47 schools in under two weeks. The admin controls, reporting, and assessment flexibility is something we used to pay $200K/yr for. This is transformational.",
     rating: 5,
   },
   {
@@ -56,7 +56,7 @@ const Testimonials = () => (
           Trusted by educators at every level
         </h2>
         <p className="mt-5 text-lg text-muted-foreground">
-          From individual teachers to entire school districts — MERIDIAN delivers.
+          From individual teachers to entire school districts — Learnflow AI delivers.
         </p>
       </motion.div>
 

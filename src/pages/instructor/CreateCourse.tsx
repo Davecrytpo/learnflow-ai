@@ -11,6 +11,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
+import RichTextEditor from "@/components/ui/rich-text-editor";
 import { Loader2 } from "lucide-react";
 
 const categories = ["Technology", "Science", "Mathematics", "English/Language Arts", "Social Studies", "Business", "Arts", "Health Sciences", "Engineering", "Other"];
@@ -66,7 +67,13 @@ const CreateCourse = () => {
               </div>
               <div className="space-y-2">
                 <Label htmlFor="description">Full Description</Label>
-                <Textarea id="description" placeholder="Detailed description of what students will learn" value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} rows={5} />
+                <div className="min-h-[200px]">
+                  <RichTextEditor 
+                    content={form.description} 
+                    onChange={(html) => setForm({ ...form, description: html })} 
+                    className="min-h-[200px]"
+                  />
+                </div>
               </div>
               <div className="space-y-2">
                 <Label>Category</Label>

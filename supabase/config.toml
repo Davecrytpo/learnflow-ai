@@ -5,4 +5,4 @@ site_url = "https://id-preview--e8e75383-0cac-4891-b24e-8ed62a2ad9d0.lovable.app
 additional_redirect_urls = ["https://id-preview--e8e75383-0cac-4891-b24e-8ed62a2ad9d0.lovable.app/**"]
 
 [auth.email]
-sender_name = "MERIDIAN"
+sender_name = "Learnflow AI"

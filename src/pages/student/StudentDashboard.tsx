@@ -8,7 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
-import { BookOpen, Award, Bell, Play } from "lucide-react";
+import { BookOpen, Award, Bell, Play, Calendar, Sparkles } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
 
 interface EnrolledCourse {
@@ -29,12 +29,14 @@ const StudentDashboard = () => {
   const [enrollments, setEnrollments] = useState<EnrolledCourse[]>([]);
   const [notifications, setNotifications] = useState<any[]>([]);
   const [progressData, setProgressData] = useState<{ name: string; progress: number }[]>([]);
+  const [upcomingAssignments, setUpcomingAssignments] = useState<any[]>([]);
+  const [recommendations, setRecommended] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (!user) return;
     const fetch = async () => {
-      const [enrollRes, notifRes] = await Promise.all([
+      const [enrollRes, notifRes, recommendRes] = await Promise.all([
         supabase
           .from("enrollments")
           .select("id, course_id, enrolled_at, completed_at, courses(id, title, cover_image_url, category)")
@@ -47,21 +49,30 @@ const StudentDashboard = () => {
           .eq("read", false)
           .order("created_at", { ascending: false })
           .limit(5),
+        supabase
+          .from("courses")
+          .select("*")
+          .eq("published", true)
+          .limit(3),
       ]);
 
       const enr = (enrollRes.data as unknown as EnrolledCourse[]) || [];
       setEnrollments(enr);
       setNotifications(notifRes.data || []);
+      setRecommended(recommendRes.data || []);
 
-      // Calculate progress per course
+      // Calculate progress and fetch assignments
       if (enr.length > 0) {
         const courseIds = enr.map((e) => e.course_id);
-        const [lessonsRes, progressRes] = await Promise.all([
+        const [lessonsRes, progressRes, assignmentsRes] = await Promise.all([
           supabase.from("lessons").select("id, course_id").in("course_id", courseIds),
           supabase.from("lesson_progress").select("lesson_id, course_id, completed").eq("user_id", user.id).eq("completed", true),
+          supabase.from("assignments").select("*, courses(title)").in("course_id", courseIds).gte("due_date", new Date().toISOString()).order("due_date").limit(3),
         ]);
+        
         const lessons = lessonsRes.data || [];
         const completed = progressRes.data || [];
+        setUpcomingAssignments(assignmentsRes.data || []);
 
         const pData = enr.slice(0, 6).map((e) => {
           const total = lessons.filter((l) => l.course_id === e.course_id).length;
@@ -171,6 +182,78 @@ const StudentDashboard = () => {
               })}
             </div>
           )}
+        </div>
+
+        {/* Deadlines and Recommendations */}
+        <div className="grid gap-6 md:grid-cols-2">
+          {/* Upcoming Deadlines */}
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-lg font-semibold flex items-center gap-2">
+                <Calendar className="h-5 w-5 text-destructive" /> Upcoming Deadlines
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {loading ? (
+                <div className="space-y-2">
+                  <Skeleton className="h-12 w-full" />
+                  <Skeleton className="h-12 w-full" />
+                </div>
+              ) : upcomingAssignments.length === 0 ? (
+                <p className="text-sm text-muted-foreground italic">No upcoming deadlines. Great job!</p>
+              ) : (
+                <div className="space-y-3">
+                  {upcomingAssignments.map((a) => (
+                    <div key={a.id} className="flex items-center justify-between rounded-lg border border-border p-3 text-sm">
+                      <div>
+                        <p className="font-medium text-foreground">{a.title}</p>
+                        <p className="text-xs text-muted-foreground">{a.courses?.title}</p>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-xs font-semibold text-destructive">
+                          {new Date(a.due_date).toLocaleDateString()}
+                        </p>
+                        <p className="text-[10px] text-muted-foreground">Due Date</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Recommendations */}
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-lg font-semibold flex items-center gap-2">
+                <Sparkles className="h-5 w-5 text-accent" /> AI Recommendations
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {loading ? (
+                <div className="space-y-2">
+                  <Skeleton className="h-12 w-full" />
+                  <Skeleton className="h-12 w-full" />
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {recommendations.map((r) => (
+                    <Link key={r.id} to={`/course/${r.id}`} className="block group">
+                      <div className="flex items-center justify-between rounded-lg border border-border p-3 text-sm transition-colors hover:bg-accent/5">
+                        <div>
+                          <p className="font-medium text-foreground group-hover:text-primary transition-colors">{r.title}</p>
+                          <p className="text-xs text-muted-foreground">{r.category}</p>
+                        </div>
+                        <Button size="sm" variant="ghost" className="h-8 w-8 p-0">
+                          <Play className="h-3 w-3" />
+                        </Button>
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
         </div>
 
         {/* Notifications */}

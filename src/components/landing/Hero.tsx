@@ -50,7 +50,7 @@ const Hero = () => {
             Into Excellence
           </h1>
           <p className="mx-auto mt-8 max-w-2xl text-lg leading-relaxed text-muted-foreground sm:text-xl">
-            MERIDIAN is the enterprise-grade learning management system built for modern education institutions — from K-12 classrooms to universities. Create, teach, assess, and certify.
+            Learnflow AI is the enterprise-grade learning management system built for modern education institutions — from K-12 classrooms to universities. Create, teach, assess, and certify.
           </p>
         </motion.div>
 
@@ -109,7 +109,7 @@ const Hero = () => {
                 <div className="h-3 w-3 rounded-full bg-primary/70" />
               </div>
               <div className="mx-auto w-64 rounded-md bg-secondary/60 px-3 py-1 text-center text-xs text-muted-foreground">
-                meridian.edu/dashboard/student
+                learnflow.ai/dashboard/student
               </div>
             </div>
 
@@ -119,7 +119,7 @@ const Hero = () => {
               <div className="hidden border-r border-border bg-sidebar p-4 md:block">
                 <div className="mb-4 flex items-center gap-2 px-2">
                   <div className="h-7 w-7 rounded-md bg-gradient-brand" />
-                  <span className="font-display text-sm font-bold text-foreground">MERIDIAN</span>
+                  <span className="font-display text-sm font-bold text-foreground">Learnflow AI</span>
                 </div>
                 {["Dashboard", "My Courses", "Assessments", "Certificates", "Notifications"].map((item, i) => (
                   <div key={item} className={`flex items-center gap-2 rounded-lg px-2.5 py-2 text-xs ${i === 0 ? "bg-primary/10 text-primary font-medium" : "text-muted-foreground"}`}>

@@ -27,7 +27,7 @@ const Navbar = () => {
             </svg>
           </div>
           <span className="font-display text-xl font-bold tracking-tight text-foreground">
-            MERIDIAN
+            Learnflow AI
           </span>
         </Link>
 

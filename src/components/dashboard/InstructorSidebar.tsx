@@ -1,4 +1,4 @@
-import { BookOpen, LayoutDashboard, PlusCircle, ClipboardCheck, BarChart3, User } from "lucide-react";
+import { BookOpen, LayoutDashboard, PlusCircle, ClipboardCheck, BarChart3, User, CalendarCheck } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarHeader } from "@/components/ui/sidebar";
 
@@ -7,8 +7,9 @@ const items = [
   { title: "My Courses", url: "/instructor/courses", icon: BookOpen },
   { title: "Create Course", url: "/instructor/courses/new", icon: PlusCircle },
   { title: "Grading", url: "/instructor/grading", icon: ClipboardCheck },
+  { title: "Attendance", url: "/instructor/attendance", icon: CalendarCheck },
   { title: "Analytics", url: "/instructor/analytics", icon: BarChart3 },
-  { title: "Profile", url: "/instructor/profile", icon: User },
+  { title: "Profile", url: "/dashboard/profile", icon: User },
 ];
 
 const InstructorSidebar = () => (
@@ -20,7 +21,7 @@ const InstructorSidebar = () => (
             <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
           </svg>
         </div>
-        <span className="font-display text-sm font-bold text-sidebar-foreground">MERIDIAN</span>
+        <span className="font-display text-sm font-bold text-sidebar-foreground">Learnflow AI</span>
       </div>
     </SidebarHeader>
     <SidebarContent>

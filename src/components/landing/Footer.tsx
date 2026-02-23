@@ -13,7 +13,7 @@ const Footer = () => (
                 <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
             </div>
-            <span className="font-display text-lg font-bold tracking-tight text-foreground">MERIDIAN</span>
+            <span className="font-display text-lg font-bold tracking-tight text-foreground">Learnflow AI</span>
           </Link>
           <p className="mt-4 max-w-xs text-sm leading-relaxed text-muted-foreground">
             The enterprise-grade LMS built for modern education. Free for every student, every instructor, every institution.
@@ -66,7 +66,7 @@ const Footer = () => (
       </div>
 
       <div className="mt-16 flex flex-col items-center justify-between gap-4 border-t border-border pt-8 sm:flex-row">
-        <p className="text-sm text-muted-foreground">© {new Date().getFullYear()} MERIDIAN LMS. All rights reserved.</p>
+        <p className="text-sm text-muted-foreground">© {new Date().getFullYear()} Learnflow AI LMS. All rights reserved.</p>
         <p className="text-sm text-muted-foreground">Free for educational use worldwide · Built with ❤️ for educators</p>
       </div>
     </div>

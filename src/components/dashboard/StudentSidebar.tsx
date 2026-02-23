@@ -1,10 +1,11 @@
-import { BookOpen, LayoutDashboard, Bell, Award, User } from "lucide-react";
+import { BookOpen, LayoutDashboard, Bell, Award, User, Calendar } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarHeader } from "@/components/ui/sidebar";
 
 const items = [
   { title: "Dashboard", url: "/dashboard/student", icon: LayoutDashboard },
   { title: "My Courses", url: "/dashboard/courses", icon: BookOpen },
+  { title: "Calendar", url: "/dashboard/calendar", icon: Calendar },
   { title: "Certificates", url: "/dashboard/certificates", icon: Award },
   { title: "Notifications", url: "/dashboard/notifications", icon: Bell },
   { title: "Profile", url: "/dashboard/profile", icon: User },
@@ -19,7 +20,7 @@ const StudentSidebar = () => (
             <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
           </svg>
         </div>
-        <span className="font-display text-sm font-bold text-sidebar-foreground">MERIDIAN</span>
+        <span className="font-display text-sm font-bold text-sidebar-foreground">Learnflow AI</span>
       </div>
     </SidebarHeader>
     <SidebarContent>

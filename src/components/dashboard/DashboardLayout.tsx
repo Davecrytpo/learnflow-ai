@@ -2,10 +2,11 @@ import { ReactNode, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useAuthContext } from "@/contexts/AuthContext";
 import { AppRole } from "@/hooks/useUserRole";
-import { Loader2, LogOut } from "lucide-react";
+import { Loader2, LogOut, Moon, Sun } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
+import { useTheme } from "next-themes";
 
 interface DashboardLayoutProps {
   children: ReactNode;
@@ -16,6 +17,7 @@ interface DashboardLayoutProps {
 const DashboardLayout = ({ children, allowedRoles, sidebar }: DashboardLayoutProps) => {
   const { user, role, loading } = useAuthContext();
   const navigate = useNavigate();
+  const { theme, setTheme } = useTheme();
 
   useEffect(() => {
     if (loading) return;
@@ -58,11 +60,21 @@ const DashboardLayout = ({ children, allowedRoles, sidebar }: DashboardLayoutPro
                   <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                 </svg>
               </div>
-              <span className="font-display text-sm font-bold text-foreground">MERIDIAN</span>
+              <span className="font-display text-sm font-bold text-foreground">Learnflow AI</span>
             </Link>
             <div className="flex-1" />
             <div className="flex items-center gap-2">
               <span className="hidden text-xs text-muted-foreground sm:block">{user?.email}</span>
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className="h-8 w-8 text-muted-foreground hover:text-foreground" 
+                onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+              >
+                <Sun className="h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
+                <Moon className="absolute h-[1.2rem] w-[1.2rem] rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
+                <span className="sr-only">Toggle theme</span>
+              </Button>
               <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground" onClick={handleLogout}>
                 <LogOut className="h-4 w-4" />
               </Button>

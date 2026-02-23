@@ -47,7 +47,7 @@ const Login = () => {
                 <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
             </div>
-            <span className="font-display text-xl font-bold">MERIDIAN</span>
+            <span className="font-display text-xl font-bold">Learnflow AI</span>
           </div>
           <h2 className="font-display text-4xl font-bold leading-tight">Welcome back to your learning journey</h2>
           <p className="mt-4 text-lg text-primary-foreground/70">Sign in to access your courses, track your progress, and continue earning certificates.</p>
@@ -78,7 +78,7 @@ const Login = () => {
                 <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
             </div>
-            <span className="font-display text-xl font-bold text-foreground">MERIDIAN</span>
+            <span className="font-display text-xl font-bold text-foreground">Learnflow AI</span>
           </div>
 
           <h1 className="font-display text-3xl font-bold text-foreground">Sign in</h1>
@@ -106,7 +106,7 @@ const Login = () => {
             </div>
             <Button type="submit" className="h-12 w-full bg-gradient-brand text-base font-semibold text-primary-foreground shadow-lg shadow-primary/20 hover:opacity-90" disabled={loading}>
               {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-              Sign in to MERIDIAN
+              Sign in to Learnflow AI
             </Button>
           </form>
 

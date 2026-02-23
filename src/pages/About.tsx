@@ -27,7 +27,7 @@ const About = () => (
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_60%_50%_at_50%_-10%,hsl(213_94%_58%/0.15),transparent)]" />
         <div className="container relative mx-auto px-4 text-center">
           <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
-            <p className="text-sm font-semibold uppercase tracking-[0.2em] text-primary">About MERIDIAN</p>
+            <p className="text-sm font-semibold uppercase tracking-[0.2em] text-primary">About Learnflow AI</p>
             <h1 className="mx-auto mt-4 max-w-3xl font-display text-5xl font-bold tracking-tight text-foreground sm:text-6xl">
               Education Reimagined for the{" "}
               <span className="bg-gradient-to-r from-primary to-violet-400 bg-clip-text text-transparent">
@@ -35,7 +35,7 @@ const About = () => (
               </span>
             </h1>
             <p className="mx-auto mt-6 max-w-2xl text-lg leading-relaxed text-muted-foreground">
-              MERIDIAN was built by educators frustrated with expensive, complicated LMS platforms that failed students and instructors alike. We set out to build something better — something powerful, beautiful, and entirely free.
+              Learnflow AI was built by educators frustrated with expensive, complicated LMS platforms that failed students and instructors alike. We set out to build something better — something powerful, beautiful, and entirely free.
             </p>
           </motion.div>
 
@@ -65,7 +65,7 @@ const About = () => (
                 Democratize world-class education
               </h2>
               <p className="mt-4 text-muted-foreground leading-relaxed">
-                We believe that the quality of your education shouldn't depend on the budget of your school district. MERIDIAN provides institutions and self-learners with the same enterprise-grade tools used by the world's leading universities — completely free.
+                We believe that the quality of your education shouldn't depend on the budget of your school district. Learnflow AI provides institutions and self-learners with the same enterprise-grade tools used by the world's leading universities — completely free.
               </p>
               <p className="mt-4 text-muted-foreground leading-relaxed">
                 From AI-assisted course creation to automated certificate generation, we've built every feature educators actually need — not the features that look good in a sales deck.
