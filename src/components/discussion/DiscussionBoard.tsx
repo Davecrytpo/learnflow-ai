@@ -138,7 +138,7 @@ const DiscussionBoard = ({ courseId }: DiscussionBoardProps) => {
                     <p className="text-sm text-muted-foreground line-clamp-2 mt-1">{discussion.content}</p>
                     <div className="flex items-center gap-2 mt-3 text-xs text-muted-foreground">
                       <span>Posted by {discussion.profiles?.display_name || "User"}</span>
-                      <span>•</span>
+                      <span>-</span>
                       <span>{new Date(discussion.created_at).toLocaleDateString()}</span>
                     </div>
                   </div>
@@ -154,3 +154,6 @@ const DiscussionBoard = ({ courseId }: DiscussionBoardProps) => {
 };
 
 export default DiscussionBoard;
+
+
+

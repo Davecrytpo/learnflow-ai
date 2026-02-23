@@ -73,7 +73,17 @@ const Grading = () => {
   return (
     <DashboardLayout allowedRoles={["instructor"]} sidebar={<InstructorSidebar />}>
       <div className="space-y-6">
-        <h1 className="text-2xl font-bold text-foreground">Grading Queue</h1>
+        <section className="relative overflow-hidden rounded-3xl border border-border/70 bg-card/90 p-6">
+          <div className="absolute inset-0 bg-aurora opacity-60" />
+          <div className="absolute inset-0 bg-grid-pattern bg-grid opacity-[0.03]" />
+          <div className="relative">
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary">Assessment</p>
+            <h1 className="mt-2 font-display text-3xl font-bold text-foreground">Grading queue</h1>
+            <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
+              Review submissions, assign scores, and send feedback with a clear workflow.
+            </p>
+          </div>
+        </section>
         {loading ? (
           <div className="flex justify-center py-20"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>
         ) : submissions.length === 0 ? (

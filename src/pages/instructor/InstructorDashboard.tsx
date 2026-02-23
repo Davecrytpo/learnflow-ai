@@ -55,17 +55,28 @@ const InstructorDashboard = () => {
   return (
     <DashboardLayout allowedRoles={["instructor"]} sidebar={<InstructorSidebar />}>
       <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-bold text-foreground">Instructor Dashboard</h1>
-          <Button asChild>
-            <Link to="/instructor/courses/new">
-              <PlusCircle className="mr-2 h-4 w-4" /> Create Course
-            </Link>
-          </Button>
-        </div>
+        <section className="relative overflow-hidden rounded-3xl border border-border/70 bg-card/90 p-6">
+          <div className="absolute inset-0 bg-aurora opacity-60" />
+          <div className="absolute inset-0 bg-grid-pattern bg-grid opacity-[0.03]" />
+          <div className="relative flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary">Instructor</p>
+              <h1 className="mt-2 font-display text-3xl font-bold text-foreground">Course operations at a glance</h1>
+              <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
+                Monitor enrollments, grading workload, and learner momentum from a single workspace.
+              </p>
+            </div>
+            <Button asChild className="h-11 px-5">
+              <Link to="/instructor/courses/new">
+                <PlusCircle className="mr-2 h-4 w-4" /> Create Course
+              </Link>
+            </Button>
+          </div>
+        </section>
 
         <div className="grid gap-4 sm:grid-cols-3">
-          <Card>
+          <Card className="relative overflow-hidden">
+            <div className="absolute left-0 top-0 h-1 w-full bg-gradient-brand" />
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground">Total Courses</CardTitle>
               <BookOpen className="h-4 w-4 text-primary" />
@@ -74,7 +85,8 @@ const InstructorDashboard = () => {
               {loading ? <div className="h-8 w-16 animate-pulse rounded-md bg-muted" /> : <p className="text-2xl font-bold">{courses.length}</p>}
             </CardContent>
           </Card>
-          <Card>
+          <Card className="relative overflow-hidden">
+            <div className="absolute left-0 top-0 h-1 w-full bg-gradient-to-r from-accent to-amber-300" />
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground">Total Students</CardTitle>
               <Users className="h-4 w-4 text-accent" />
@@ -83,10 +95,11 @@ const InstructorDashboard = () => {
               {loading ? <div className="h-8 w-16 animate-pulse rounded-md bg-muted" /> : <p className="text-2xl font-bold">{enrollmentCount}</p>}
             </CardContent>
           </Card>
-          <Card>
+          <Card className="relative overflow-hidden">
+            <div className="absolute left-0 top-0 h-1 w-full bg-gradient-to-r from-emerald-500 to-teal-400" />
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground">Pending Grading</CardTitle>
-              <ClipboardCheck className="h-4 w-4 text-destructive" />
+              <ClipboardCheck className="h-4 w-4 text-emerald-500" />
             </CardHeader>
             <CardContent>
               {loading ? <div className="h-8 w-16 animate-pulse rounded-md bg-muted" /> : <p className="text-2xl font-bold">{pendingSubmissions}</p>}
@@ -126,7 +139,9 @@ const InstructorDashboard = () => {
           ) : (
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {courses.map((c) => (
-                <Card key={c.id} className="p-4">
+                <Card key={c.id} className="overflow-hidden">
+                  <div className={`h-2 w-full ${c.published ? "bg-gradient-brand" : "bg-muted"}`} />
+                  <CardContent className="p-5">
                   <h3 className="font-semibold text-foreground line-clamp-1">{c.title}</h3>
                   <span className={`mt-1 inline-block rounded-full px-2 py-0.5 text-xs ${c.published ? "bg-accent/10 text-accent" : "bg-muted text-muted-foreground"}`}>
                     {c.published ? "Published" : "Draft"}
@@ -139,6 +154,7 @@ const InstructorDashboard = () => {
                       <Link to={`/instructor/courses/${c.id}/gradebook`}>Gradebook</Link>
                     </Button>
                   </div>
+                  </CardContent>
                 </Card>
               ))}
             </div>

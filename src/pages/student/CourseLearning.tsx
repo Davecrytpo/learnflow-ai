@@ -246,7 +246,7 @@ const CourseLearning = () => {
       .eq("student_id", user.id)
       .eq("course_id", courseId);
 
-    toast({ title: "🎉 Certificate earned!", description: "Congratulations on completing the course!" });
+    toast({ title: "Certificate earned!", description: "Congratulations on completing the course!" });
   };
 
   if (loading) {
@@ -258,9 +258,11 @@ const CourseLearning = () => {
   }
 
   return (
-    <div className="flex min-h-screen bg-background">
-      {/* Sidebar — Curriculum */}
-      <aside className="hidden w-80 flex-shrink-0 border-r border-border bg-card lg:block">
+    <div className="relative flex min-h-screen bg-background">
+      <div className="pointer-events-none absolute inset-0 bg-aurora opacity-40" />
+      <div className="pointer-events-none absolute inset-0 bg-grid-pattern bg-grid opacity-[0.02]" />
+      {/* Sidebar - Curriculum */}
+      <aside className="relative hidden w-80 flex-shrink-0 border-r border-border bg-card/90 lg:block">
         <div className="p-4">
           <Button variant="ghost" size="sm" asChild className="mb-3 gap-1 text-muted-foreground">
             <Link to="/dashboard/student">
@@ -784,3 +786,7 @@ const CourseLearning = () => {
 };
 
 export default CourseLearning;
+
+
+
+

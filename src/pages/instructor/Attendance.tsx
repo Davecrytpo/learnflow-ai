@@ -111,7 +111,17 @@ const Attendance = () => {
   return (
     <DashboardLayout allowedRoles={["instructor"]} sidebar={<InstructorSidebar />}>
       <div className="space-y-6">
-        <h1 className="text-2xl font-bold text-foreground">Attendance Tracker</h1>
+        <section className="relative overflow-hidden rounded-3xl border border-border/70 bg-card/90 p-6">
+          <div className="absolute inset-0 bg-aurora opacity-60" />
+          <div className="absolute inset-0 bg-grid-pattern bg-grid opacity-[0.03]" />
+          <div className="relative">
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary">Attendance</p>
+            <h1 className="mt-2 font-display text-3xl font-bold text-foreground">Attendance tracker</h1>
+            <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
+              Create sessions, mark attendance, and keep records aligned to your course schedule.
+            </p>
+          </div>
+        </section>
 
         <div className="flex gap-4 items-end">
           <div className="space-y-2 flex-1">
@@ -133,7 +143,7 @@ const Attendance = () => {
         </div>
 
         {sessions.length > 0 && (
-          <Card>
+          <Card className="overflow-hidden">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-lg">
                 Session: <span className="text-primary">{sessions.find(s => s.id === selectedSession)?.date}</span>

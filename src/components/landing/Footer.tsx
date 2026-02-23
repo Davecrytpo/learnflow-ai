@@ -5,12 +5,11 @@ const Footer = () => (
   <footer className="relative border-t border-border bg-background">
     <div className="container mx-auto px-4 py-16">
       <div className="grid gap-10 lg:grid-cols-5">
-        {/* Brand col */}
         <div className="lg:col-span-2">
           <Link to="/" className="flex items-center gap-3">
             <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-brand shadow-md shadow-primary/20">
               <svg className="h-5 w-5 text-primary-foreground" viewBox="0 0 24 24" fill="none">
-                <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
             </div>
             <span className="font-display text-lg font-bold tracking-tight text-foreground">Learnflow AI</span>
@@ -24,6 +23,7 @@ const Footer = () => (
                 key={i}
                 href="#"
                 className="flex h-9 w-9 items-center justify-center rounded-lg border border-border text-muted-foreground transition-all hover:border-primary/40 hover:text-primary"
+                aria-label="Social link"
               >
                 <Icon className="h-4 w-4" />
               </a>
@@ -66,8 +66,8 @@ const Footer = () => (
       </div>
 
       <div className="mt-16 flex flex-col items-center justify-between gap-4 border-t border-border pt-8 sm:flex-row">
-        <p className="text-sm text-muted-foreground">© {new Date().getFullYear()} Learnflow AI LMS. All rights reserved.</p>
-        <p className="text-sm text-muted-foreground">Free for educational use worldwide · Built with ❤️ for educators</p>
+        <p className="text-sm text-muted-foreground">Copyright {new Date().getFullYear()} Learnflow AI LMS. All rights reserved.</p>
+        <p className="text-sm text-muted-foreground">Free for educational use worldwide - Built with care for educators.</p>
       </div>
     </div>
   </footer>

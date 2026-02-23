@@ -12,8 +12,8 @@ export default {
     },
     extend: {
       fontFamily: {
-        sans: ['Inter', 'sans-serif'],
-        display: ['Syne', 'sans-serif'],
+        sans: ['Sora', 'sans-serif'],
+        display: ['Fraunces', 'serif'],
       },
       colors: {
         border: "hsl(var(--border))",
@@ -66,9 +66,10 @@ export default {
         sm: "calc(var(--radius) - 4px)",
       },
       backgroundImage: {
-        "gradient-brand": "linear-gradient(135deg, hsl(var(--primary)), hsl(250 84% 64%))",
+        "gradient-brand": "linear-gradient(135deg, hsl(var(--primary)), hsl(var(--accent)))",
         "gradient-amber": "linear-gradient(135deg, hsl(var(--accent)), hsl(28 100% 60%))",
-        "grid-pattern": "linear-gradient(hsl(var(--border)/0.3) 1px, transparent 1px), linear-gradient(90deg, hsl(var(--border)/0.3) 1px, transparent 1px)",
+        "grid-pattern": "linear-gradient(hsl(var(--border)/0.28) 1px, transparent 1px), linear-gradient(90deg, hsl(var(--border)/0.28) 1px, transparent 1px)",
+        "grain": "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180' viewBox='0 0 180 180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)' opacity='0.15'/%3E%3C/svg%3E\")",
       },
       backgroundSize: {
         "grid": "40px 40px",

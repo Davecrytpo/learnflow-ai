@@ -29,7 +29,7 @@ const Onboarding = () => {
   const { toast } = useToast();
   const { user, role, loading, refreshRole } = useAuthContext();
 
-  // Redirect logic — runs only when the single shared state is fully loaded
+  // Redirect logic - runs only when the single shared state is fully loaded
   useEffect(() => {
     if (loading) return;
     if (!user) { navigate("/login", { replace: true }); return; }
@@ -106,3 +106,6 @@ const Onboarding = () => {
 };
 
 export default Onboarding;
+
+
+

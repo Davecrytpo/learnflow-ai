@@ -108,14 +108,14 @@ const Signup = () => {
           </h2>
           <p className="mt-4 text-lg text-primary-foreground/80">
             {selectedRole === "instructor"
-              ? "Create courses with AI assistance, manage assessments, track student progress, and issue certificates — all completely free."
+              ? "Create courses with AI assistance, manage assessments, track student progress, and issue certificates - all completely free."
               : "Access quality courses, track your progress, earn certificates, and build knowledge that matters."}
           </p>
           <div className="mt-8 space-y-3 text-sm text-primary-foreground/70">
-            <p>✓ 100% Free — No hidden costs</p>
-            <p>✓ US Education Standards compliant</p>
-            <p>✓ Certificates upon completion</p>
-            <p>✓ AI-powered learning tools</p>
+            <p>OK 100% Free - No hidden costs</p>
+            <p>OK US Education Standards compliant</p>
+            <p>OK Certificates upon completion</p>
+            <p>OK AI-powered learning tools</p>
           </div>
         </div>
       </div>
@@ -243,3 +243,6 @@ const Signup = () => {
 };
 
 export default Signup;
+
+
+

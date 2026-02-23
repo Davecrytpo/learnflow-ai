@@ -9,9 +9,9 @@ import { BookOpen, ClipboardCheck, Award, ArrowRight } from "lucide-react";
 import { Link } from "react-router-dom";
 
 const steps = [
-  { icon: BookOpen, step: "01", title: "Enroll or Create", description: "Students browse and enroll for free. Instructors build structured courses with modules, lessons, and rich media.", color: "from-primary to-blue-600" },
-  { icon: ClipboardCheck, step: "02", title: "Learn & Assess", description: "Work through lessons, take exercises and quizzes, sit for tests and final examinations — all tracked in real-time.", color: "from-accent to-orange-500" },
-  { icon: Award, step: "03", title: "Earn & Verify", description: "Complete all requirements and receive a digitally-signed certificate with a unique verification ID.", color: "from-violet-500 to-purple-600" },
+  { icon: BookOpen, step: "01", title: "Enroll or Create", description: "Students browse and enroll. Instructors build structured courses with modules, lessons, and rich media.", color: "from-primary to-emerald-400" },
+  { icon: ClipboardCheck, step: "02", title: "Learn and Assess", description: "Work through lessons, take quizzes, submit assignments, and track progress in real time.", color: "from-accent to-amber-300" },
+  { icon: Award, step: "03", title: "Earn and Verify", description: "Complete requirements and receive a digitally-signed certificate with a verification ID.", color: "from-emerald-500 to-teal-400" },
 ];
 
 const HowItWorks = () => (
@@ -31,8 +31,7 @@ const HowItWorks = () => (
 
       <div className="mx-auto mt-20 max-w-5xl">
         <div className="relative grid gap-12 md:grid-cols-3">
-          {/* Connecting line */}
-          <div className="absolute left-1/4 right-1/4 top-8 hidden h-px bg-gradient-to-r from-primary/20 via-accent/20 to-violet-500/20 md:block" />
+          <div className="absolute left-1/4 right-1/4 top-8 hidden h-px bg-gradient-to-r from-primary/20 via-accent/20 to-emerald-500/20 md:block" />
 
           {steps.map((s, i) => (
             <motion.div
@@ -73,7 +72,7 @@ const HowItWorks = () => (
 const Index = () => (
   <div className="min-h-screen bg-background">
     <Navbar />
-    <main>
+    <main id="main-content">
       <Hero />
       <Features />
       <HowItWorks />

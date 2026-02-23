@@ -3,24 +3,23 @@ import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import Navbar from "@/components/landing/Navbar";
 import Footer from "@/components/landing/Footer";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Search, BookOpen, Users, Sparkles, GraduationCap } from "lucide-react";
+import { Search, BookOpen, Sparkles, GraduationCap } from "lucide-react";
 import { motion } from "framer-motion";
 
 const categories = ["All", "Technology", "Science", "Mathematics", "English/Language Arts", "Social Studies", "Business", "Arts", "Health Sciences", "Engineering", "Other"];
 
 const categoryColors: Record<string, string> = {
-  Technology: "from-primary to-blue-600",
-  Science: "from-emerald-500 to-teal-600",
-  Mathematics: "from-violet-500 to-purple-600",
-  "English/Language Arts": "from-rose-500 to-pink-600",
-  "Social Studies": "from-accent to-orange-500",
-  Business: "from-cyan-500 to-blue-600",
-  Arts: "from-fuchsia-500 to-pink-600",
-  "Health Sciences": "from-green-500 to-emerald-600",
-  Engineering: "from-orange-500 to-red-500",
+  Technology: "from-primary to-emerald-400",
+  Science: "from-emerald-500 to-teal-400",
+  Mathematics: "from-primary to-accent",
+  "English/Language Arts": "from-accent to-amber-400",
+  "Social Studies": "from-emerald-500 to-teal-400",
+  Business: "from-primary to-emerald-400",
+  Arts: "from-accent to-amber-300",
+  "Health Sciences": "from-emerald-500 to-teal-400",
+  Engineering: "from-accent to-orange-500",
 };
 
 const CourseCatalog = () => {
@@ -52,10 +51,9 @@ const CourseCatalog = () => {
     <div className="min-h-screen bg-background">
       <Navbar />
       <main>
-        {/* Header */}
         <section className="relative overflow-hidden border-b border-border pt-32 pb-16">
-          <div className="absolute inset-0 bg-grid-pattern bg-grid opacity-[0.025]" />
-          <div className="absolute inset-0 bg-[radial-gradient(ellipse_60%_70%_at_50%_-10%,hsl(213_94%_58%/0.12),transparent)]" />
+          <div className="absolute inset-0 bg-aurora" />
+          <div className="absolute inset-0 bg-grid-pattern bg-grid opacity-[0.03]" />
           <div className="container relative mx-auto px-4">
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="mx-auto max-w-2xl text-center">
               <p className="text-sm font-semibold uppercase tracking-[0.2em] text-primary">Course Catalog</p>
@@ -63,11 +61,10 @@ const CourseCatalog = () => {
                 Explore All Courses
               </h1>
               <p className="mt-4 text-lg text-muted-foreground">
-                {courses.length} courses across every subject — completely free to enroll.
+                {courses.length} courses across every subject - completely free to enroll.
               </p>
             </motion.div>
 
-            {/* Search */}
             <div className="mx-auto mt-10 max-w-xl">
               <div className="relative">
                 <Search className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
@@ -75,7 +72,7 @@ const CourseCatalog = () => {
                   placeholder="Search courses, topics, instructors..."
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
-                  className="h-13 rounded-xl border-border bg-card pl-11 pr-4 text-sm focus:border-primary"
+                  className="h-12 rounded-xl border-border bg-card pl-11 pr-4 text-sm focus:border-primary"
                 />
               </div>
             </div>
@@ -83,7 +80,6 @@ const CourseCatalog = () => {
         </section>
 
         <section className="container mx-auto px-4 py-10">
-          {/* Category filters */}
           <div className="mb-8 flex flex-wrap gap-2">
             {categories.map((cat) => (
               <button
@@ -100,7 +96,6 @@ const CourseCatalog = () => {
             ))}
           </div>
 
-          {/* Course grid */}
           <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {loading
               ? Array.from({ length: 8 }).map((_, i) => <Skeleton key={i} className="h-72 rounded-2xl" />)
@@ -115,7 +110,7 @@ const CourseCatalog = () => {
                 </div>
               )
               : filtered.map((course, i) => {
-                const gradColor = categoryColors[course.category] || "from-primary to-blue-600";
+                const gradColor = categoryColors[course.category] || "from-primary to-emerald-400";
                 return (
                   <motion.div
                     key={course.id}
@@ -124,7 +119,6 @@ const CourseCatalog = () => {
                     transition={{ delay: i * 0.04 }}
                   >
                     <Link to={`/course/${course.id}`} className="group block overflow-hidden rounded-2xl border border-border bg-card transition-all duration-300 hover:border-primary/40 hover:shadow-xl hover:shadow-primary/5">
-                      {/* Cover */}
                       <div className={`relative h-40 bg-gradient-to-br ${gradColor} overflow-hidden`}>
                         <div className="absolute inset-0 bg-grid-pattern bg-grid opacity-10" />
                         <div className="absolute bottom-3 left-3">
@@ -140,7 +134,6 @@ const CourseCatalog = () => {
                         <GraduationCap className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 h-12 w-12 text-white/10" />
                       </div>
 
-                      {/* Content */}
                       <div className="p-4">
                         <h3 className="font-display font-semibold text-foreground line-clamp-2 group-hover:text-primary transition-colors">{course.title}</h3>
                         <p className="mt-1.5 text-sm text-muted-foreground line-clamp-2">{course.summary || "No description"}</p>
@@ -157,7 +150,7 @@ const CourseCatalog = () => {
                             <Sparkles className="h-3 w-3 text-accent" />
                             <span>Includes certificate</span>
                           </div>
-                          <span className="text-xs font-semibold text-primary group-hover:underline">View →</span>
+                          <span className="text-xs font-semibold text-primary group-hover:underline">View -&gt;</span>
                         </div>
                       </div>
                     </Link>

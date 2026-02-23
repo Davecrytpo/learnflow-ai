@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" role="img" aria-label="Learnflow AI">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#0E7C73" />
+      <stop offset="100%" stop-color="#E37B3E" />
+    </linearGradient>
+    <linearGradient id="grid" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#F6F1E9" stop-opacity="0.6" />
+      <stop offset="100%" stop-color="#F6F1E9" stop-opacity="0" />
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="630" fill="#F7F2EA" />
+  <rect width="1200" height="630" fill="url(#grid)" />
+  <g opacity="0.25">
+    <path d="M0 120h1200M0 240h1200M0 360h1200M0 480h1200" stroke="#D7C9B8" stroke-width="1" />
+    <path d="M120 0v630M300 0v630M480 0v630M660 0v630M840 0v630M1020 0v630" stroke="#D7C9B8" stroke-width="1" />
+  </g>
+  <circle cx="980" cy="120" r="140" fill="url(#g)" opacity="0.2" />
+  <circle cx="220" cy="520" r="180" fill="url(#g)" opacity="0.18" />
+  <rect x="120" y="150" width="960" height="330" rx="28" fill="#FFFFFF" stroke="#E6DCCC" />
+  <g transform="translate(180,220)">
+    <rect x="0" y="0" width="72" height="72" rx="16" fill="url(#g)" />
+    <path d="M36 16L14 26l22 10 22-10-22-10zM14 46l22 10 22-10M14 36l22 10 22-10" fill="none" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
+  </g>
+  <text x="280" y="265" font-family="Sora, Arial, sans-serif" font-size="48" font-weight="700" fill="#1E2B2A">Learnflow AI</text>
+  <text x="280" y="320" font-family="Sora, Arial, sans-serif" font-size="24" fill="#4C5B58">Enterprise LMS for modern education</text>
+  <text x="280" y="370" font-family="Sora, Arial, sans-serif" font-size="20" fill="#6B7A76">Courses. Assessments. Certificates. Analytics.</text>
+</svg>

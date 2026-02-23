@@ -48,9 +48,17 @@ const DashboardLayout = ({ children, allowedRoles, sidebar }: DashboardLayoutPro
 
   return (
     <SidebarProvider>
-      <div className="flex min-h-screen w-full bg-background">
+      <div className="relative flex min-h-screen w-full bg-background">
+        <div className="pointer-events-none absolute inset-0 bg-aurora opacity-60" />
+        <div className="pointer-events-none absolute inset-0 bg-grid-pattern bg-grid opacity-[0.02]" />
         {sidebar}
         <div className="flex flex-1 flex-col">
+          <a
+            href="#dashboard-main"
+            className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 rounded-md bg-background px-4 py-2 text-sm font-semibold text-foreground shadow-lg"
+          >
+            Skip to content
+          </a>
           <header className="flex h-14 items-center gap-3 border-b border-border bg-card/60 px-4 backdrop-blur-sm">
             <SidebarTrigger className="text-muted-foreground hover:text-foreground" />
             <div className="flex-1" />
@@ -80,7 +88,9 @@ const DashboardLayout = ({ children, allowedRoles, sidebar }: DashboardLayoutPro
               </Button>
             </div>
           </header>
-          <main className="flex-1 overflow-auto p-6">{children}</main>
+          <main id="dashboard-main" className="flex-1 overflow-auto p-6 lg:p-8">
+            <div className="mx-auto w-full max-w-7xl">{children}</div>
+          </main>
         </div>
       </div>
     </SidebarProvider>

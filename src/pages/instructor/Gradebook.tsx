@@ -144,21 +144,29 @@ const Gradebook = () => {
   return (
     <DashboardLayout allowedRoles={["instructor"]} sidebar={<InstructorSidebar />}>
       <div className="space-y-6">
-        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-          <div>
-            <Button variant="ghost" size="sm" asChild className="mb-2 -ml-2 gap-1 text-muted-foreground">
-              <Link to="/instructor/dashboard">
-                <ArrowLeft className="h-4 w-4" /> Back
-              </Link>
-            </Button>
-            <h1 className="text-2xl font-bold text-foreground">Gradebook: {course?.title}</h1>
+        <section className="relative overflow-hidden rounded-3xl border border-border/70 bg-card/90 p-6">
+          <div className="absolute inset-0 bg-aurora opacity-60" />
+          <div className="absolute inset-0 bg-grid-pattern bg-grid opacity-[0.03]" />
+          <div className="relative flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+            <div>
+              <Button variant="ghost" size="sm" asChild className="mb-2 -ml-2 gap-1 text-muted-foreground">
+                <Link to="/instructor/dashboard">
+                  <ArrowLeft className="h-4 w-4" /> Back
+                </Link>
+              </Button>
+              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary">Gradebook</p>
+              <h1 className="mt-2 font-display text-3xl font-bold text-foreground">{course?.title}</h1>
+              <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
+                Review performance by assignment and quiz, and export results anytime.
+              </p>
+            </div>
+            <div className="flex gap-2">
+              <Button variant="outline" onClick={exportGrades} className="gap-2">
+                <Download className="h-4 w-4" /> Export CSV
+              </Button>
+            </div>
           </div>
-          <div className="flex gap-2">
-            <Button variant="outline" onClick={exportGrades} className="gap-2">
-              <Download className="h-4 w-4" /> Export CSV
-            </Button>
-          </div>
-        </div>
+        </section>
 
         <Card>
           <CardHeader className="pb-3">
@@ -175,7 +183,7 @@ const Gradebook = () => {
             </div>
           </CardHeader>
           <CardContent>
-            <div className="rounded-md border border-border overflow-x-auto">
+            <div className="rounded-2xl border border-border overflow-x-auto bg-card/80">
               <Table>
                 <TableHeader>
                   <TableRow>

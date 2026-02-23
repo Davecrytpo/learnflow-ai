@@ -89,7 +89,7 @@ const AdminDashboard = () => {
     toast({ title: "Course deleted" });
   };
 
-  const COLORS = ["hsl(220, 90%, 53%)", "hsl(168, 76%, 42%)", "hsl(0, 84%, 60%)"];
+  const COLORS = ["hsl(168, 60%, 33%)", "hsl(22, 86%, 55%)", "hsl(168, 62%, 45%)"];
 
   const filteredUsers = users.filter(u =>
     (u.display_name || "").toLowerCase().includes(userSearch.toLowerCase()) ||
@@ -103,7 +103,17 @@ const AdminDashboard = () => {
   return (
     <DashboardLayout allowedRoles={["admin"]} sidebar={<AdminSidebar />}>
       <div className="space-y-6">
-        <h1 className="text-2xl font-bold text-foreground">Admin Dashboard</h1>
+        <section className="relative overflow-hidden rounded-3xl border border-border/70 bg-card/90 p-6">
+          <div className="absolute inset-0 bg-aurora opacity-60" />
+          <div className="absolute inset-0 bg-grid-pattern bg-grid opacity-[0.03]" />
+          <div className="relative">
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary">Administration</p>
+            <h1 className="mt-2 font-display text-3xl font-bold text-foreground">Platform health and governance</h1>
+            <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
+              Manage users, courses, and system integrity with clear visibility into activity and growth.
+            </p>
+          </div>
+        </section>
 
         {/* Stats */}
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -113,7 +123,8 @@ const AdminDashboard = () => {
             { label: "Enrollments", value: stats.enrollments, icon: GraduationCap, color: "text-primary" },
             { label: "Certificates", value: stats.certificates, icon: Award, color: "text-accent" },
           ].map(s => (
-            <Card key={s.label}>
+            <Card key={s.label} className="relative overflow-hidden">
+              <div className="absolute left-0 top-0 h-1 w-full bg-gradient-brand" />
               <CardHeader className="flex flex-row items-center justify-between pb-2">
                 <CardTitle className="text-sm font-medium text-muted-foreground">{s.label}</CardTitle>
                 <s.icon className={`h-4 w-4 ${s.color}`} />
@@ -161,7 +172,7 @@ const AdminDashboard = () => {
         )}
 
         <Tabs defaultValue="users">
-          <TabsList>
+          <TabsList className="bg-card/80">
             <TabsTrigger value="users">User Management</TabsTrigger>
             <TabsTrigger value="courses">Course Moderation</TabsTrigger>
           </TabsList>
@@ -171,8 +182,8 @@ const AdminDashboard = () => {
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <Input placeholder="Search users..." value={userSearch} onChange={e => setUserSearch(e.target.value)} className="pl-10" />
             </div>
-            <div className="rounded-lg border border-border">
-              <div className="grid grid-cols-4 gap-4 border-b border-border bg-muted/50 p-3 text-xs font-medium text-muted-foreground">
+            <div className="rounded-2xl border border-border bg-card/80">
+              <div className="grid grid-cols-4 gap-4 border-b border-border bg-secondary/40 p-3 text-xs font-medium text-muted-foreground">
                 <span>Name</span>
                 <span>Institution</span>
                 <span>Role</span>
@@ -184,11 +195,11 @@ const AdminDashboard = () => {
                 <p className="p-4 text-sm text-muted-foreground">No users found.</p>
               ) : (
                 filteredUsers.slice(0, 50).map(u => (
-                  <div key={u.id} className="grid grid-cols-4 items-center gap-4 border-b border-border p-3 last:border-0">
+                  <div key={u.id} className="grid grid-cols-4 items-center gap-4 border-b border-border/70 p-3 last:border-0">
                     <div>
-                      <p className="text-sm font-medium text-foreground">{u.display_name || "—"}</p>
+                      <p className="text-sm font-medium text-foreground">{u.display_name || "N/A"}</p>
                     </div>
-                    <p className="text-sm text-muted-foreground">{u.institution || "—"}</p>
+                    <p className="text-sm text-muted-foreground">{u.institution || "N/A"}</p>
                     <Select value={u.role} onValueChange={(v) => changeUserRole(u.user_id, u.role_id, v)}>
                       <SelectTrigger className="h-8 w-32">
                         <SelectValue />
@@ -214,8 +225,8 @@ const AdminDashboard = () => {
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <Input placeholder="Search courses..." value={courseSearch} onChange={e => setCourseSearch(e.target.value)} className="pl-10" />
             </div>
-            <div className="rounded-lg border border-border">
-              <div className="grid grid-cols-5 gap-4 border-b border-border bg-muted/50 p-3 text-xs font-medium text-muted-foreground">
+            <div className="rounded-2xl border border-border bg-card/80">
+              <div className="grid grid-cols-5 gap-4 border-b border-border bg-secondary/40 p-3 text-xs font-medium text-muted-foreground">
                 <span className="col-span-2">Title</span>
                 <span>Instructor</span>
                 <span>Status</span>
@@ -227,12 +238,12 @@ const AdminDashboard = () => {
                 <p className="p-4 text-sm text-muted-foreground">No courses found.</p>
               ) : (
                 filteredCourses.slice(0, 50).map(c => (
-                  <div key={c.id} className="grid grid-cols-5 items-center gap-4 border-b border-border p-3 last:border-0">
+                  <div key={c.id} className="grid grid-cols-5 items-center gap-4 border-b border-border/70 p-3 last:border-0">
                     <div className="col-span-2">
                       <p className="text-sm font-medium text-foreground line-clamp-1">{c.title}</p>
                       <p className="text-xs text-muted-foreground">{c.category || "General"}</p>
                     </div>
-                    <p className="text-sm text-muted-foreground">{(c as any).profiles?.display_name || "—"}</p>
+                    <p className="text-sm text-muted-foreground">{(c as any).profiles?.display_name || "N/A"}</p>
                     <span className={`inline-block w-fit rounded-full px-2 py-0.5 text-xs ${c.published ? "bg-accent/10 text-accent" : "bg-muted text-muted-foreground"}`}>
                       {c.published ? "Published" : "Draft"}
                     </span>
@@ -256,3 +267,6 @@ const AdminDashboard = () => {
 };
 
 export default AdminDashboard;
+
+
+

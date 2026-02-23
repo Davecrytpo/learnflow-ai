@@ -87,12 +87,14 @@ const CourseDetail = () => {
   const totalDuration = lessons.reduce((acc, l) => acc + (l.duration_seconds || 0), 0);
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="relative min-h-screen bg-background">
+      <div className="pointer-events-none absolute inset-0 bg-aurora opacity-40" />
+      <div className="pointer-events-none absolute inset-0 bg-grid-pattern bg-grid opacity-[0.02]" />
       <Navbar />
-      <main className="container mx-auto px-4 py-12">
+      <main className="container relative mx-auto px-4 py-12">
         <div className="grid gap-8 lg:grid-cols-3">
           <div className="lg:col-span-2 space-y-6">
-            <div className="rounded-2xl bg-gradient-to-br from-primary/10 to-accent/10 p-8">
+            <div className="rounded-3xl border border-border/70 bg-card/90 p-8">
               <span className="rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary">{course.category || "General"}</span>
               <h1 className="mt-4 text-3xl font-bold text-foreground">{course.title}</h1>
               <p className="mt-2 text-muted-foreground">{course.summary}</p>

@@ -13,25 +13,24 @@ const CTA = () => (
         transition={{ duration: 0.6 }}
         className="relative mx-auto max-w-5xl overflow-hidden rounded-3xl"
       >
-        {/* Background */}
         <div className="absolute inset-0 bg-gradient-brand" />
-        <div className="absolute inset-0 bg-grid-pattern bg-grid opacity-[0.06]" />
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_-20%,rgba(255,255,255,0.15),transparent_60%)]" />
+        <div className="absolute inset-0 bg-grid-pattern bg-grid opacity-[0.08]" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_-20%,rgba(255,255,255,0.2),transparent_60%)]" />
 
         <div className="relative px-8 py-16 text-center md:px-16 md:py-20">
           <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-primary-foreground/20 bg-primary-foreground/10 px-4 py-1.5 text-sm font-medium text-primary-foreground">
             <Zap className="h-3.5 w-3.5 fill-current" />
-            Join 50,000+ learners worldwide
+            Join 68,000+ learners worldwide
           </div>
           <h2 className="font-display text-3xl font-bold text-primary-foreground sm:text-4xl lg:text-5xl">
             Ready to transform the way <br className="hidden sm:block" />you teach and learn?
           </h2>
           <p className="mx-auto mt-5 max-w-2xl text-lg text-primary-foreground/75">
-            Create courses, deliver assessments, track progress, and issue certificates — everything free, forever.
+            Create courses, deliver assessments, track progress, and issue certificates. Everything you need, in one platform.
           </p>
 
           <div className="mt-8 flex flex-wrap justify-center gap-4 text-sm text-primary-foreground/70">
-            {["No credit card", "Unlimited courses", "US Standards compliant", "Certificates included"].map((item) => (
+            {["No credit card", "Unlimited courses", "Standards aligned", "Certificates included"].map((item) => (
               <span key={item} className="flex items-center gap-1.5">
                 <CheckCircle className="h-3.5 w-3.5" /> {item}
               </span>

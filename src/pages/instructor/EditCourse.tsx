@@ -251,20 +251,30 @@ const EditCourse = () => {
   return (
     <DashboardLayout allowedRoles={["instructor"]} sidebar={<InstructorSidebar />}>
       <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-bold text-foreground">Edit Course</h1>
-          <div className="flex gap-2">
-            <Button variant="outline" onClick={() => { setCourse({ ...course, published: !course.published }); }}>
-              {course.published ? "Unpublish" : "Publish"}
-            </Button>
-            <Button onClick={saveCourse} disabled={saving}>
-              {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />} Save Changes
-            </Button>
+        <section className="relative overflow-hidden rounded-3xl border border-border/70 bg-card/90 p-6">
+          <div className="absolute inset-0 bg-aurora opacity-60" />
+          <div className="absolute inset-0 bg-grid-pattern bg-grid opacity-[0.03]" />
+          <div className="relative flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary">Course Editor</p>
+              <h1 className="mt-2 font-display text-3xl font-bold text-foreground">Edit course</h1>
+              <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
+                Update details, build curriculum, and manage assessments with one workspace.
+              </p>
+            </div>
+            <div className="flex gap-2">
+              <Button variant="outline" onClick={() => { setCourse({ ...course, published: !course.published }); }}>
+                {course.published ? "Unpublish" : "Publish"}
+              </Button>
+              <Button onClick={saveCourse} disabled={saving}>
+                {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />} Save Changes
+              </Button>
+            </div>
           </div>
-        </div>
+        </section>
 
         <Tabs defaultValue="details">
-          <TabsList>
+          <TabsList className="bg-card/80">
             <TabsTrigger value="details">Details</TabsTrigger>
             <TabsTrigger value="curriculum">Curriculum</TabsTrigger>
             <TabsTrigger value="assessments">Assessments</TabsTrigger>

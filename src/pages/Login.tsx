@@ -98,7 +98,7 @@ const Login = () => {
                 <a href="#" className="text-xs text-primary hover:underline">Forgot password?</a>
               </div>
               <div className="relative">
-                <Input id="password" type={showPass ? "text" : "password"} placeholder="••••••••" value={password} onChange={(e) => setPassword(e.target.value)} required className="h-12 bg-card border-border pr-10 focus:border-primary" />
+                <Input id="password" type={showPass ? "text" : "password"} placeholder="********" value={password} onChange={(e) => setPassword(e.target.value)} required className="h-12 bg-card border-border pr-10 focus:border-primary" />
                 <button type="button" className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground" onClick={() => setShowPass(!showPass)}>
                   {showPass ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
@@ -122,3 +122,6 @@ const Login = () => {
 };
 
 export default Login;
+
+
+

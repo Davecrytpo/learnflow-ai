@@ -91,11 +91,22 @@ const StudentDashboard = () => {
   return (
     <DashboardLayout allowedRoles={["student"]} sidebar={<StudentSidebar />}>
       <div className="space-y-6">
-        <h1 className="text-2xl font-bold text-foreground">Welcome back!</h1>
+        <section className="relative overflow-hidden rounded-3xl border border-border/70 bg-card/90 p-6">
+          <div className="absolute inset-0 bg-aurora opacity-60" />
+          <div className="absolute inset-0 bg-grid-pattern bg-grid opacity-[0.03]" />
+          <div className="relative">
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary">Student</p>
+            <h1 className="mt-2 font-display text-3xl font-bold text-foreground">Welcome back</h1>
+            <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
+              Pick up where you left off, track progress, and stay ahead of your next deadline.
+            </p>
+          </div>
+        </section>
 
         {/* Stats */}
         <div className="grid gap-4 sm:grid-cols-3">
-          <Card>
+          <Card className="relative overflow-hidden">
+            <div className="absolute left-0 top-0 h-1 w-full bg-gradient-brand" />
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground">Enrolled Courses</CardTitle>
               <BookOpen className="h-4 w-4 text-primary" />
@@ -104,7 +115,8 @@ const StudentDashboard = () => {
               {loading ? <Skeleton className="h-8 w-16" /> : <p className="text-2xl font-bold">{enrollments.length}</p>}
             </CardContent>
           </Card>
-          <Card>
+          <Card className="relative overflow-hidden">
+            <div className="absolute left-0 top-0 h-1 w-full bg-gradient-to-r from-accent to-amber-300" />
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground">Completed</CardTitle>
               <Award className="h-4 w-4 text-accent" />
@@ -113,10 +125,11 @@ const StudentDashboard = () => {
               {loading ? <Skeleton className="h-8 w-16" /> : <p className="text-2xl font-bold">{completedCount}</p>}
             </CardContent>
           </Card>
-          <Card>
+          <Card className="relative overflow-hidden">
+            <div className="absolute left-0 top-0 h-1 w-full bg-gradient-to-r from-emerald-500 to-teal-400" />
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground">Notifications</CardTitle>
-              <Bell className="h-4 w-4 text-destructive" />
+              <Bell className="h-4 w-4 text-emerald-500" />
             </CardHeader>
             <CardContent>
               {loading ? <Skeleton className="h-8 w-16" /> : <p className="text-2xl font-bold">{notifications.length}</p>}
@@ -163,7 +176,7 @@ const StudentDashboard = () => {
                 const prog = progressData.find((p) => p.name === e.courses.title.slice(0, 15));
                 return (
                   <Card key={e.id} className="overflow-hidden">
-                    <div className="h-28 bg-gradient-to-br from-primary/20 to-accent/20" />
+                    <div className="h-20 bg-gradient-to-br from-primary/20 to-accent/20" />
                     <CardContent className="pt-4">
                       <h3 className="font-semibold text-foreground line-clamp-1">{e.courses.title}</h3>
                       <p className="text-xs text-muted-foreground">{e.courses.category || "General"}</p>
@@ -190,7 +203,7 @@ const StudentDashboard = () => {
           <Card>
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-lg font-semibold flex items-center gap-2">
-                <Calendar className="h-5 w-5 text-destructive" /> Upcoming Deadlines
+                <Calendar className="h-5 w-5 text-accent" /> Upcoming Deadlines
               </CardTitle>
             </CardHeader>
             <CardContent>

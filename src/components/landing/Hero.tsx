@@ -1,25 +1,23 @@
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Zap, BookOpen, Users, Award, GraduationCap, TrendingUp, Shield } from "lucide-react";
+import { ArrowRight, Zap, BookOpen, Award, TrendingUp } from "lucide-react";
 import { motion } from "framer-motion";
 
 const statsItems = [
-  { value: "50K+", label: "Active Learners" },
-  { value: "2,800+", label: "Courses Published" },
-  { value: "98%", label: "Completion Rate" },
-  { value: "120+", label: "Institutions" },
+  { value: "68K+", label: "Active Learners" },
+  { value: "3,450+", label: "Courses Published" },
+  { value: "97%", label: "Completion Rate" },
+  { value: "180+", label: "Institutions" },
 ];
 
 const Hero = () => {
   return (
     <section className="relative min-h-screen overflow-hidden bg-background pt-20">
-      {/* Background layers */}
-      <div className="absolute inset-0 bg-grid-pattern bg-grid opacity-[0.035]" />
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_50%_at_50%_-20%,hsl(213_94%_58%/0.18),transparent)]" />
-      <div className="absolute bottom-0 left-0 right-0 h-1/2 bg-[radial-gradient(ellipse_60%_80%_at_50%_120%,hsl(250_84%_64%/0.10),transparent)]" />
+      <div className="absolute inset-0 bg-aurora" />
+      <div className="absolute inset-0 bg-grid-pattern bg-grid opacity-[0.05]" />
+      <div className="absolute inset-0 bg-grain opacity-30 mix-blend-soft-light" />
 
       <div className="container relative mx-auto px-4 py-24 md:py-32 lg:py-40">
-        {/* Top badge */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -28,11 +26,10 @@ const Hero = () => {
         >
           <div className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-5 py-2 text-sm font-medium text-primary">
             <Zap className="h-3.5 w-3.5 fill-primary" />
-            The Future of Education is Here — 100% Free
+            The future of education is here -- 100% free
           </div>
         </motion.div>
 
-        {/* Main headline */}
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
@@ -40,21 +37,18 @@ const Hero = () => {
           className="mx-auto mt-8 max-w-5xl text-center"
         >
           <h1 className="font-display text-5xl font-bold leading-[1.05] tracking-tight text-foreground sm:text-6xl lg:text-7xl xl:text-8xl">
-            Where Knowledge{" "}
+            Education that{" "}
             <span className="relative inline-block">
-              <span className="bg-gradient-to-r from-primary via-blue-400 to-violet-400 bg-clip-text text-transparent">
-                Transforms
-              </span>
+              <span className="gradient-text">feels modern</span>
             </span>
             <br />
-            Into Excellence
+            and runs enterprise-grade
           </h1>
           <p className="mx-auto mt-8 max-w-2xl text-lg leading-relaxed text-muted-foreground sm:text-xl">
-            Learnflow AI is the enterprise-grade learning management system built for modern education institutions — from K-12 classrooms to universities. Create, teach, assess, and certify.
+            Learnflow AI is the learning platform built for modern institutions, from K-12 to universities. Design courses, teach at scale, assess confidently, and certify outcomes.
           </p>
         </motion.div>
 
-        {/* CTA buttons */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -75,33 +69,29 @@ const Hero = () => {
           </Button>
         </motion.div>
 
-        {/* Stats bar */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.6, delay: 0.5 }}
-          className="mx-auto mt-20 grid max-w-3xl grid-cols-2 gap-px overflow-hidden rounded-2xl border border-border bg-border md:grid-cols-4"
+          className="mx-auto mt-20 grid max-w-3xl grid-cols-2 gap-px overflow-hidden rounded-2xl border border-border bg-border/70 md:grid-cols-4"
         >
           {statsItems.map((s) => (
-            <div key={s.label} className="flex flex-col items-center justify-center bg-card px-6 py-6 text-center">
+            <div key={s.label} className="flex flex-col items-center justify-center bg-card/95 px-6 py-6 text-center">
               <p className="font-display text-2xl font-bold text-foreground sm:text-3xl">{s.value}</p>
               <p className="mt-1 text-xs text-muted-foreground">{s.label}</p>
             </div>
           ))}
         </motion.div>
 
-        {/* Dashboard visual */}
         <motion.div
           initial={{ opacity: 0, y: 60 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.9, delay: 0.4 }}
           className="relative mx-auto mt-20 max-w-5xl"
         >
-          {/* Glow */}
-          <div className="absolute -inset-x-20 -top-10 h-60 bg-gradient-to-r from-primary/20 via-violet-500/10 to-primary/20 blur-3xl" />
+          <div className="absolute -inset-x-20 -top-10 h-60 bg-gradient-to-r from-primary/20 via-accent/10 to-primary/20 blur-3xl" />
 
           <div className="relative overflow-hidden rounded-2xl border border-border/60 bg-card shadow-2xl shadow-primary/10">
-            {/* App bar */}
             <div className="flex items-center gap-2 border-b border-border bg-background/40 px-5 py-3.5">
               <div className="flex gap-1.5">
                 <div className="h-3 w-3 rounded-full bg-destructive/70" />
@@ -113,9 +103,7 @@ const Hero = () => {
               </div>
             </div>
 
-            {/* Dashboard content mockup */}
             <div className="grid gap-0 md:grid-cols-[220px_1fr]">
-              {/* Sidebar */}
               <div className="hidden border-r border-border bg-sidebar p-4 md:block">
                 <div className="mb-4 flex items-center gap-2 px-2">
                   <div className="h-7 w-7 rounded-md bg-gradient-brand" />
@@ -129,7 +117,6 @@ const Hero = () => {
                 ))}
               </div>
 
-              {/* Main area */}
               <div className="p-6">
                 <div className="mb-4 flex items-center justify-between">
                   <div>
@@ -143,7 +130,7 @@ const Hero = () => {
                   {[
                     { label: "Courses", val: "4", icon: BookOpen, color: "text-primary", bg: "bg-primary/10" },
                     { label: "Progress", val: "78%", icon: TrendingUp, color: "text-accent", bg: "bg-accent/10" },
-                    { label: "Certs", val: "3", icon: Award, color: "text-violet-400", bg: "bg-violet-400/10" },
+                    { label: "Certs", val: "3", icon: Award, color: "text-emerald-600", bg: "bg-emerald-500/10" },
                   ].map((s) => (
                     <div key={s.label} className="rounded-xl border border-border bg-secondary/30 p-3">
                       <div className={`flex h-7 w-7 items-center justify-center rounded-lg ${s.bg}`}>

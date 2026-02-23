@@ -10,7 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, Save, User, Award, Shield, MapPin, Building } from "lucide-react";
+import { Loader2, Save, Award, Shield, MapPin, Building } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 const Profile = () => {
@@ -62,8 +62,18 @@ const Profile = () => {
 
   return (
     <DashboardLayout allowedRoles={["student", "instructor", "admin"]} sidebar={<StudentSidebar />}>
-      <div className="space-y-6 max-w-4xl mx-auto">
-        <h1 className="text-2xl font-bold text-foreground">My Profile</h1>
+      <div className="space-y-6 max-w-5xl mx-auto">
+        <section className="relative overflow-hidden rounded-3xl border border-border/70 bg-card/90 p-6">
+          <div className="absolute inset-0 bg-aurora opacity-60" />
+          <div className="absolute inset-0 bg-grid-pattern bg-grid opacity-[0.03]" />
+          <div className="relative">
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary">Profile</p>
+            <h1 className="mt-2 font-display text-3xl font-bold text-foreground">Your profile</h1>
+            <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
+              Keep your details up to date and track achievements in one place.
+            </p>
+          </div>
+        </section>
 
         <div className="grid gap-6 md:grid-cols-[300px_1fr]">
           <div className="space-y-6">

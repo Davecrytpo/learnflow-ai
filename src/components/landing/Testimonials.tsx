@@ -7,8 +7,8 @@ const testimonials = [
     role: "Professor of Computer Science",
     org: "MIT",
     initials: "SC",
-    color: "from-primary to-violet-400",
-    quote: "Learnflow AI fundamentally changed how I structure my courses. The AI content generation and the exam system are robust enough for graduate-level work. My students are more engaged than ever.",
+    color: "from-primary to-emerald-400",
+    quote: "Learnflow AI changed how I structure graduate coursework. The content tools, assessments, and grading workflows are fast and reliable.",
     rating: 5,
   },
   {
@@ -16,8 +16,8 @@ const testimonials = [
     role: "High School Student",
     org: "California",
     initials: "MJ",
-    color: "from-accent to-orange-400",
-    quote: "I've earned 12 certificates through Learnflow AI. The progress tracking keeps me accountable and the dashboards are actually fun to look at — not like the old boring LMS systems.",
+    color: "from-accent to-amber-300",
+    quote: "The progress tracking keeps me accountable and the dashboards are actually enjoyable to use. It feels built for students, not administrators.",
     rating: 5,
   },
   {
@@ -25,8 +25,8 @@ const testimonials = [
     role: "District Curriculum Director",
     org: "Dallas ISD, Texas",
     initials: "ER",
-    color: "from-emerald-400 to-teal-500",
-    quote: "We deployed Learnflow AI across 47 schools in under two weeks. The admin controls, reporting, and assessment flexibility is something we used to pay $200K/yr for. This is transformational.",
+    color: "from-emerald-500 to-teal-400",
+    quote: "We deployed Learnflow AI across 47 schools in under two weeks. The analytics and assessment flexibility replaced a six-figure legacy LMS.",
     rating: 5,
   },
   {
@@ -34,15 +34,15 @@ const testimonials = [
     role: "Dean of Academic Affairs",
     org: "NYU School of Education",
     initials: "JW",
-    color: "from-violet-400 to-purple-500",
-    quote: "The depth of the platform surprised us. Certificate verification, institutional tracking, role management — everything institutions actually need, done right.",
+    color: "from-primary to-accent",
+    quote: "The platform depth surprised us. Certificate verification, role management, and reporting are done right.",
     rating: 5,
   },
 ];
 
 const Testimonials = () => (
   <section className="relative overflow-hidden py-28">
-    <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,hsl(213_94%_58%/0.04),transparent_70%)]" />
+    <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,hsl(168_60%_33%/0.06),transparent_70%)]" />
 
     <div className="container relative mx-auto px-4">
       <motion.div
@@ -56,7 +56,7 @@ const Testimonials = () => (
           Trusted by educators at every level
         </h2>
         <p className="mt-5 text-lg text-muted-foreground">
-          From individual teachers to entire school districts — Learnflow AI delivers.
+          From individual teachers to entire school districts, Learnflow AI delivers.
         </p>
       </motion.div>
 
@@ -70,7 +70,6 @@ const Testimonials = () => (
             transition={{ duration: 0.4, delay: i * 0.08 }}
             className="group relative flex flex-col overflow-hidden rounded-2xl border border-border bg-card transition-all duration-300 hover:border-primary/30 hover:shadow-xl hover:shadow-primary/5"
           >
-            {/* Top accent bar */}
             <div className={`h-1 w-full bg-gradient-to-r ${t.color}`} />
 
             <div className="flex flex-1 flex-col p-6">
@@ -82,7 +81,7 @@ const Testimonials = () => (
                 </div>
                 <div>
                   <p className="text-sm font-semibold text-foreground">{t.name}</p>
-                  <p className="text-[11px] text-muted-foreground">{t.role} · {t.org}</p>
+                  <p className="text-[11px] text-muted-foreground">{t.role} - {t.org}</p>
                 </div>
               </div>
               <div className="mt-3 flex gap-0.5">
