@@ -69,11 +69,60 @@ const HowItWorks = () => (
   </section>
 );
 
+const RoleGate = () => (
+  <section className="border-t border-border py-24">
+    <div className="container mx-auto px-4">
+      <div className="mx-auto max-w-3xl text-center">
+        <p className="text-sm font-semibold uppercase tracking-[0.2em] text-primary">Get Started</p>
+        <h2 className="mt-4 font-display text-4xl font-bold tracking-tight text-foreground sm:text-5xl">
+          Choose your portal
+        </h2>
+        <p className="mt-4 text-lg text-muted-foreground">
+          Moodle-style separation for students and instructors, with tailored onboarding for each.
+        </p>
+      </div>
+      <div className="mx-auto mt-12 grid max-w-5xl gap-6 md:grid-cols-2">
+        <div className="rounded-3xl border border-border bg-card/90 p-6">
+          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary">Student</p>
+          <h3 className="mt-3 font-display text-2xl font-bold text-foreground">Create a student account</h3>
+          <p className="mt-2 text-sm text-muted-foreground">
+            Enroll in courses, track progress, and earn certificates with a focused student dashboard.
+          </p>
+          <div className="mt-4 flex gap-3">
+            <Button asChild className="bg-gradient-brand text-primary-foreground">
+              <Link to="/signup?role=student">Student Signup</Link>
+            </Button>
+            <Button asChild variant="outline">
+              <Link to="/login?role=student">Student Login</Link>
+            </Button>
+          </div>
+        </div>
+        <div className="rounded-3xl border border-border bg-card/90 p-6">
+          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-accent">Instructor</p>
+          <h3 className="mt-3 font-display text-2xl font-bold text-foreground">Create an instructor account</h3>
+          <p className="mt-2 text-sm text-muted-foreground">
+            Build courses, manage assessments, and lead cohorts with advanced tools.
+          </p>
+          <div className="mt-4 flex gap-3">
+            <Button asChild className="bg-gradient-brand text-primary-foreground">
+              <Link to="/signup?role=instructor">Instructor Signup</Link>
+            </Button>
+            <Button asChild variant="outline">
+              <Link to="/login?role=instructor">Instructor Login</Link>
+            </Button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+);
+
 const Index = () => (
   <div className="min-h-screen bg-background">
     <Navbar />
     <main id="main-content">
       <Hero />
+      <RoleGate />
       <Features />
       <HowItWorks />
       <Testimonials />

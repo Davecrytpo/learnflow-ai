@@ -1,14 +1,17 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Loader2, Eye, EyeOff, ArrowRight } from "lucide-react";
+import { Loader2, Eye, EyeOff, ArrowRight, GraduationCap } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { motion } from "framer-motion";
 
 const Login = () => {
+  const [searchParams] = useSearchParams();
+  const initialRole = searchParams.get("role") === "instructor" ? "instructor" : "student";
+  const [selectedRole, setSelectedRole] = useState<"student" | "instructor">(initialRole);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPass, setShowPass] = useState(false);
@@ -30,7 +33,6 @@ const Login = () => {
 
   return (
     <div className="flex min-h-screen bg-background">
-      {/* Left panel */}
       <div className="relative hidden w-1/2 overflow-hidden lg:flex lg:items-center lg:justify-center">
         <div className="absolute inset-0 bg-gradient-brand" />
         <div className="absolute inset-0 bg-grid-pattern bg-grid opacity-10" />
@@ -44,15 +46,24 @@ const Login = () => {
           <div className="mb-8 flex items-center gap-3">
             <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary-foreground/20">
               <svg className="h-6 w-6 text-primary-foreground" viewBox="0 0 24 24" fill="none">
-                <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
             </div>
             <span className="font-display text-xl font-bold">Learnflow AI</span>
           </div>
-          <h2 className="font-display text-4xl font-bold leading-tight">Welcome back to your learning journey</h2>
-          <p className="mt-4 text-lg text-primary-foreground/70">Sign in to access your courses, track your progress, and continue earning certificates.</p>
+          <h2 className="font-display text-4xl font-bold leading-tight">
+            {selectedRole === "instructor" ? "Welcome back, instructor" : "Welcome back to your learning journey"}
+          </h2>
+          <p className="mt-4 text-lg text-primary-foreground/70">
+            {selectedRole === "instructor"
+              ? "Sign in to manage courses, assessments, and your teaching workflow."
+              : "Sign in to access your courses, track your progress, and continue earning certificates."}
+          </p>
           <div className="mt-10 space-y-3">
-            {["Access 2,800+ courses", "Track your progress in real-time", "Download your certificates"].map((item) => (
+            {(selectedRole === "instructor"
+              ? ["Build course curriculum", "Grade assessments faster", "Track learner progress"]
+              : ["Access 2,800+ courses", "Track your progress in real-time", "Download your certificates"]
+            ).map((item) => (
               <div key={item} className="flex items-center gap-3 text-sm text-primary-foreground/80">
                 <div className="flex h-5 w-5 items-center justify-center rounded-full bg-primary-foreground/20">
                   <ArrowRight className="h-3 w-3" />
@@ -64,7 +75,6 @@ const Login = () => {
         </motion.div>
       </div>
 
-      {/* Right panel */}
       <div className="flex w-full items-center justify-center px-6 lg:w-1/2">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -74,23 +84,48 @@ const Login = () => {
         >
           <div className="mb-8 flex items-center gap-3 lg:hidden">
             <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-brand">
-              <svg className="h-5 w-5 text-primary-foreground" viewBox="0 0 24 24" fill="none">
-                <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
+              <GraduationCap className="h-5 w-5 text-primary-foreground" />
             </div>
-            <span className="font-display text-xl font-bold text-foreground">Learnflow AI</span>
+            <span className="text-xl font-bold">Learnflow AI</span>
           </div>
 
-          <h1 className="font-display text-3xl font-bold text-foreground">Sign in</h1>
+          <h1 className="text-2xl font-bold text-foreground">Sign in</h1>
           <p className="mt-2 text-sm text-muted-foreground">
-            Don't have an account?{" "}
-            <Link to="/signup" className="font-medium text-primary hover:underline">Create one free</Link>
+            New to Learnflow AI?{" "}
+            <Link to={`/signup?role=${selectedRole}`} className="text-primary hover:underline">Create an account</Link>
           </p>
 
-          <form onSubmit={handleLogin} className="mt-8 space-y-5">
+          <div className="mt-6 grid grid-cols-2 gap-3">
+            <button
+              type="button"
+              onClick={() => setSelectedRole("student")}
+              className={`flex flex-col items-center rounded-xl border p-4 transition-all ${
+                selectedRole === "student"
+                  ? "border-primary bg-primary/5 shadow-sm"
+                  : "border-border hover:border-primary/30"
+              }`}
+            >
+              <span className="text-sm font-medium">Student</span>
+              <span className="text-xs text-muted-foreground">I want to learn</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setSelectedRole("instructor")}
+              className={`flex flex-col items-center rounded-xl border p-4 transition-all ${
+                selectedRole === "instructor"
+                  ? "border-accent bg-accent/5 shadow-sm"
+                  : "border-border hover:border-accent/30"
+              }`}
+            >
+              <span className="text-sm font-medium">Instructor</span>
+              <span className="text-xs text-muted-foreground">I want to teach</span>
+            </button>
+          </div>
+
+          <form onSubmit={handleLogin} className="mt-6 space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="email" className="text-sm font-medium text-foreground">Email address</Label>
-              <Input id="email" type="email" placeholder="you@school.edu" value={email} onChange={(e) => setEmail(e.target.value)} required className="h-12 bg-card border-border focus:border-primary" />
+              <Label htmlFor="email" className="text-sm font-medium text-foreground">Email</Label>
+              <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required className="h-12 bg-card border-border" />
             </div>
             <div className="space-y-2">
               <div className="flex items-center justify-between">
@@ -122,6 +157,3 @@ const Login = () => {
 };
 
 export default Login;
-
-
-

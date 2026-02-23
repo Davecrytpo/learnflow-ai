@@ -127,7 +127,7 @@ const Signup = () => {
             <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br from-primary to-accent">
               <GraduationCap className="h-5 w-5 text-primary-foreground" />
             </div>
-            <span className="text-xl font-bold">Classroom</span>
+            <span className="text-xl font-bold">Learnflow AI</span>
           </Link>
 
           <h1 className="text-2xl font-bold text-foreground">Create your account</h1>
