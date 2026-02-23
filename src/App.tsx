@@ -29,6 +29,9 @@ const InstructorContentLibrary = lazy(() => import("./pages/instructor/ContentLi
 const InstructorAssessments = lazy(() => import("./pages/instructor/Assessments"));
 const InstructorProctoring = lazy(() => import("./pages/instructor/Proctoring"));
 const InstructorIntegrity = lazy(() => import("./pages/instructor/Integrity"));
+const InstructorPortfolioReviews = lazy(() => import("./pages/instructor/PortfolioReviews"));
+const InstructorCoaching = lazy(() => import("./pages/instructor/Coaching"));
+const InstructorOfficeHours = lazy(() => import("./pages/instructor/OfficeHours"));
 const StudentAnnouncements = lazy(() => import("./pages/student/Announcements"));
 const StudentCertificates = lazy(() => import("./pages/student/Certificates"));
 const StudentNotifications = lazy(() => import("./pages/student/Notifications"));
@@ -47,6 +50,10 @@ const StudentPortfolio = lazy(() => import("./pages/student/Portfolio"));
 const StudentAdaptive = lazy(() => import("./pages/student/AdaptiveLearning"));
 const StudentProctoredExams = lazy(() => import("./pages/student/ProctoredExams"));
 const StudentPurchases = lazy(() => import("./pages/student/Purchases"));
+const StudentCareerCenter = lazy(() => import("./pages/student/CareerCenter"));
+const StudentMentorship = lazy(() => import("./pages/student/Mentorship"));
+const StudentInternships = lazy(() => import("./pages/student/Internships"));
+const StudentJobBoard = lazy(() => import("./pages/student/JobBoard"));
 const AdminUsers = lazy(() => import("./pages/admin/Users"));
 const AdminCourses = lazy(() => import("./pages/admin/Courses"));
 const AdminAnalytics = lazy(() => import("./pages/admin/Analytics"));
@@ -69,6 +76,10 @@ const AdminPlagiarism = lazy(() => import("./pages/admin/Plagiarism"));
 const AdminPipelines = lazy(() => import("./pages/admin/DataPipelines"));
 const AdminCommerce = lazy(() => import("./pages/admin/Commerce"));
 const AdminMarketplaceOrders = lazy(() => import("./pages/admin/MarketplaceOrders"));
+const AdminSSO = lazy(() => import("./pages/admin/SSOProvisioning"));
+const AdminDirectorySync = lazy(() => import("./pages/admin/DirectorySync"));
+const AdminBranding = lazy(() => import("./pages/admin/Branding"));
+const AdminSupport = lazy(() => import("./pages/admin/SupportCenter"));
 const Login = lazy(() => import("./pages/Login"));
 const Signup = lazy(() => import("./pages/Signup"));
 const Onboarding = lazy(() => import("./pages/Onboarding"));
@@ -132,6 +143,10 @@ const App = () => (
                 <Route path="/dashboard/adaptive" element={<StudentAdaptive />} />
                 <Route path="/dashboard/proctored-exams" element={<StudentProctoredExams />} />
                 <Route path="/dashboard/purchases" element={<StudentPurchases />} />
+                <Route path="/dashboard/career" element={<StudentCareerCenter />} />
+                <Route path="/dashboard/mentorship" element={<StudentMentorship />} />
+                <Route path="/dashboard/internships" element={<StudentInternships />} />
+                <Route path="/dashboard/job-board" element={<StudentJobBoard />} />
                 <Route path="/dashboard/certificates" element={<StudentCertificates />} />
                 <Route path="/dashboard/groups" element={<StudentGroups />} />
                 <Route path="/dashboard/notifications" element={<StudentNotifications />} />
@@ -162,6 +177,9 @@ const App = () => (
                 <Route path="/instructor/assessments" element={<InstructorAssessments />} />
                 <Route path="/instructor/proctoring" element={<InstructorProctoring />} />
                 <Route path="/instructor/integrity" element={<InstructorIntegrity />} />
+                <Route path="/instructor/portfolio-reviews" element={<InstructorPortfolioReviews />} />
+                <Route path="/instructor/coaching" element={<InstructorCoaching />} />
+                <Route path="/instructor/office-hours" element={<InstructorOfficeHours />} />
                 <Route path="/instructor/question-bank" element={<InstructorQuestionBank />} />
                 <Route path="/instructor/scorm" element={<InstructorScormImport />} />
                 <Route path="/instructor/*" element={<InstructorDashboard />} />
@@ -188,6 +206,10 @@ const App = () => (
                 <Route path="/admin/data-pipelines" element={<AdminPipelines />} />
                 <Route path="/admin/commerce" element={<AdminCommerce />} />
                 <Route path="/admin/marketplace-orders" element={<AdminMarketplaceOrders />} />
+                <Route path="/admin/sso" element={<AdminSSO />} />
+                <Route path="/admin/directory-sync" element={<AdminDirectorySync />} />
+                <Route path="/admin/branding" element={<AdminBranding />} />
+                <Route path="/admin/support" element={<AdminSupport />} />
                 <Route path="/admin/*" element={<AdminDashboard />} />
                 <Route path="/about" element={<About />} />
                 <Route path="*" element={<NotFound />} />

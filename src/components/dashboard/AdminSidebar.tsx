@@ -1,4 +1,4 @@
-import { LayoutDashboard, Users, BookOpen, Shield, BarChart3, FileText, Upload, Tag, LineChart, Plug, Building2, KeyRound, CreditCard, GraduationCap, Gavel, Store, Bot, Database, ScanEye, FileSearch, Network, ShoppingCart, Receipt } from "lucide-react";
+import { LayoutDashboard, Users, BookOpen, Shield, BarChart3, FileText, Upload, Tag, LineChart, Plug, Building2, KeyRound, CreditCard, GraduationCap, Gavel, Store, Bot, Database, ScanEye, FileSearch, Network, ShoppingCart, Receipt, Key, RefreshCw, Palette, LifeBuoy } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarHeader } from "@/components/ui/sidebar";
 
@@ -26,6 +26,10 @@ const items = [
   { title: "Data Pipelines", url: "/admin/data-pipelines", icon: Network },
   { title: "Commerce", url: "/admin/commerce", icon: ShoppingCart },
   { title: "Marketplace Orders", url: "/admin/marketplace-orders", icon: Receipt },
+  { title: "SSO Provisioning", url: "/admin/sso", icon: Key },
+  { title: "Directory Sync", url: "/admin/directory-sync", icon: RefreshCw },
+  { title: "Branding", url: "/admin/branding", icon: Palette },
+  { title: "Support Center", url: "/admin/support", icon: LifeBuoy },
 ];
 
 const AdminSidebar = () => (
