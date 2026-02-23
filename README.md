@@ -32,6 +32,8 @@ npm run dev
 Create a `.env` file with the following values.
 - `VITE_SUPABASE_URL`
 - `VITE_SUPABASE_ANON_KEY`
+- `SUPABASE_URL` (server API)
+- `SUPABASE_SERVICE_ROLE_KEY` (server API)
 
 **Project Structure**
 - `src/components` UI components and landing sections
@@ -40,6 +42,7 @@ Create a `.env` file with the following values.
 - `src/lib` Utilities and helper modules
 - `src/integrations` External integrations
 - `docs` Feature comparisons and QA checklists
+- `server` External API layer (Express)
 
 **Feature Coverage**
 See the full Moodle comparison and QA checklist:
@@ -54,4 +57,11 @@ Build the project and deploy the `dist` directory to your hosting provider.
 
 ```bash
 npm run build
+```
+
+**API Layer**
+Run the external API (Express) for server-side workflows.
+
+```bash
+npm run api:dev
 ```
