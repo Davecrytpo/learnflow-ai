@@ -340,6 +340,36 @@ app.post("/audit/logs", async (req, res) => {
   res.json(data);
 });
 
+app.post("/automation/rules", async (req, res) => {
+  if (!supabase) return res.status(503).json({ error: "Supabase not configured" });
+  const schema = z.object({
+    name: z.string().min(2),
+    trigger: z.string().min(2),
+    action: z.string().min(2),
+    status: z.string().min(2).default("active"),
+  });
+  const parse = schema.safeParse(req.body);
+  if (!parse.success) return res.status(400).json({ error: parse.error.flatten() });
+  const { data, error } = await supabase.from("automation_rules").insert(parse.data).select("*").single();
+  if (error) return res.status(400).json({ error: error.message });
+  res.json(data);
+});
+
+app.post("/webhooks", async (req, res) => {
+  if (!supabase) return res.status(503).json({ error: "Supabase not configured" });
+  const schema = z.object({
+    name: z.string().min(2),
+    endpoint: z.string().url(),
+    events: z.array(z.string()).default([]),
+    status: z.string().min(2).default("active"),
+  });
+  const parse = schema.safeParse(req.body);
+  if (!parse.success) return res.status(400).json({ error: parse.error.flatten() });
+  const { data, error } = await supabase.from("webhook_configs").insert(parse.data).select("*").single();
+  if (error) return res.status(400).json({ error: error.message });
+  res.json(data);
+});
+
 const port = process.env.API_PORT || 8787;
 app.listen(port, () => {
   console.log(`Learnflow API listening on port ${port}`);
