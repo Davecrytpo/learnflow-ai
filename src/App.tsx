@@ -13,11 +13,15 @@ const AdminPortal = lazy(() => import("./pages/AdminPortal"));
 const InstructorAnnouncements = lazy(() => import("./pages/instructor/Announcements"));
 const InstructorGroups = lazy(() => import("./pages/instructor/Groups"));
 const InstructorAnalytics = lazy(() => import("./pages/instructor/Analytics"));
+const InstructorQuestionBank = lazy(() => import("./pages/instructor/QuestionBank"));
+const InstructorScormImport = lazy(() => import("./pages/instructor/ScormImport"));
 const AdminUsers = lazy(() => import("./pages/admin/Users"));
 const AdminCourses = lazy(() => import("./pages/admin/Courses"));
 const AdminAnalytics = lazy(() => import("./pages/admin/Analytics"));
 const AdminSecurity = lazy(() => import("./pages/admin/Security"));
 const AdminAuditLogs = lazy(() => import("./pages/admin/AuditLogs"));
+const AdminBulkEnrollment = lazy(() => import("./pages/admin/BulkEnrollment"));
+const AdminCourseCategories = lazy(() => import("./pages/admin/CourseCategories"));
 const Login = lazy(() => import("./pages/Login"));
 const Signup = lazy(() => import("./pages/Signup"));
 const Onboarding = lazy(() => import("./pages/Onboarding"));
@@ -79,6 +83,8 @@ const App = () => (
               <Route path="/instructor/announcements" element={<InstructorAnnouncements />} />
               <Route path="/instructor/groups" element={<InstructorGroups />} />
               <Route path="/instructor/analytics" element={<InstructorAnalytics />} />
+              <Route path="/instructor/question-bank" element={<InstructorQuestionBank />} />
+              <Route path="/instructor/scorm" element={<InstructorScormImport />} />
               <Route path="/instructor/*" element={<InstructorDashboard />} />
               <Route path="/admin" element={<AdminDashboard />} />
               <Route path="/admin/users" element={<AdminUsers />} />
@@ -86,6 +92,8 @@ const App = () => (
               <Route path="/admin/analytics" element={<AdminAnalytics />} />
               <Route path="/admin/security" element={<AdminSecurity />} />
               <Route path="/admin/audit" element={<AdminAuditLogs />} />
+              <Route path="/admin/bulk-enrollment" element={<AdminBulkEnrollment />} />
+              <Route path="/admin/categories" element={<AdminCourseCategories />} />
               <Route path="/admin/*" element={<AdminDashboard />} />
               <Route path="/about" element={<About />} />
               <Route path="*" element={<NotFound />} />

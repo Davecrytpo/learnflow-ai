@@ -1,4 +1,4 @@
-import { BookOpen, LayoutDashboard, PlusCircle, ClipboardCheck, BarChart3, User, CalendarCheck, Megaphone, Users } from "lucide-react";
+import { BookOpen, LayoutDashboard, PlusCircle, ClipboardCheck, BarChart3, User, CalendarCheck, Megaphone, Users, ListChecks, UploadCloud } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarHeader } from "@/components/ui/sidebar";
 
@@ -11,6 +11,8 @@ const items = [
   { title: "Announcements", url: "/instructor/announcements", icon: Megaphone },
   { title: "Cohorts", url: "/instructor/groups", icon: Users },
   { title: "Analytics", url: "/instructor/analytics", icon: BarChart3 },
+  { title: "Question Bank", url: "/instructor/question-bank", icon: ListChecks },
+  { title: "SCORM Import", url: "/instructor/scorm", icon: UploadCloud },
   { title: "Profile", url: "/dashboard/profile", icon: User },
 ];
 
