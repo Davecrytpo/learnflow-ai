@@ -34,7 +34,9 @@ const Navbar = () => {
           <span className="font-display text-xl font-bold tracking-tight text-foreground">Learnflow AI</span>
         </Link>
 
-        <div className="hidden items-center gap-10 md:flex">
+        <div className="hidden items-center gap-8 md:flex">
+          <Link to="/student" className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground">Student</Link>
+          <Link to="/instructor-portal" className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground">Instructor</Link>
           <Link to="/courses" className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground">Courses</Link>
           <a href="/#features" className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground">Features</a>
           <Link to="/about" className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground">About</Link>
@@ -63,6 +65,8 @@ const Navbar = () => {
             className="border-t border-border bg-background/95 backdrop-blur-xl px-4 pb-6 pt-4 md:hidden"
           >
             <div className="flex flex-col gap-4">
+              <Link to="/student" className="text-sm font-medium text-muted-foreground" onClick={() => setMobileOpen(false)}>Student</Link>
+              <Link to="/instructor-portal" className="text-sm font-medium text-muted-foreground" onClick={() => setMobileOpen(false)}>Instructor</Link>
               <Link to="/courses" className="text-sm font-medium text-muted-foreground" onClick={() => setMobileOpen(false)}>Courses</Link>
               <a href="/#features" className="text-sm font-medium text-muted-foreground" onClick={() => setMobileOpen(false)}>Features</a>
               <Link to="/about" className="text-sm font-medium text-muted-foreground" onClick={() => setMobileOpen(false)}>About</Link>

@@ -90,7 +90,7 @@ const RoleGate = () => (
           </p>
           <div className="mt-4 flex gap-3">
             <Button asChild className="bg-gradient-brand text-primary-foreground">
-              <Link to="/signup?role=student">Student Signup</Link>
+              <Link to="/student">Student Portal</Link>
             </Button>
             <Button asChild variant="outline">
               <Link to="/login?role=student">Student Login</Link>
@@ -105,7 +105,7 @@ const RoleGate = () => (
           </p>
           <div className="mt-4 flex gap-3">
             <Button asChild className="bg-gradient-brand text-primary-foreground">
-              <Link to="/signup?role=instructor">Instructor Signup</Link>
+              <Link to="/instructor-portal">Instructor Portal</Link>
             </Button>
             <Button asChild variant="outline">
               <Link to="/login?role=instructor">Instructor Login</Link>
