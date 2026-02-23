@@ -297,6 +297,49 @@ app.post("/courses/publish", async (req, res) => {
   res.json(data);
 });
 
+app.post("/reports/schedule", async (req, res) => {
+  if (!supabase) return res.status(503).json({ error: "Supabase not configured" });
+  const schema = z.object({
+    report_name: z.string().min(2),
+    cadence: z.string().min(2),
+    status: z.string().min(2).default("active"),
+  });
+  const parse = schema.safeParse(req.body);
+  if (!parse.success) return res.status(400).json({ error: parse.error.flatten() });
+  const { data, error } = await supabase.from("report_schedules").insert(parse.data).select("*").single();
+  if (error) return res.status(400).json({ error: error.message });
+  res.json(data);
+});
+
+app.post("/exports/schedule", async (req, res) => {
+  if (!supabase) return res.status(503).json({ error: "Supabase not configured" });
+  const schema = z.object({
+    export_name: z.string().min(2),
+    cadence: z.string().min(2),
+    status: z.string().min(2).default("active"),
+  });
+  const parse = schema.safeParse(req.body);
+  if (!parse.success) return res.status(400).json({ error: parse.error.flatten() });
+  const { data, error } = await supabase.from("export_schedules").insert(parse.data).select("*").single();
+  if (error) return res.status(400).json({ error: error.message });
+  res.json(data);
+});
+
+app.post("/audit/logs", async (req, res) => {
+  if (!supabase) return res.status(503).json({ error: "Supabase not configured" });
+  const schema = z.object({
+    actor_id: z.string().uuid(),
+    action: z.string().min(2),
+    entity: z.string().min(2),
+    metadata: z.record(z.any()).optional(),
+  });
+  const parse = schema.safeParse(req.body);
+  if (!parse.success) return res.status(400).json({ error: parse.error.flatten() });
+  const { data, error } = await supabase.from("audit_logs").insert(parse.data).select("*").single();
+  if (error) return res.status(400).json({ error: error.message });
+  res.json(data);
+});
+
 const port = process.env.API_PORT || 8787;
 app.listen(port, () => {
   console.log(`Learnflow API listening on port ${port}`);
