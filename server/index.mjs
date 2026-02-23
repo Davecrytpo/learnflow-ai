@@ -257,6 +257,46 @@ app.post("/admin/brand-themes", async (req, res) => {
   res.json(data);
 });
 
+app.post("/enrollments/bulk", async (req, res) => {
+  if (!supabase) return res.status(503).json({ error: "Supabase not configured" });
+  const schema = z.object({
+    course_id: z.string().uuid(),
+    student_ids: z.array(z.string().uuid()).min(1),
+  });
+  const parse = schema.safeParse(req.body);
+  if (!parse.success) return res.status(400).json({ error: parse.error.flatten() });
+  const payload = parse.data.student_ids.map((student_id) => ({
+    course_id: parse.data.course_id,
+    student_id,
+  }));
+  const { data, error } = await supabase.from("enrollments").insert(payload).select("*");
+  if (error) return res.status(400).json({ error: error.message });
+  res.json({ inserted: data?.length || 0 });
+});
+
+app.post("/users/roles/assign", async (req, res) => {
+  if (!supabase) return res.status(503).json({ error: "Supabase not configured" });
+  const schema = z.object({
+    user_id: z.string().uuid(),
+    role: z.enum(["student", "instructor", "admin"]),
+  });
+  const parse = schema.safeParse(req.body);
+  if (!parse.success) return res.status(400).json({ error: parse.error.flatten() });
+  const { data, error } = await supabase.from("user_roles").insert(parse.data).select("*").single();
+  if (error) return res.status(400).json({ error: error.message });
+  res.json(data);
+});
+
+app.post("/courses/publish", async (req, res) => {
+  if (!supabase) return res.status(503).json({ error: "Supabase not configured" });
+  const schema = z.object({ course_id: z.string().uuid(), published: z.boolean() });
+  const parse = schema.safeParse(req.body);
+  if (!parse.success) return res.status(400).json({ error: parse.error.flatten() });
+  const { data, error } = await supabase.from("courses").update({ published: parse.data.published }).eq("id", parse.data.course_id).select("*").single();
+  if (error) return res.status(400).json({ error: error.message });
+  res.json(data);
+});
+
 const port = process.env.API_PORT || 8787;
 app.listen(port, () => {
   console.log(`Learnflow API listening on port ${port}`);
