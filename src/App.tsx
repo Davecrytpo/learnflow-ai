@@ -9,6 +9,7 @@ import { AuthProvider } from "@/contexts/AuthContext";
 const Index = lazy(() => import("./pages/Index"));
 const StudentPortal = lazy(() => import("./pages/StudentPortal"));
 const InstructorPortal = lazy(() => import("./pages/InstructorPortal"));
+const AdminPortal = lazy(() => import("./pages/AdminPortal"));
 const Login = lazy(() => import("./pages/Login"));
 const Signup = lazy(() => import("./pages/Signup"));
 const Onboarding = lazy(() => import("./pages/Onboarding"));
@@ -49,6 +50,7 @@ const App = () => (
               <Route path="/" element={<Index />} />
               <Route path="/student" element={<StudentPortal />} />
               <Route path="/instructor-portal" element={<InstructorPortal />} />
+              <Route path="/admin-portal" element={<AdminPortal />} />
               <Route path="/login" element={<Login />} />
               <Route path="/signup" element={<Signup />} />
               <Route path="/onboarding" element={<Onboarding />} />

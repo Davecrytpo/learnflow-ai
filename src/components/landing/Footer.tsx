@@ -34,7 +34,7 @@ const Footer = () => (
         <div>
           <p className="text-xs font-semibold uppercase tracking-[0.15em] text-foreground">Platform</p>
           <ul className="mt-4 space-y-3">
-            {[["Course Catalog", "/courses"], ["Features", "/#features"], ["About", "/about"]].map(([label, href]) => (
+            {[["Course Catalog", "/courses"], ["Student Portal", "/student"], ["Instructor Portal", "/instructor-portal"], ["About", "/about"]].map(([label, href]) => (
               <li key={label}>
                 <Link to={href} className="text-sm text-muted-foreground transition-colors hover:text-foreground">{label}</Link>
               </li>
@@ -45,7 +45,7 @@ const Footer = () => (
         <div>
           <p className="text-xs font-semibold uppercase tracking-[0.15em] text-foreground">Get Started</p>
           <ul className="mt-4 space-y-3">
-            {[["Student Signup", "/signup"], ["Instructor Registration", "/signup?role=instructor"], ["Sign In", "/login"]].map(([label, href]) => (
+            {[["Student Signup", "/signup?role=student"], ["Instructor Registration", "/signup?role=instructor"], ["Admin Portal", "/admin-portal"], ["Sign In", "/login"]].map(([label, href]) => (
               <li key={label}>
                 <Link to={href} className="text-sm text-muted-foreground transition-colors hover:text-foreground">{label}</Link>
               </li>
