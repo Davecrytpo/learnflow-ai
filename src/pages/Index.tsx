@@ -7,6 +7,7 @@ import Footer from "@/components/landing/Footer";
 import { motion } from "framer-motion";
 import { BookOpen, ClipboardCheck, Award, ArrowRight } from "lucide-react";
 import { Link } from "react-router-dom";
+import { Button } from "@/components/ui/button";
 
 const steps = [
   { icon: BookOpen, step: "01", title: "Enroll or Create", description: "Students browse and enroll. Instructors build structured courses with modules, lessons, and rich media.", color: "from-primary to-emerald-400" },
