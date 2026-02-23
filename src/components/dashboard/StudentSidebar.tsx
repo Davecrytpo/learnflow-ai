@@ -1,11 +1,12 @@
-import { BookOpen, LayoutDashboard, Bell, Award, User, Calendar } from "lucide-react";
+import { Bell, BookOpen, Calendar, LayoutDashboard, User, MessageSquare, Award } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarHeader } from "@/components/ui/sidebar";
 
 const items = [
   { title: "Dashboard", url: "/dashboard/student", icon: LayoutDashboard },
-  { title: "My Courses", url: "/dashboard/courses", icon: BookOpen },
+  { title: "My Courses", url: "/courses", icon: BookOpen },
   { title: "Calendar", url: "/dashboard/calendar", icon: Calendar },
+  { title: "Announcements", url: "/dashboard/announcements", icon: MessageSquare },
   { title: "Certificates", url: "/dashboard/certificates", icon: Award },
   { title: "Notifications", url: "/dashboard/notifications", icon: Bell },
   { title: "Profile", url: "/dashboard/profile", icon: User },

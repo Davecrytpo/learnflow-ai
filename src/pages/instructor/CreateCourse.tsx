@@ -26,6 +26,7 @@ const CreateCourse = () => {
     description: "",
     summary: "",
     category: "",
+    cover_image_url: "",
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -38,6 +39,7 @@ const CreateCourse = () => {
     const { data, error } = await supabase.from("courses").insert({
       title: form.title, description: form.description, summary: form.summary,
       category: form.category || null, price_cents: 0, slug, author_id: user.id, published: false,
+      cover_image_url: form.cover_image_url || null,
     }).select("id").single();
 
     setLoading(false);
@@ -93,6 +95,10 @@ const CreateCourse = () => {
                     {categories.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
                   </SelectContent>
                 </Select>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="cover">Cover Image URL</Label>
+                <Input id="cover" placeholder="https://..." value={form.cover_image_url} onChange={(e) => setForm({ ...form, cover_image_url: e.target.value })} />
               </div>
               <Button type="submit" disabled={loading} className="w-full">
                 {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}

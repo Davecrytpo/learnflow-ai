@@ -15,6 +15,9 @@ const InstructorGroups = lazy(() => import("./pages/instructor/Groups"));
 const InstructorAnalytics = lazy(() => import("./pages/instructor/Analytics"));
 const InstructorQuestionBank = lazy(() => import("./pages/instructor/QuestionBank"));
 const InstructorScormImport = lazy(() => import("./pages/instructor/ScormImport"));
+const StudentAnnouncements = lazy(() => import("./pages/student/Announcements"));
+const StudentCertificates = lazy(() => import("./pages/student/Certificates"));
+const StudentNotifications = lazy(() => import("./pages/student/Notifications"));
 const AdminUsers = lazy(() => import("./pages/admin/Users"));
 const AdminCourses = lazy(() => import("./pages/admin/Courses"));
 const AdminAnalytics = lazy(() => import("./pages/admin/Analytics"));
@@ -69,6 +72,9 @@ const App = () => (
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/dashboard/student" element={<StudentDashboard />} />
               <Route path="/dashboard/calendar" element={<StudentCalendar />} />
+              <Route path="/dashboard/announcements" element={<StudentAnnouncements />} />
+              <Route path="/dashboard/certificates" element={<StudentCertificates />} />
+              <Route path="/dashboard/notifications" element={<StudentNotifications />} />
               <Route path="/dashboard/profile" element={<Profile />} />
               <Route path="/dashboard/*" element={<StudentDashboard />} />
               <Route path="/courses" element={<CourseCatalog />} />
