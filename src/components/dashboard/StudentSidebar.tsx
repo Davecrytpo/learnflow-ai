@@ -1,4 +1,4 @@
-import { Bell, BookOpen, Calendar, LayoutDashboard, User, MessageSquare, Award, Users, Link, ClipboardCheck, FileCheck2, HelpCircle, MessagesSquare, BookmarkCheck, Route, TrendingUp, Trophy, Briefcase, Sparkles, ShieldCheck, ShoppingBag, BriefcaseBusiness, HeartHandshake, Building2, Search } from "lucide-react";
+import { Bell, BookOpen, Calendar, LayoutDashboard, User, MessageSquare, Award, Users, Link, ClipboardCheck, FileCheck2, HelpCircle, MessagesSquare, BookmarkCheck, Route, TrendingUp, Trophy, Briefcase, Sparkles, ShieldCheck, ShoppingBag, BriefcaseBusiness, HeartHandshake, Building2, Search, Target, Building, UsersRound } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarHeader } from "@/components/ui/sidebar";
 
@@ -25,6 +25,9 @@ const items = [
   { title: "Mentorship", url: "/dashboard/mentorship", icon: HeartHandshake },
   { title: "Internships", url: "/dashboard/internships", icon: Building2 },
   { title: "Job Board", url: "/dashboard/job-board", icon: Search },
+  { title: "Capstone Tracker", url: "/dashboard/capstone", icon: Target },
+  { title: "Employers", url: "/dashboard/employers", icon: Building },
+  { title: "Alumni Network", url: "/dashboard/alumni", icon: UsersRound },
   { title: "Certificates", url: "/dashboard/certificates", icon: Award },
   { title: "Groups", url: "/dashboard/groups", icon: Users },
   { title: "Notifications", url: "/dashboard/notifications", icon: Bell },

@@ -1,4 +1,4 @@
-import { LayoutDashboard, Users, BookOpen, Shield, BarChart3, FileText, Upload, Tag, LineChart, Plug, Building2, KeyRound, CreditCard, GraduationCap, Gavel, Store, Bot, Database, ScanEye, FileSearch, Network, ShoppingCart, Receipt, Key, RefreshCw, Palette, LifeBuoy } from "lucide-react";
+import { LayoutDashboard, Users, BookOpen, Shield, BarChart3, FileText, Upload, Tag, LineChart, Plug, Building2, KeyRound, CreditCard, GraduationCap, Gavel, Store, Bot, Database, ScanEye, FileSearch, Network, ShoppingCart, Receipt, Key, RefreshCw, Palette, LifeBuoy, Radar, ScrollText, Map, LayoutGrid } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarHeader } from "@/components/ui/sidebar";
 
@@ -30,6 +30,11 @@ const items = [
   { title: "Directory Sync", url: "/admin/directory-sync", icon: RefreshCw },
   { title: "Branding", url: "/admin/branding", icon: Palette },
   { title: "Support Center", url: "/admin/support", icon: LifeBuoy },
+  { title: "Advanced Analytics", url: "/admin/advanced-analytics", icon: Radar },
+  { title: "Accreditation Evidence", url: "/admin/accreditation-evidence", icon: ScrollText },
+  { title: "Cohort Insights", url: "/admin/cohort-insights", icon: BarChart3 },
+  { title: "Multi-Campus", url: "/admin/multi-campus", icon: Map },
+  { title: "Catalog Segmentation", url: "/admin/catalog-segmentation", icon: LayoutGrid },
 ];
 
 const AdminSidebar = () => (

@@ -1,4 +1,4 @@
-import { BookOpen, LayoutDashboard, PlusCircle, ClipboardCheck, BarChart3, User, CalendarCheck, Megaphone, Users, ListChecks, UploadCloud, Link, FileCheck2, HelpCircle, MessagesSquare, FileSignature, Video, ClipboardList, Layers, LibraryBig, ClipboardSignature, ShieldCheck, FileSearch, Briefcase, UserRoundCheck, Clock } from "lucide-react";
+import { BookOpen, LayoutDashboard, PlusCircle, ClipboardCheck, BarChart3, User, CalendarCheck, Megaphone, Users, ListChecks, UploadCloud, Link, FileCheck2, HelpCircle, MessagesSquare, FileSignature, Video, ClipboardList, Layers, LibraryBig, ClipboardSignature, ShieldCheck, FileSearch, Briefcase, UserRoundCheck, Clock, Activity, ScrollText } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarHeader } from "@/components/ui/sidebar";
 
@@ -27,6 +27,9 @@ const items = [
   { title: "Portfolio Reviews", url: "/instructor/portfolio-reviews", icon: Briefcase },
   { title: "Coaching", url: "/instructor/coaching", icon: UserRoundCheck },
   { title: "Office Hours", url: "/instructor/office-hours", icon: Clock },
+  { title: "Cohort Heatmap", url: "/instructor/cohort-heatmap", icon: Activity },
+  { title: "Outcome Analytics", url: "/instructor/outcome-analytics", icon: BarChart3 },
+  { title: "Accreditation Evidence", url: "/instructor/accreditation-evidence", icon: ScrollText },
   { title: "Question Bank", url: "/instructor/question-bank", icon: ListChecks },
   { title: "SCORM Import", url: "/instructor/scorm", icon: UploadCloud },
   { title: "Profile", url: "/dashboard/profile", icon: User },

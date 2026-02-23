@@ -32,6 +32,9 @@ const InstructorIntegrity = lazy(() => import("./pages/instructor/Integrity"));
 const InstructorPortfolioReviews = lazy(() => import("./pages/instructor/PortfolioReviews"));
 const InstructorCoaching = lazy(() => import("./pages/instructor/Coaching"));
 const InstructorOfficeHours = lazy(() => import("./pages/instructor/OfficeHours"));
+const InstructorCohortHeatmap = lazy(() => import("./pages/instructor/CohortHeatmap"));
+const InstructorOutcomeAnalytics = lazy(() => import("./pages/instructor/OutcomeAnalytics"));
+const InstructorAccreditationEvidence = lazy(() => import("./pages/instructor/AccreditationEvidence"));
 const StudentAnnouncements = lazy(() => import("./pages/student/Announcements"));
 const StudentCertificates = lazy(() => import("./pages/student/Certificates"));
 const StudentNotifications = lazy(() => import("./pages/student/Notifications"));
@@ -54,6 +57,9 @@ const StudentCareerCenter = lazy(() => import("./pages/student/CareerCenter"));
 const StudentMentorship = lazy(() => import("./pages/student/Mentorship"));
 const StudentInternships = lazy(() => import("./pages/student/Internships"));
 const StudentJobBoard = lazy(() => import("./pages/student/JobBoard"));
+const StudentCapstoneTracker = lazy(() => import("./pages/student/CapstoneTracker"));
+const StudentEmployerConnections = lazy(() => import("./pages/student/EmployerConnections"));
+const StudentAlumniNetwork = lazy(() => import("./pages/student/AlumniNetwork"));
 const AdminUsers = lazy(() => import("./pages/admin/Users"));
 const AdminCourses = lazy(() => import("./pages/admin/Courses"));
 const AdminAnalytics = lazy(() => import("./pages/admin/Analytics"));
@@ -80,6 +86,11 @@ const AdminSSO = lazy(() => import("./pages/admin/SSOProvisioning"));
 const AdminDirectorySync = lazy(() => import("./pages/admin/DirectorySync"));
 const AdminBranding = lazy(() => import("./pages/admin/Branding"));
 const AdminSupport = lazy(() => import("./pages/admin/SupportCenter"));
+const AdminAdvancedAnalytics = lazy(() => import("./pages/admin/AdvancedAnalytics"));
+const AdminAccreditationEvidence = lazy(() => import("./pages/admin/AccreditationEvidence"));
+const AdminCohortInsights = lazy(() => import("./pages/admin/CohortInsights"));
+const AdminMultiCampus = lazy(() => import("./pages/admin/MultiCampus"));
+const AdminCatalogSegmentation = lazy(() => import("./pages/admin/CatalogSegmentation"));
 const Login = lazy(() => import("./pages/Login"));
 const Signup = lazy(() => import("./pages/Signup"));
 const Onboarding = lazy(() => import("./pages/Onboarding"));
@@ -147,6 +158,9 @@ const App = () => (
                 <Route path="/dashboard/mentorship" element={<StudentMentorship />} />
                 <Route path="/dashboard/internships" element={<StudentInternships />} />
                 <Route path="/dashboard/job-board" element={<StudentJobBoard />} />
+                <Route path="/dashboard/capstone" element={<StudentCapstoneTracker />} />
+                <Route path="/dashboard/employers" element={<StudentEmployerConnections />} />
+                <Route path="/dashboard/alumni" element={<StudentAlumniNetwork />} />
                 <Route path="/dashboard/certificates" element={<StudentCertificates />} />
                 <Route path="/dashboard/groups" element={<StudentGroups />} />
                 <Route path="/dashboard/notifications" element={<StudentNotifications />} />
@@ -180,6 +194,9 @@ const App = () => (
                 <Route path="/instructor/portfolio-reviews" element={<InstructorPortfolioReviews />} />
                 <Route path="/instructor/coaching" element={<InstructorCoaching />} />
                 <Route path="/instructor/office-hours" element={<InstructorOfficeHours />} />
+                <Route path="/instructor/cohort-heatmap" element={<InstructorCohortHeatmap />} />
+                <Route path="/instructor/outcome-analytics" element={<InstructorOutcomeAnalytics />} />
+                <Route path="/instructor/accreditation-evidence" element={<InstructorAccreditationEvidence />} />
                 <Route path="/instructor/question-bank" element={<InstructorQuestionBank />} />
                 <Route path="/instructor/scorm" element={<InstructorScormImport />} />
                 <Route path="/instructor/*" element={<InstructorDashboard />} />
@@ -210,6 +227,11 @@ const App = () => (
                 <Route path="/admin/directory-sync" element={<AdminDirectorySync />} />
                 <Route path="/admin/branding" element={<AdminBranding />} />
                 <Route path="/admin/support" element={<AdminSupport />} />
+                <Route path="/admin/advanced-analytics" element={<AdminAdvancedAnalytics />} />
+                <Route path="/admin/accreditation-evidence" element={<AdminAccreditationEvidence />} />
+                <Route path="/admin/cohort-insights" element={<AdminCohortInsights />} />
+                <Route path="/admin/multi-campus" element={<AdminMultiCampus />} />
+                <Route path="/admin/catalog-segmentation" element={<AdminCatalogSegmentation />} />
                 <Route path="/admin/*" element={<AdminDashboard />} />
                 <Route path="/about" element={<About />} />
                 <Route path="*" element={<NotFound />} />
