@@ -1,4 +1,4 @@
-import { LayoutDashboard, Users, BookOpen, Shield, BarChart3 } from "lucide-react";
+import { LayoutDashboard, Users, BookOpen, Shield, BarChart3, FileText } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarHeader } from "@/components/ui/sidebar";
 
@@ -8,6 +8,7 @@ const items = [
   { title: "Courses", url: "/admin/courses", icon: BookOpen },
   { title: "Analytics", url: "/admin/analytics", icon: BarChart3 },
   { title: "Security", url: "/admin/security", icon: Shield },
+  { title: "Audit Logs", url: "/admin/audit", icon: FileText },
 ];
 
 const AdminSidebar = () => (

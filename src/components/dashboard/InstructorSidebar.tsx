@@ -1,4 +1,4 @@
-import { BookOpen, LayoutDashboard, PlusCircle, ClipboardCheck, BarChart3, User, CalendarCheck } from "lucide-react";
+import { BookOpen, LayoutDashboard, PlusCircle, ClipboardCheck, BarChart3, User, CalendarCheck, Megaphone, Users } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarHeader } from "@/components/ui/sidebar";
 
@@ -8,6 +8,8 @@ const items = [
   { title: "Create Course", url: "/instructor/courses/new", icon: PlusCircle },
   { title: "Grading", url: "/instructor/grading", icon: ClipboardCheck },
   { title: "Attendance", url: "/instructor/attendance", icon: CalendarCheck },
+  { title: "Announcements", url: "/instructor/announcements", icon: Megaphone },
+  { title: "Cohorts", url: "/instructor/groups", icon: Users },
   { title: "Analytics", url: "/instructor/analytics", icon: BarChart3 },
   { title: "Profile", url: "/dashboard/profile", icon: User },
 ];

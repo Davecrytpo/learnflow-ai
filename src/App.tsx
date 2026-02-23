@@ -10,6 +10,14 @@ const Index = lazy(() => import("./pages/Index"));
 const StudentPortal = lazy(() => import("./pages/StudentPortal"));
 const InstructorPortal = lazy(() => import("./pages/InstructorPortal"));
 const AdminPortal = lazy(() => import("./pages/AdminPortal"));
+const InstructorAnnouncements = lazy(() => import("./pages/instructor/Announcements"));
+const InstructorGroups = lazy(() => import("./pages/instructor/Groups"));
+const InstructorAnalytics = lazy(() => import("./pages/instructor/Analytics"));
+const AdminUsers = lazy(() => import("./pages/admin/Users"));
+const AdminCourses = lazy(() => import("./pages/admin/Courses"));
+const AdminAnalytics = lazy(() => import("./pages/admin/Analytics"));
+const AdminSecurity = lazy(() => import("./pages/admin/Security"));
+const AdminAuditLogs = lazy(() => import("./pages/admin/AuditLogs"));
 const Login = lazy(() => import("./pages/Login"));
 const Signup = lazy(() => import("./pages/Signup"));
 const Onboarding = lazy(() => import("./pages/Onboarding"));
@@ -68,8 +76,16 @@ const App = () => (
               <Route path="/instructor/courses/:courseId/gradebook" element={<Gradebook />} />
               <Route path="/instructor/grading" element={<Grading />} />
               <Route path="/instructor/attendance" element={<Attendance />} />
+              <Route path="/instructor/announcements" element={<InstructorAnnouncements />} />
+              <Route path="/instructor/groups" element={<InstructorGroups />} />
+              <Route path="/instructor/analytics" element={<InstructorAnalytics />} />
               <Route path="/instructor/*" element={<InstructorDashboard />} />
               <Route path="/admin" element={<AdminDashboard />} />
+              <Route path="/admin/users" element={<AdminUsers />} />
+              <Route path="/admin/courses" element={<AdminCourses />} />
+              <Route path="/admin/analytics" element={<AdminAnalytics />} />
+              <Route path="/admin/security" element={<AdminSecurity />} />
+              <Route path="/admin/audit" element={<AdminAuditLogs />} />
               <Route path="/admin/*" element={<AdminDashboard />} />
               <Route path="/about" element={<About />} />
               <Route path="*" element={<NotFound />} />
