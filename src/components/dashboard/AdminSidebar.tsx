@@ -1,4 +1,4 @@
-import { LayoutDashboard, Users, BookOpen, Shield, BarChart3, FileText, Upload, Tag } from "lucide-react";
+import { LayoutDashboard, Users, BookOpen, Shield, BarChart3, FileText, Upload, Tag, LineChart, Plug } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarHeader } from "@/components/ui/sidebar";
 
@@ -11,6 +11,8 @@ const items = [
   { title: "Audit Logs", url: "/admin/audit", icon: FileText },
   { title: "Bulk Enrollment", url: "/admin/bulk-enrollment", icon: Upload },
   { title: "Categories", url: "/admin/categories", icon: Tag },
+  { title: "Reports", url: "/admin/reports", icon: LineChart },
+  { title: "Integrations", url: "/admin/integrations", icon: Plug },
 ];
 
 const AdminSidebar = () => (
