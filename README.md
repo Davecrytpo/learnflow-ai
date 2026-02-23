@@ -7,6 +7,7 @@ Enterprise LMS for modern education. Learnflow AI helps institutions design cour
 - Course catalog, curriculum builder, assessments, gradebook, and attendance
 - Analytics, certificates, and verifiable credentials
 - Modern UI with accessible components, responsive layouts, and clear hierarchy
+- Moodle-plus breadth: assessments, proctoring, integrity, competencies, portfolios, and enterprise admin workflows
 
 **Tech Stack**
 - React + TypeScript + Vite
@@ -38,6 +39,12 @@ Create a `.env` file with the following values.
 - `src/contexts` Global state and providers
 - `src/lib` Utilities and helper modules
 - `src/integrations` External integrations
+- `docs` Feature comparisons and QA checklists
+
+**Feature Coverage**
+See the full Moodle comparison and QA checklist:
+- `docs/FEATURES_MOODLE_COMPARISON.md`
+- `docs/QA_CHECKLIST.md`
 
 **Design Direction**
 Civic Brass theme with deep teal primary and copper accents. Typography uses `Fraunces` for display and `Sora` for body text.
