@@ -73,6 +73,51 @@ app.post("/assessments/proctoring/session", async (req, res) => {
   res.json(data);
 });
 
+app.post("/commerce/orders", async (req, res) => {
+  if (!supabase) return res.status(503).json({ error: "Supabase not configured" });
+  const schema = z.object({
+    student_id: z.string().uuid(),
+    item_name: z.string().min(2),
+    amount_cents: z.number().int().min(0),
+    status: z.string().min(2).default("paid"),
+  });
+  const parse = schema.safeParse(req.body);
+  if (!parse.success) return res.status(400).json({ error: parse.error.flatten() });
+  const { data, error } = await supabase.from("purchases").insert(parse.data).select("*").single();
+  if (error) return res.status(400).json({ error: error.message });
+  res.json(data);
+});
+
+app.post("/accreditation/evidence", async (req, res) => {
+  if (!supabase) return res.status(503).json({ error: "Supabase not configured" });
+  const schema = z.object({
+    standard: z.string().min(2),
+    artifact_title: z.string().min(2),
+    owner_id: z.string().uuid().optional(),
+    status: z.string().min(2).default("pending"),
+  });
+  const parse = schema.safeParse(req.body);
+  if (!parse.success) return res.status(400).json({ error: parse.error.flatten() });
+  const { data, error } = await supabase.from("accreditation_evidence").insert(parse.data).select("*").single();
+  if (error) return res.status(400).json({ error: error.message });
+  res.json(data);
+});
+
+app.post("/integrity/cases", async (req, res) => {
+  if (!supabase) return res.status(503).json({ error: "Supabase not configured" });
+  const schema = z.object({
+    course_id: z.string().uuid(),
+    student_id: z.string().uuid(),
+    issue: z.string().min(3),
+    severity: z.string().min(3).default("medium"),
+  });
+  const parse = schema.safeParse(req.body);
+  if (!parse.success) return res.status(400).json({ error: parse.error.flatten() });
+  const { data, error } = await supabase.from("integrity_cases").insert(parse.data).select("*").single();
+  if (error) return res.status(400).json({ error: error.message });
+  res.json(data);
+});
+
 const port = process.env.API_PORT || 8787;
 app.listen(port, () => {
   console.log(`Learnflow API listening on port ${port}`);
