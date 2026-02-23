@@ -28,5 +28,10 @@ This update modernizes the front-end experience with a bold new visual system, s
 - Added updated_at triggers where missing
 - Added performance indexes for high-traffic tables
 
+## Backend Extensions
+- Course announcements with strict access control
+- Cohort/group support with managed membership
+- Audit logging for administrative visibility
+
 ## Notes
 This report reflects the current frontend and backend hardening pass. Apply the latest migration to update your Supabase schema.
