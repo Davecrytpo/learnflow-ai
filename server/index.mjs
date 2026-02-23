@@ -203,6 +203,60 @@ app.post("/campuses", async (req, res) => {
   res.json(data);
 });
 
+app.post("/admin/support-tickets", async (req, res) => {
+  if (!supabase) return res.status(503).json({ error: "Supabase not configured" });
+  const schema = z.object({
+    subject: z.string().min(2),
+    priority: z.string().min(2).default("medium"),
+    status: z.string().min(2).default("open"),
+  });
+  const parse = schema.safeParse(req.body);
+  if (!parse.success) return res.status(400).json({ error: parse.error.flatten() });
+  const { data, error } = await supabase.from("support_tickets").insert(parse.data).select("*").single();
+  if (error) return res.status(400).json({ error: error.message });
+  res.json(data);
+});
+
+app.post("/admin/sso-providers", async (req, res) => {
+  if (!supabase) return res.status(503).json({ error: "Supabase not configured" });
+  const schema = z.object({
+    name: z.string().min(2),
+    method: z.string().min(2).default("saml"),
+    status: z.string().min(2).default("connected"),
+  });
+  const parse = schema.safeParse(req.body);
+  if (!parse.success) return res.status(400).json({ error: parse.error.flatten() });
+  const { data, error } = await supabase.from("sso_providers").insert(parse.data).select("*").single();
+  if (error) return res.status(400).json({ error: error.message });
+  res.json(data);
+});
+
+app.post("/admin/directory-connectors", async (req, res) => {
+  if (!supabase) return res.status(503).json({ error: "Supabase not configured" });
+  const schema = z.object({
+    name: z.string().min(2),
+    status: z.string().min(2).default("active"),
+  });
+  const parse = schema.safeParse(req.body);
+  if (!parse.success) return res.status(400).json({ error: parse.error.flatten() });
+  const { data, error } = await supabase.from("directory_connectors").insert(parse.data).select("*").single();
+  if (error) return res.status(400).json({ error: error.message });
+  res.json(data);
+});
+
+app.post("/admin/brand-themes", async (req, res) => {
+  if (!supabase) return res.status(503).json({ error: "Supabase not configured" });
+  const schema = z.object({
+    name: z.string().min(2),
+    status: z.string().min(2).default("draft"),
+  });
+  const parse = schema.safeParse(req.body);
+  if (!parse.success) return res.status(400).json({ error: parse.error.flatten() });
+  const { data, error } = await supabase.from("brand_themes").insert(parse.data).select("*").single();
+  if (error) return res.status(400).json({ error: error.message });
+  res.json(data);
+});
+
 const port = process.env.API_PORT || 8787;
 app.listen(port, () => {
   console.log(`Learnflow API listening on port ${port}`);
