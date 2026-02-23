@@ -1,4 +1,4 @@
-import { LayoutDashboard, Users, BookOpen, Shield, BarChart3, FileText, Upload, Tag, LineChart, Plug } from "lucide-react";
+import { LayoutDashboard, Users, BookOpen, Shield, BarChart3, FileText, Upload, Tag, LineChart, Plug, Building2, KeyRound, CreditCard } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarHeader } from "@/components/ui/sidebar";
 
@@ -13,6 +13,9 @@ const items = [
   { title: "Categories", url: "/admin/categories", icon: Tag },
   { title: "Reports", url: "/admin/reports", icon: LineChart },
   { title: "Integrations", url: "/admin/integrations", icon: Plug },
+  { title: "Tenants", url: "/admin/tenants", icon: Building2 },
+  { title: "Permissions", url: "/admin/permissions", icon: KeyRound },
+  { title: "Billing", url: "/admin/billing", icon: CreditCard },
 ];
 
 const AdminSidebar = () => (

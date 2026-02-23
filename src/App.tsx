@@ -21,6 +21,9 @@ const InstructorAssignments = lazy(() => import("./pages/instructor/Assignments"
 const InstructorQuizzes = lazy(() => import("./pages/instructor/Quizzes"));
 const InstructorDiscussions = lazy(() => import("./pages/instructor/Discussions"));
 const InstructorMessages = lazy(() => import("./pages/instructor/Messages"));
+const InstructorRubrics = lazy(() => import("./pages/instructor/Rubrics"));
+const InstructorLiveSessions = lazy(() => import("./pages/instructor/LiveSessions"));
+const InstructorSurveys = lazy(() => import("./pages/instructor/Surveys"));
 const StudentAnnouncements = lazy(() => import("./pages/student/Announcements"));
 const StudentCertificates = lazy(() => import("./pages/student/Certificates"));
 const StudentNotifications = lazy(() => import("./pages/student/Notifications"));
@@ -31,6 +34,9 @@ const StudentAssignments = lazy(() => import("./pages/student/Assignments"));
 const StudentQuizzes = lazy(() => import("./pages/student/Quizzes"));
 const StudentDiscussions = lazy(() => import("./pages/student/Discussions"));
 const StudentMessages = lazy(() => import("./pages/student/Messages"));
+const StudentLearningPlan = lazy(() => import("./pages/student/LearningPlan"));
+const StudentProgress = lazy(() => import("./pages/student/Progress"));
+const StudentBookmarks = lazy(() => import("./pages/student/Bookmarks"));
 const AdminUsers = lazy(() => import("./pages/admin/Users"));
 const AdminCourses = lazy(() => import("./pages/admin/Courses"));
 const AdminAnalytics = lazy(() => import("./pages/admin/Analytics"));
@@ -40,6 +46,9 @@ const AdminBulkEnrollment = lazy(() => import("./pages/admin/BulkEnrollment"));
 const AdminCourseCategories = lazy(() => import("./pages/admin/CourseCategories"));
 const AdminReports = lazy(() => import("./pages/admin/Reports"));
 const AdminIntegrations = lazy(() => import("./pages/admin/Integrations"));
+const AdminTenants = lazy(() => import("./pages/admin/Tenants"));
+const AdminPermissions = lazy(() => import("./pages/admin/Permissions"));
+const AdminBilling = lazy(() => import("./pages/admin/Billing"));
 const Login = lazy(() => import("./pages/Login"));
 const Signup = lazy(() => import("./pages/Signup"));
 const Onboarding = lazy(() => import("./pages/Onboarding"));
@@ -95,6 +104,9 @@ const App = () => (
                 <Route path="/dashboard/quizzes" element={<StudentQuizzes />} />
                 <Route path="/dashboard/discussions" element={<StudentDiscussions />} />
                 <Route path="/dashboard/messages" element={<StudentMessages />} />
+                <Route path="/dashboard/learning-plan" element={<StudentLearningPlan />} />
+                <Route path="/dashboard/progress" element={<StudentProgress />} />
+                <Route path="/dashboard/bookmarks" element={<StudentBookmarks />} />
                 <Route path="/dashboard/certificates" element={<StudentCertificates />} />
                 <Route path="/dashboard/groups" element={<StudentGroups />} />
                 <Route path="/dashboard/notifications" element={<StudentNotifications />} />
@@ -117,6 +129,9 @@ const App = () => (
                 <Route path="/instructor/quizzes" element={<InstructorQuizzes />} />
                 <Route path="/instructor/discussions" element={<InstructorDiscussions />} />
                 <Route path="/instructor/messages" element={<InstructorMessages />} />
+                <Route path="/instructor/rubrics" element={<InstructorRubrics />} />
+                <Route path="/instructor/live-sessions" element={<InstructorLiveSessions />} />
+                <Route path="/instructor/surveys" element={<InstructorSurveys />} />
                 <Route path="/instructor/question-bank" element={<InstructorQuestionBank />} />
                 <Route path="/instructor/scorm" element={<InstructorScormImport />} />
                 <Route path="/instructor/*" element={<InstructorDashboard />} />
@@ -130,6 +145,9 @@ const App = () => (
                 <Route path="/admin/categories" element={<AdminCourseCategories />} />
                 <Route path="/admin/reports" element={<AdminReports />} />
                 <Route path="/admin/integrations" element={<AdminIntegrations />} />
+                <Route path="/admin/tenants" element={<AdminTenants />} />
+                <Route path="/admin/permissions" element={<AdminPermissions />} />
+                <Route path="/admin/billing" element={<AdminBilling />} />
                 <Route path="/admin/*" element={<AdminDashboard />} />
                 <Route path="/about" element={<About />} />
                 <Route path="*" element={<NotFound />} />
