@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import Navbar from "@/components/landing/Navbar";
 import Footer from "@/components/landing/Footer";
@@ -23,9 +23,11 @@ const categoryColors: Record<string, string> = {
 };
 
 const CourseCatalog = () => {
+  const [searchParams] = useSearchParams();
+  const initialSearch = searchParams.get("search") || "";
   const [courses, setCourses] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [search, setSearch] = useState("");
+  const [search, setSearch] = useState(initialSearch);
   const [category, setCategory] = useState("All");
 
   useEffect(() => {
