@@ -40,19 +40,20 @@ const AdminDashboard = () => {
       const allRoles = rolesRes.data || [];
       const allCourses = coursesRes.data || [];
 
-      // Fetch pending enrollments with simplified join
-      const { data: rawPendingEnr, error: enrError } = await supabase
+      // Fetch pending enrollments with individual table selects to avoid join ambiguity
+      const { data: rawEnrollments, error: enrollErr } = await supabase
         .from("enrollments")
-        .select("*, courses(title)")
+        .select("*")
         .eq("status", "pending")
         .eq("instructor_approved", true);
 
-      if (enrError) console.error("Pending Enrollments error:", enrError);
+      if (enrollErr) throw enrollErr;
 
-      // Manually attach profile names to pending enrollments to avoid complex join crashes
-      const pendingWithProfiles = (rawPendingEnr || []).map(enr => ({
+      // Manually map foreign data to avoid inner-join complexity crashes
+      const pendingWithData = (rawEnrollments || []).map(enr => ({
         ...enr,
-        profiles: allProfiles.find(p => p.user_id === enr.student_id)
+        courses: allCourses.find(c => c.id === enr.course_id) || { title: "Deleted Course" },
+        profiles: allProfiles.find(p => p.user_id === enr.student_id) || { display_name: "Unknown Student" }
       }));
 
       setStats({
@@ -63,7 +64,7 @@ const AdminDashboard = () => {
       });
 
       setPendingInstructors(pendingInstRes.data || []);
-      setPendingEnrollments(pendingWithProfiles);
+      setPendingEnrollments(pendingWithData);
 
       const usersWithRoles = allProfiles.map(p => ({
         ...p,
@@ -81,9 +82,9 @@ const AdminDashboard = () => {
         { name: "Instructors", value: instructorCount },
         { name: "Admins", value: adminCount },
       ]);
-    } catch (err) {
-      console.error("Critical error in AdminDashboard:", err);
-      toast({ title: "Data Error", description: "Failed to load dashboard data. Please try again.", variant: "destructive" });
+    } catch (err: any) {
+      console.error("Dashboard Fetch Error:", err);
+      toast({ title: "System Error", description: err.message || "Failed to sync platform data.", variant: "destructive" });
     } finally {
       setLoading(false);
     }

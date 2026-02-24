@@ -37,59 +37,67 @@ const StudentDashboard = () => {
   useEffect(() => {
     if (!user) return;
     const fetch = async () => {
-      const [enrollRes, pendingRes, notifRes, recommendRes] = await Promise.all([
-        supabase
-          .from("enrollments")
-          .select("id, course_id, enrolled_at, completed_at, courses(id, title, cover_image_url, category)")
-          .eq("student_id", user.id)
-          .eq("status", "approved")
-          .order("enrolled_at", { ascending: false }),
-        supabase
-          .from("enrollments")
-          .select("*, courses(title)")
-          .eq("student_id", user.id)
-          .eq("status", "pending"),
-        supabase
-          .from("notifications")
-          .select("*")
-          .eq("user_id", user.id)
-          .eq("read", false)
-          .order("created_at", { ascending: false })
-          .limit(5),
-        supabase
-          .from("courses")
-          .select("*")
-          .eq("published", true)
-          .limit(3),
-      ]);
-
-      const enr = (enrollRes.data as unknown as EnrolledCourse[]) || [];
-      setEnrollments(enr);
-      setPendingEnrollments(pendingRes.data || []);
-      setNotifications(notifRes.data || []);
-      setRecommended(recommendRes.data || []);
-
-      // Calculate progress and fetch assignments
-      if (enr.length > 0) {
-        const courseIds = enr.map((e) => e.course_id);
-        const [lessonsRes, progressRes, assignmentsRes] = await Promise.all([
-          supabase.from("lessons").select("id, course_id").in("course_id", courseIds),
-          supabase.from("lesson_progress").select("lesson_id, course_id, completed").eq("user_id", user.id).eq("completed", true),
-          supabase.from("assignments").select("*, courses(title)").in("course_id", courseIds).gte("due_date", new Date().toISOString()).order("due_date").limit(3),
+      setLoading(true);
+      try {
+        const [enrollRes, pendingRes, notifRes, recommendRes] = await Promise.all([
+          supabase
+            .from("enrollments")
+            .select("id, course_id, enrolled_at, completed_at, courses(id, title, cover_image_url, category)")
+            .eq("student_id", user.id)
+            .eq("status", "approved")
+            .order("enrolled_at", { ascending: false }),
+          supabase
+            .from("enrollments")
+            .select("*, courses(title)")
+            .eq("student_id", user.id)
+            .eq("status", "pending"),
+          supabase
+            .from("notifications")
+            .select("*")
+            .eq("user_id", user.id)
+            .eq("read", false)
+            .order("created_at", { ascending: false })
+            .limit(5),
+          supabase
+            .from("courses")
+            .select("*")
+            .eq("published", true)
+            .limit(3),
         ]);
-        
-        const lessons = lessonsRes.data || [];
-        const completed = progressRes.data || [];
-        setUpcomingAssignments(assignmentsRes.data || []);
 
-        const pData = enr.slice(0, 6).map((e) => {
-          const total = lessons.filter((l) => l.course_id === e.course_id).length;
-          const done = completed.filter((c) => c.course_id === e.course_id).length;
-          return { name: e.courses.title.slice(0, 15), progress: total > 0 ? Math.round((done / total) * 100) : 0 };
-        });
-        setProgressData(pData);
+        if (enrollRes.error) throw enrollRes.error;
+
+        const enr = (enrollRes.data as unknown as EnrolledCourse[]) || [];
+        setEnrollments(enr);
+        setPendingEnrollments(pendingRes.data || []);
+        setNotifications(notifRes.data || []);
+        setRecommended(recommendRes.data || []);
+
+        // Calculate progress and fetch assignments
+        if (enr.length > 0) {
+          const courseIds = enr.map((e) => e.course_id);
+          const [lessonsRes, progressRes, assignmentsRes] = await Promise.all([
+            supabase.from("lessons").select("id, course_id").in("course_id", courseIds),
+            supabase.from("lesson_progress").select("lesson_id, course_id, completed").eq("user_id", user.id).eq("completed", true),
+            supabase.from("assignments").select("*, courses(title)").in("course_id", courseIds).gte("due_date", new Date().toISOString()).order("due_date").limit(3),
+          ]);
+          
+          const lessons = lessonsRes.data || [];
+          const completed = progressRes.data || [];
+          setUpcomingAssignments(assignmentsRes.data || []);
+
+          const pData = enr.slice(0, 6).map((e) => {
+            const total = lessons.filter((l) => l.course_id === e.course_id).length;
+            const done = completed.filter((c) => c.course_id === e.course_id).length;
+            return { name: e.courses.title.slice(0, 15), progress: total > 0 ? Math.round((done / total) * 100) : 0 };
+          });
+          setProgressData(pData);
+        }
+      } catch (err: any) {
+        console.error("Student Dashboard Fetch Error:", err);
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     };
     fetch();
   }, [user]);

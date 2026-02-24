@@ -23,35 +23,50 @@ const InstructorDashboard = () => {
   const fetchData = async () => {
     if (!user) return;
     setLoading(true);
-    const coursesRes = await supabase
-      .from("courses")
-      .select("id, title, published, created_at")
-      .eq("author_id", user.id)
-      .order("created_at", { ascending: false });
+    try {
+      const coursesRes = await supabase
+        .from("courses")
+        .select("id, title, published, created_at")
+        .eq("author_id", user.id)
+        .order("created_at", { ascending: false });
 
-    const myCourses = coursesRes.data || [];
-    setCourses(myCourses);
+      if (coursesRes.error) throw coursesRes.error;
+      const myCourses = coursesRes.data || [];
+      setCourses(myCourses);
 
-    if (myCourses.length > 0) {
-      const courseIds = myCourses.map((c) => c.id);
-      const [enrollRes, subRes, pendingRes] = await Promise.all([
-        supabase.from("enrollments").select("id, course_id").in("course_id", courseIds).eq("status", "approved"),
-        supabase.from("submissions").select("id, assignment_id, graded_at").is("graded_at", null),
-        supabase.from("enrollments").select("*, courses(title), profiles:student_id(display_name)").in("course_id", courseIds).eq("instructor_approved", false).eq("status", "pending")
-      ]);
+      if (myCourses.length > 0) {
+        const courseIds = myCourses.map((c) => c.id);
+        const [enrollRes, subRes, pendingRes, profilesRes] = await Promise.all([
+          supabase.from("enrollments").select("id, course_id").in("course_id", courseIds).eq("status", "approved"),
+          supabase.from("submissions").select("id, assignment_id, graded_at").is("graded_at", null),
+          supabase.from("enrollments").select("*").in("course_id", courseIds).eq("instructor_approved", false).eq("status", "pending"),
+          supabase.from("profiles").select("user_id, display_name")
+        ]);
 
-      const enrollments = enrollRes.data || [];
-      setEnrollmentCount(enrollments.length);
-      setPendingSubmissions(subRes.data?.length || 0);
-      setPendingStudents(pendingRes.data || []);
+        const enrollments = enrollRes.data || [];
+        setEnrollmentCount(enrollments.length);
+        setPendingSubmissions(subRes.data?.length || 0);
+        
+        // Manual mapping to ensure stability
+        const pendingWithData = (pendingRes.data || []).map(p => ({
+          ...p,
+          courses: myCourses.find(c => c.id === p.course_id),
+          profiles: (profilesRes.data || []).find(prof => prof.user_id === p.student_id)
+        }));
+        setPendingStudents(pendingWithData);
 
-      const cData = myCourses.slice(0, 6).map((c) => ({
-        name: c.title.slice(0, 15),
-        students: enrollments.filter((e) => e.course_id === c.id).length,
-      }));
-      setChartData(cData);
+        const cData = myCourses.slice(0, 6).map((c) => ({
+          name: c.title.slice(0, 15),
+          students: enrollments.filter((e) => e.course_id === c.id).length,
+        }));
+        setChartData(cData);
+      }
+    } catch (err: any) {
+      console.error("Instructor Dashboard Error:", err);
+      toast({ title: "Sync Failed", description: err.message || "Could not retrieve instructor data.", variant: "destructive" });
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   useEffect(() => {
