@@ -113,20 +113,22 @@ const Academy = () => {
           <div className="grid gap-6 md:grid-cols-3">
             {pathways.map((p, i) => (
               <motion.div key={p.id} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.1 }} viewport={{ once: true }}>
-                <Card className="group h-full cursor-pointer border-border hover:border-primary/40 transition-all hover:shadow-2xl">
-                  <CardHeader>
-                    <div className={`mb-4 flex h-14 w-14 items-center justify-center rounded-2xl ${p.bg} ${p.color}`}>
-                      <p.icon className="h-7 w-7" />
-                    </div>
-                    <CardTitle className="text-2xl font-bold group-hover:text-primary transition-colors">{p.title}</CardTitle>
-                    <CardDescription className="text-base mt-2">{p.desc}</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="flex items-center gap-2 text-sm font-semibold text-primary">
-                      Explore track <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
-                    </div>
-                  </CardContent>
-                </Card>
+                <Link to={`/courses?category=Academy&track=${p.id}`} className="block h-full">
+                  <Card className="group h-full cursor-pointer border-border hover:border-primary/40 transition-all hover:shadow-2xl">
+                    <CardHeader>
+                      <div className={`mb-4 flex h-14 w-14 items-center justify-center rounded-2xl ${p.bg} ${p.color}`}>
+                        <p.icon className="h-7 w-7" />
+                      </div>
+                      <CardTitle className="text-2xl font-bold group-hover:text-primary transition-colors">{p.title}</CardTitle>
+                      <CardDescription className="text-base mt-2">{p.desc}</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="flex items-center gap-2 text-sm font-semibold text-primary">
+                        Explore track <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+                      </div>
+                    </CardContent>
+                  </Card>
+                </Link>
               </motion.div>
             ))}
           </div>

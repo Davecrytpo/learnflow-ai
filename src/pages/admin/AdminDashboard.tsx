@@ -26,52 +26,67 @@ const AdminDashboard = () => {
 
   const fetchData = async () => {
     setLoading(true);
-    const [profilesRes, coursesRes, enrollRes, certRes, rolesRes, pendingInstRes, pendingEnrRes] = await Promise.all([
-      supabase.from("profiles").select("id, user_id, display_name, email:user_id, institution, created_at, status"),
-      supabase.from("courses").select("id, title, published, category, created_at, author_id, profiles:author_id(display_name)"),
-      supabase.from("enrollments").select("id"),
-      supabase.from("certificates").select("id"),
-      supabase.from("user_roles").select("id, user_id, role"),
-      supabase.from("profiles").select("*").eq("status", "pending"),
-      supabase.from("enrollments").select("*, courses!inner(title), profiles!student_id(display_name)").eq("status", "pending").eq("instructor_approved", true)
-    ]);
+    try {
+      const [profilesRes, coursesRes, enrollRes, certRes, rolesRes, pendingInstRes] = await Promise.all([
+        supabase.from("profiles").select("id, user_id, display_name, email:user_id, institution, created_at, status"),
+        supabase.from("courses").select("id, title, published, category, created_at, author_id, profiles:author_id(display_name)"),
+        supabase.from("enrollments").select("id"),
+        supabase.from("certificates").select("id"),
+        supabase.from("user_roles").select("id, user_id, role"),
+        supabase.from("profiles").select("*").eq("status", "pending"),
+      ]);
 
-    if (profilesRes.error) console.error("Profiles error:", profilesRes.error);
-    if (coursesRes.error) console.error("Courses error:", coursesRes.error);
-    if (pendingEnrRes.error) console.error("Pending Enrollments error:", pendingEnrRes.error);
+      const allProfiles = profilesRes.data || [];
+      const allRoles = rolesRes.data || [];
+      const allCourses = coursesRes.data || [];
 
-    const allProfiles = profilesRes.data || [];
-    const allRoles = rolesRes.data || [];
-    const allCourses = coursesRes.data || [];
+      // Fetch pending enrollments with simplified join
+      const { data: rawPendingEnr, error: enrError } = await supabase
+        .from("enrollments")
+        .select("*, courses(title)")
+        .eq("status", "pending")
+        .eq("instructor_approved", true);
 
-    setStats({
-      users: allProfiles.length,
-      courses: allCourses.length,
-      enrollments: enrollRes.data?.length || 0,
-      certificates: certRes.data?.length || 0,
-    });
+      if (enrError) console.error("Pending Enrollments error:", enrError);
 
-    setPendingInstructors(pendingInstRes.data || []);
-    setPendingEnrollments(pendingEnrRes.data || []);
+      // Manually attach profile names to pending enrollments to avoid complex join crashes
+      const pendingWithProfiles = (rawPendingEnr || []).map(enr => ({
+        ...enr,
+        profiles: allProfiles.find(p => p.user_id === enr.student_id)
+      }));
 
-    const usersWithRoles = allProfiles.map(p => ({
-      ...p,
-      role: allRoles.find(r => r.user_id === p.user_id)?.role || "none",
-      role_id: allRoles.find(r => r.user_id === p.user_id)?.id,
-    }));
-    setUsers(usersWithRoles);
-    setCourses(allCourses);
+      setStats({
+        users: allProfiles.length,
+        courses: allCourses.length,
+        enrollments: enrollRes.data?.length || 0,
+        certificates: certRes.data?.length || 0,
+      });
 
-    const studentCount = allRoles.filter(r => r.role === "student").length;
-    const instructorCount = allRoles.filter(r => r.role === "instructor").length;
-    const adminCount = allRoles.filter(r => r.role === "admin").length;
-    setRoleData([
-      { name: "Students", value: studentCount },
-      { name: "Instructors", value: instructorCount },
-      { name: "Admins", value: adminCount },
-    ]);
+      setPendingInstructors(pendingInstRes.data || []);
+      setPendingEnrollments(pendingWithProfiles);
 
-    setLoading(false);
+      const usersWithRoles = allProfiles.map(p => ({
+        ...p,
+        role: allRoles.find(r => r.user_id === p.user_id)?.role || "none",
+        role_id: allRoles.find(r => r.user_id === p.user_id)?.id,
+      }));
+      setUsers(usersWithRoles);
+      setCourses(allCourses);
+
+      const studentCount = allRoles.filter(r => r.role === "student").length;
+      const instructorCount = allRoles.filter(r => r.role === "instructor").length;
+      const adminCount = allRoles.filter(r => r.role === "admin").length;
+      setRoleData([
+        { name: "Students", value: studentCount },
+        { name: "Instructors", value: instructorCount },
+        { name: "Admins", value: adminCount },
+      ]);
+    } catch (err) {
+      console.error("Critical error in AdminDashboard:", err);
+      toast({ title: "Data Error", description: "Failed to load dashboard data. Please try again.", variant: "destructive" });
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
