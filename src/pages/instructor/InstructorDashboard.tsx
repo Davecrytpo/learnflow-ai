@@ -12,45 +12,57 @@ import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recha
 
 const InstructorDashboard = () => {
   const { user } = useAuth();
+  const { toast } = useToast();
   const [courses, setCourses] = useState<any[]>([]);
   const [enrollmentCount, setEnrollmentCount] = useState(0);
   const [pendingSubmissions, setPendingSubmissions] = useState(0);
+  const [pendingStudents, setPendingStudents] = useState<any[]>([]);
   const [chartData, setChartData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
+  const fetchData = async () => {
     if (!user) return;
-    const fetch = async () => {
-      const coursesRes = await supabase
-        .from("courses")
-        .select("id, title, published, created_at")
-        .eq("author_id", user.id)
-        .order("created_at", { ascending: false });
+    setLoading(true);
+    const coursesRes = await supabase
+      .from("courses")
+      .select("id, title, published, created_at")
+      .eq("author_id", user.id)
+      .order("created_at", { ascending: false });
 
-      const myCourses = coursesRes.data || [];
-      setCourses(myCourses);
+    const myCourses = coursesRes.data || [];
+    setCourses(myCourses);
 
-      if (myCourses.length > 0) {
-        const courseIds = myCourses.map((c) => c.id);
-        const [enrollRes, subRes] = await Promise.all([
-          supabase.from("enrollments").select("id, course_id").in("course_id", courseIds),
-          supabase.from("submissions").select("id, assignment_id, graded_at").is("graded_at", null),
-        ]);
+    if (myCourses.length > 0) {
+      const courseIds = myCourses.map((c) => c.id);
+      const [enrollRes, subRes, pendingRes] = await Promise.all([
+        supabase.from("enrollments").select("id, course_id").in("course_id", courseIds).eq("status", "approved"),
+        supabase.from("submissions").select("id, assignment_id, graded_at").is("graded_at", null),
+        supabase.from("enrollments").select("*, courses(title), profiles:student_id(display_name)").in("course_id", courseIds).eq("instructor_approved", false).eq("status", "pending")
+      ]);
 
-        const enrollments = enrollRes.data || [];
-        setEnrollmentCount(enrollments.length);
-        setPendingSubmissions(subRes.data?.length || 0);
+      const enrollments = enrollRes.data || [];
+      setEnrollmentCount(enrollments.length);
+      setPendingSubmissions(subRes.data?.length || 0);
+      setPendingStudents(pendingRes.data || []);
 
-        const cData = myCourses.slice(0, 6).map((c) => ({
-          name: c.title.slice(0, 15),
-          students: enrollments.filter((e) => e.course_id === c.id).length,
-        }));
-        setChartData(cData);
-      }
-      setLoading(false);
-    };
-    fetch();
+      const cData = myCourses.slice(0, 6).map((c) => ({
+        name: c.title.slice(0, 15),
+        students: enrollments.filter((e) => e.course_id === c.id).length,
+      }));
+      setChartData(cData);
+    }
+    setLoading(false);
+  };
+
+  useEffect(() => {
+    fetchData();
   }, [user]);
+
+  const approveStudent = async (enrollId: string) => {
+    const { error } = await supabase.from("enrollments").update({ instructor_approved: true }).eq("id", enrollId);
+    if (error) toast({ title: "Error", description: error.message, variant: "destructive" });
+    else { toast({ title: "Student Approved", description: "Waiting for final admin confirmation." }); fetchData(); }
+  };
 
   return (
     <DashboardLayout allowedRoles={["instructor"]} sidebar={<InstructorSidebar />}>
@@ -107,21 +119,49 @@ const InstructorDashboard = () => {
           </Card>
         </div>
 
-        {chartData.length > 0 && (
+        <div className="grid gap-6 lg:grid-cols-2">
+          {chartData.length > 0 && (
+            <Card>
+              <CardHeader><CardTitle className="text-lg">Enrollment by Course</CardTitle></CardHeader>
+              <CardContent>
+                <ResponsiveContainer width="100%" height={220}>
+                  <BarChart data={chartData}>
+                    <XAxis dataKey="name" tick={{ fontSize: 12 }} />
+                    <YAxis tick={{ fontSize: 12 }} />
+                    <Tooltip />
+                    <Bar dataKey="students" fill="hsl(var(--accent))" radius={[4, 4, 0, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* New Pending Student Approvals */}
           <Card>
-            <CardHeader><CardTitle className="text-lg">Enrollment by Course</CardTitle></CardHeader>
-            <CardContent>
-              <ResponsiveContainer width="100%" height={220}>
-                <BarChart data={chartData}>
-                  <XAxis dataKey="name" tick={{ fontSize: 12 }} />
-                  <YAxis tick={{ fontSize: 12 }} />
-                  <Tooltip />
-                  <Bar dataKey="students" fill="hsl(var(--accent))" radius={[4, 4, 0, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
+            <CardHeader className="flex flex-row items-center justify-between">
+              <CardTitle className="text-lg">Pending Students</CardTitle>
+              {pendingStudents.length > 0 && <Badge className="bg-primary">{pendingStudents.length}</Badge>}
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {pendingStudents.length === 0 ? (
+                <p className="text-sm text-muted-foreground italic">No student requests to review.</p>
+              ) : (
+                pendingStudents.map((s) => (
+                  <div key={s.id} className="flex items-center justify-between p-3 rounded-lg border border-border bg-card/50">
+                    <div>
+                      <p className="text-sm font-semibold">{(s as any).profiles?.display_name || "New Student"}</p>
+                      <p className="text-[10px] text-muted-foreground uppercase">{(s as any).courses?.title}</p>
+                    </div>
+                    <div className="flex gap-2">
+                      <Button size="sm" variant="outline" className="h-8 text-xs border-primary/50 text-primary" onClick={() => approveStudent(s.id)}>Approve</Button>
+                      <Button size="sm" variant="ghost" className="h-8 text-xs text-destructive">Reject</Button>
+                    </div>
+                  </div>
+                ))
+              )}
             </CardContent>
           </Card>
-        )}
+        </div>
 
         <div>
           <h2 className="mb-4 text-lg font-semibold text-foreground">Your Courses</h2>

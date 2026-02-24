@@ -27,6 +27,7 @@ interface EnrolledCourse {
 const StudentDashboard = () => {
   const { user } = useAuth();
   const [enrollments, setEnrollments] = useState<EnrolledCourse[]>([]);
+  const [pendingEnrollments, setPendingEnrollments] = useState<any[]>([]);
   const [notifications, setNotifications] = useState<any[]>([]);
   const [progressData, setProgressData] = useState<{ name: string; progress: number }[]>([]);
   const [upcomingAssignments, setUpcomingAssignments] = useState<any[]>([]);
@@ -36,12 +37,18 @@ const StudentDashboard = () => {
   useEffect(() => {
     if (!user) return;
     const fetch = async () => {
-      const [enrollRes, notifRes, recommendRes] = await Promise.all([
+      const [enrollRes, pendingRes, notifRes, recommendRes] = await Promise.all([
         supabase
           .from("enrollments")
           .select("id, course_id, enrolled_at, completed_at, courses(id, title, cover_image_url, category)")
           .eq("student_id", user.id)
+          .eq("status", "approved")
           .order("enrolled_at", { ascending: false }),
+        supabase
+          .from("enrollments")
+          .select("*, courses(title)")
+          .eq("student_id", user.id)
+          .eq("status", "pending"),
         supabase
           .from("notifications")
           .select("*")
@@ -58,6 +65,7 @@ const StudentDashboard = () => {
 
       const enr = (enrollRes.data as unknown as EnrolledCourse[]) || [];
       setEnrollments(enr);
+      setPendingEnrollments(pendingRes.data || []);
       setNotifications(notifRes.data || []);
       setRecommended(recommendRes.data || []);
 
@@ -158,16 +166,19 @@ const StudentDashboard = () => {
 
         {/* Continue Learning */}
         <div>
-          <h2 className="mb-4 text-lg font-semibold text-foreground">Continue Learning</h2>
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-lg font-semibold text-foreground">Continue Learning</h2>
+            <Button variant="ghost" size="sm" asChild className="text-primary text-xs"><Link to="/courses">Explore more →</Link></Button>
+          </div>
           {loading ? (
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {[1, 2, 3].map((i) => <Skeleton key={i} className="h-40 rounded-lg" />)}
             </div>
           ) : enrollments.length === 0 ? (
-            <Card className="p-8 text-center">
-              <p className="text-muted-foreground">You haven't enrolled in any courses yet.</p>
-              <Button asChild className="mt-4">
-                <Link to="/courses">Browse Courses</Link>
+            <Card className="p-8 text-center border-dashed">
+              <p className="text-muted-foreground">You don't have any approved courses yet.</p>
+              <Button asChild className="mt-4 bg-gradient-brand">
+                <Link to="/courses">Browse Catalog</Link>
               </Button>
             </Card>
           ) : (
@@ -175,15 +186,17 @@ const StudentDashboard = () => {
               {enrollments.slice(0, 6).map((e) => {
                 const prog = progressData.find((p) => p.name === e.courses.title.slice(0, 15));
                 return (
-                  <Card key={e.id} className="overflow-hidden">
-                    <div className="h-20 bg-gradient-to-br from-primary/20 to-accent/20" />
+                  <Card key={e.id} className="overflow-hidden hover:border-primary/40 transition-all group">
+                    <div className="h-24 bg-gradient-to-br from-primary/20 to-accent/20 relative">
+                      <div className="absolute inset-0 bg-grid-pattern opacity-10" />
+                    </div>
                     <CardContent className="pt-4">
-                      <h3 className="font-semibold text-foreground line-clamp-1">{e.courses.title}</h3>
+                      <h3 className="font-semibold text-foreground line-clamp-1 group-hover:text-primary transition-colors">{e.courses.title}</h3>
                       <p className="text-xs text-muted-foreground">{e.courses.category || "General"}</p>
                       <Progress value={prog?.progress || 0} className="mt-3 h-2" />
                       <div className="mt-2 flex items-center justify-between">
-                        <span className="text-xs text-muted-foreground">{prog?.progress || 0}% complete</span>
-                        <Button size="sm" variant="ghost" asChild>
+                        <span className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider">{prog?.progress || 0}% complete</span>
+                        <Button size="sm" variant="ghost" asChild className="h-8 text-xs">
                           <Link to={`/course/${e.course_id}/learn`}>
                             <Play className="mr-1 h-3 w-3" /> Resume
                           </Link>
@@ -196,6 +209,38 @@ const StudentDashboard = () => {
             </div>
           )}
         </div>
+
+        {/* New Pending Enrollment Requests */}
+        {!loading && pendingEnrollments.length > 0 && (
+          <div>
+            <h2 className="mb-4 text-lg font-semibold text-foreground flex items-center gap-2">
+              <Clock className="h-5 w-5 text-amber-500" /> Pending Approvals
+            </h2>
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {pendingEnrollments.map((p) => (
+                <Card key={p.id} className="border-amber-200/50 bg-amber-50/10">
+                  <CardContent className="p-4">
+                    <div className="flex items-center justify-between mb-2">
+                      <Badge variant="outline" className="text-[10px] border-amber-500/30 text-amber-600">PENDING</Badge>
+                      <span className="text-[10px] text-muted-foreground">{new Date(p.enrolled_at).toLocaleDateString()}</span>
+                    </div>
+                    <h4 className="font-semibold text-sm line-clamp-1">{p.courses?.title}</h4>
+                    <div className="mt-3 space-y-1.5">
+                      <div className="flex items-center gap-2 text-[10px]">
+                        <div className={`h-1.5 w-1.5 rounded-full ${p.instructor_approved ? "bg-emerald-500" : "bg-slate-300"}`} />
+                        <span className={p.instructor_approved ? "text-emerald-600 font-medium" : "text-muted-foreground"}>Instructor Approval</span>
+                      </div>
+                      <div className="flex items-center gap-2 text-[10px]">
+                        <div className={`h-1.5 w-1.5 rounded-full ${p.admin_approved ? "bg-emerald-500" : "bg-slate-300"}`} />
+                        <span className={p.admin_approved ? "text-emerald-600 font-medium" : "text-muted-foreground"}>Final Admin Approval</span>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Deadlines and Recommendations */}
         <div className="grid gap-6 md:grid-cols-2">

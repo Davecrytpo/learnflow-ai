@@ -76,40 +76,55 @@ const RoleGate = () => (
       <div className="mx-auto max-w-3xl text-center">
         <p className="text-sm font-semibold uppercase tracking-[0.2em] text-primary">Get Started</p>
         <h2 className="mt-4 font-display text-4xl font-bold tracking-tight text-foreground sm:text-5xl">
-          Choose your portal
+          Tailored Learning Portals
         </h2>
         <p className="mt-4 text-lg text-muted-foreground">
-          Moodle-style separation for students and instructors, with tailored onboarding for each.
+          Built with Moodle-inspired role separation. Instructors build, students learn, admins govern.
         </p>
       </div>
-      <div className="mx-auto mt-12 grid max-w-5xl gap-6 md:grid-cols-2">
-        <div className="rounded-3xl border border-border bg-card/90 p-6">
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary">Student</p>
-          <h3 className="mt-3 font-display text-2xl font-bold text-foreground">Create a student account</h3>
-          <p className="mt-2 text-sm text-muted-foreground">
-            Enroll in courses, track progress, and earn certificates with a focused student dashboard.
+      <div className="mx-auto mt-12 grid max-w-6xl gap-6 md:grid-cols-3">
+        <div className="rounded-3xl border border-border bg-card/90 p-6 flex flex-col">
+          <Badge className="w-fit mb-4 bg-primary/10 text-primary border-none">Student</Badge>
+          <h3 className="font-display text-2xl font-bold text-foreground">Student Portal</h3>
+          <p className="mt-2 text-sm text-muted-foreground flex-1">
+            Browse our 2,800+ course catalog, track your academic progress, and earn verifiable certificates.
           </p>
-          <div className="mt-4 flex gap-3">
+          <div className="mt-6 flex flex-col gap-3">
             <Button asChild className="bg-gradient-brand text-primary-foreground">
-              <Link to="/student">Student Portal</Link>
+              <Link to="/student">Enter Student Hub</Link>
             </Button>
             <Button asChild variant="outline">
-              <Link to="/login?role=student">Student Login</Link>
+              <Link to="/login?role=student">Sign In</Link>
             </Button>
           </div>
         </div>
-        <div className="rounded-3xl border border-border bg-card/90 p-6">
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-accent">Instructor</p>
-          <h3 className="mt-3 font-display text-2xl font-bold text-foreground">Create an instructor account</h3>
-          <p className="mt-2 text-sm text-muted-foreground">
-            Build courses, manage assessments, and lead cohorts with advanced tools.
+        <div className="rounded-3xl border border-border bg-card/90 p-6 flex flex-col">
+          <Badge className="w-fit mb-4 bg-accent/10 text-accent border-none">Instructor</Badge>
+          <h3 className="font-display text-2xl font-bold text-foreground">Instructor Hub</h3>
+          <p className="mt-2 text-sm text-muted-foreground flex-1">
+            Build modules, lessons, and AI-assisted assessments. Manage cohorts and live sessions.
           </p>
-          <div className="mt-4 flex gap-3">
+          <div className="mt-6 flex flex-col gap-3">
             <Button asChild className="bg-gradient-brand text-primary-foreground">
-              <Link to="/instructor-portal">Instructor Portal</Link>
+              <Link to="/instructor-portal">Instructor Hub</Link>
             </Button>
             <Button asChild variant="outline">
-              <Link to="/login?role=instructor">Instructor Login</Link>
+              <Link to="/login?role=instructor">Sign In</Link>
+            </Button>
+          </div>
+        </div>
+        <div className="rounded-3xl border border-border bg-card/90 p-6 flex flex-col">
+          <Badge className="w-fit mb-4 bg-emerald-500/10 text-emerald-600 border-none">Academy</Badge>
+          <h3 className="font-display text-2xl font-bold text-foreground">Learnflow Academy</h3>
+          <p className="mt-2 text-sm text-muted-foreground flex-1">
+            Professional development hub. Get certified in LMS management and modern pedagogy.
+          </p>
+          <div className="mt-6 flex flex-col gap-3">
+            <Button asChild className="bg-gradient-brand text-primary-foreground">
+              <Link to="/academy">Explore Academy</Link>
+            </Button>
+            <Button asChild variant="outline">
+              <Link to="/news">Latest News</Link>
             </Button>
           </div>
         </div>
@@ -117,6 +132,7 @@ const RoleGate = () => (
     </div>
   </section>
 );
+
 
 const Index = () => (
   <div className="min-h-screen bg-background">

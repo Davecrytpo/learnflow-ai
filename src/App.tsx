@@ -92,6 +92,9 @@ const AdminCohortInsights = lazy(() => import("./pages/admin/CohortInsights"));
 const AdminMultiCampus = lazy(() => import("./pages/admin/MultiCampus"));
 const AdminCatalogSegmentation = lazy(() => import("./pages/admin/CatalogSegmentation"));
 const Academy = lazy(() => import("./pages/Academy"));
+const News = lazy(() => import("./pages/News"));
+const Webinars = lazy(() => import("./pages/Webinars"));
+const Verification = lazy(() => import("./pages/Verification"));
 const Login = lazy(() => import("./pages/Login"));
 const Signup = lazy(() => import("./pages/Signup"));
 const Onboarding = lazy(() => import("./pages/Onboarding"));
@@ -235,6 +238,9 @@ const App = () => (
                 <Route path="/admin/catalog-segmentation" element={<AdminCatalogSegmentation />} />
                 <Route path="/admin/*" element={<AdminDashboard />} />
                 <Route path="/academy" element={<Academy />} />
+                <Route path="/news" element={<News />} />
+                <Route path="/webinars" element={<Webinars />} />
+                <Route path="/verify" element={<Verification />} />
                 <Route path="/about" element={<About />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>

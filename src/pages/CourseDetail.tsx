@@ -20,6 +20,7 @@ const CourseDetail = () => {
   const [lessons, setLessons] = useState<any[]>([]);
   const [quizzes, setQuizzes] = useState<any[]>([]);
   const [enrollmentCount, setEnrollmentCount] = useState(0);
+  const [userEnrollmentCount, setUserEnrollmentCount] = useState(0);
   const [isEnrolled, setIsEnrolled] = useState(false);
   const [enrolling, setEnrolling] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -41,8 +42,12 @@ const CourseDetail = () => {
       setEnrollmentCount(enrollCountRes.data?.length || 0);
 
       if (user) {
-        const { data } = await supabase.from("enrollments").select("id").eq("course_id", courseId).eq("student_id", user.id).maybeSingle();
-        setIsEnrolled(!!data);
+        const [enrolledRes, userCountRes] = await Promise.all([
+          supabase.from("enrollments").select("id").eq("course_id", courseId).eq("student_id", user.id).maybeSingle(),
+          supabase.from("enrollments").select("*", { count: "exact", head: true }).eq("student_id", user.id).neq("status", "rejected")
+        ]);
+        setIsEnrolled(!!enrolledRes.data);
+        setUserEnrollmentCount(userCountRes.count || 0);
       }
       setLoading(false);
     };
@@ -52,15 +57,26 @@ const CourseDetail = () => {
   const handleEnroll = async () => {
     if (!user) { navigate("/login"); return; }
     if (!courseId) return;
+    
+    if (userEnrollmentCount >= 2) {
+      toast({ title: "Enrollment Limit Reached", description: "Students can only select a maximum of 2 courses.", variant: "destructive" });
+      return;
+    }
+
     setEnrolling(true);
-    const { error } = await supabase.from("enrollments").insert({ course_id: courseId, student_id: user.id });
+    const { error } = await supabase.from("enrollments").insert({ 
+      course_id: courseId, 
+      student_id: user.id,
+      status: 'pending',
+      instructor_approved: false,
+      admin_approved: false
+    });
     setEnrolling(false);
     if (error) {
       toast({ title: "Error", description: error.message, variant: "destructive" });
     } else {
       setIsEnrolled(true);
-      setEnrollmentCount(prev => prev + 1);
-      toast({ title: "Enrolled!", description: "You can now access the course." });
+      toast({ title: "Enrollment Requested", description: "Your request has been sent to the instructor for approval." });
     }
   };
 

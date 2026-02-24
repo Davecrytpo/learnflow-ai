@@ -23,6 +23,7 @@ const CreateCourse = () => {
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
   const [aiLoading, setAiLoading] = useState(false);
+  const [courseCount, setCourseCount] = useState(0);
   const [form, setForm] = useState({
     title: "",
     description: "",
@@ -31,11 +32,28 @@ const CreateCourse = () => {
     cover_image_url: "",
   });
 
+  useEffect(() => {
+    if (!user) return;
+    const checkLimit = async () => {
+      const { count } = await supabase
+        .from("courses")
+        .select("*", { count: "exact", head: true })
+        .eq("author_id", user.id);
+      setCourseCount(count || 0);
+    };
+    checkLimit();
+  }, [user]);
+
   const handleAIAssist = async () => {
+    if (courseCount >= 3) {
+      toast({ title: "Course Limit Reached", description: "Instructors can only create a maximum of 3 courses.", variant: "destructive" });
+      return;
+    }
     if (!form.title) {
       toast({ title: "Topic required", description: "Please enter a course title or topic first.", variant: "destructive" });
       return;
     }
+// ... rest of AI logic
 
     setAiLoading(true);
     try {
@@ -58,6 +76,10 @@ const CreateCourse = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user) return;
+    if (courseCount >= 3) {
+      toast({ title: "Limit reached", description: "You cannot create more than 3 courses.", variant: "destructive" });
+      return;
+    }
     setLoading(true);
 
     const slug = form.title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") + "-" + Date.now().toString(36);

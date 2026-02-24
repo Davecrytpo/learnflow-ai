@@ -18,54 +18,73 @@ const AdminDashboard = () => {
   const [stats, setStats] = useState({ users: 0, courses: 0, enrollments: 0, certificates: 0 });
   const [users, setUsers] = useState<any[]>([]);
   const [courses, setCourses] = useState<any[]>([]);
+  const [pendingInstructors, setPendingInstructors] = useState<any[]>([]);
+  const [pendingEnrollments, setPendingEnrollments] = useState<any[]>([]);
   const [userSearch, setUserSearch] = useState("");
   const [courseSearch, setCourseSearch] = useState("");
   const [roleData, setRoleData] = useState<any[]>([]);
 
+  const fetchData = async () => {
+    setLoading(true);
+    const [profilesRes, coursesRes, enrollRes, certRes, rolesRes, pendingInstRes, pendingEnrRes] = await Promise.all([
+      supabase.from("profiles").select("id, user_id, display_name, email:user_id, institution, created_at, status"),
+      supabase.from("courses").select("id, title, published, category, created_at, author_id, profiles:author_id(display_name)"),
+      supabase.from("enrollments").select("id"),
+      supabase.from("certificates").select("id"),
+      supabase.from("user_roles").select("id, user_id, role"),
+      supabase.from("profiles").select("*").eq("status", "pending"),
+      supabase.from("enrollments").select("*, courses(title), profiles:student_id(display_name)").eq("status", "pending").eq("instructor_approved", true)
+    ]);
+
+    const allProfiles = profilesRes.data || [];
+    const allRoles = rolesRes.data || [];
+    const allCourses = coursesRes.data || [];
+
+    setStats({
+      users: allProfiles.length,
+      courses: allCourses.length,
+      enrollments: enrollRes.data?.length || 0,
+      certificates: certRes.data?.length || 0,
+    });
+
+    setPendingInstructors(pendingInstRes.data || []);
+    setPendingEnrollments(pendingEnrRes.data || []);
+
+    const usersWithRoles = allProfiles.map(p => ({
+      ...p,
+      role: allRoles.find(r => r.user_id === p.user_id)?.role || "none",
+      role_id: allRoles.find(r => r.user_id === p.user_id)?.id,
+    }));
+    setUsers(usersWithRoles);
+    setCourses(allCourses);
+
+    const studentCount = allRoles.filter(r => r.role === "student").length;
+    const instructorCount = allRoles.filter(r => r.role === "instructor").length;
+    const adminCount = allRoles.filter(r => r.role === "admin").length;
+    setRoleData([
+      { name: "Students", value: studentCount },
+      { name: "Instructors", value: instructorCount },
+      { name: "Admins", value: adminCount },
+    ]);
+
+    setLoading(false);
+  };
+
   useEffect(() => {
-    const fetch = async () => {
-      const [profilesRes, coursesRes, enrollRes, certRes, rolesRes] = await Promise.all([
-        supabase.from("profiles").select("id, user_id, display_name, email:user_id, institution, created_at"),
-        supabase.from("courses").select("id, title, published, category, created_at, author_id, profiles:author_id(display_name)"),
-        supabase.from("enrollments").select("id"),
-        supabase.from("certificates").select("id"),
-        supabase.from("user_roles").select("id, user_id, role"),
-      ]);
-
-      const allProfiles = profilesRes.data || [];
-      const allRoles = rolesRes.data || [];
-      const allCourses = coursesRes.data || [];
-
-      setStats({
-        users: allProfiles.length,
-        courses: allCourses.length,
-        enrollments: enrollRes.data?.length || 0,
-        certificates: certRes.data?.length || 0,
-      });
-
-      // Merge roles into profiles
-      const usersWithRoles = allProfiles.map(p => ({
-        ...p,
-        role: allRoles.find(r => r.user_id === p.user_id)?.role || "none",
-        role_id: allRoles.find(r => r.user_id === p.user_id)?.id,
-      }));
-      setUsers(usersWithRoles);
-      setCourses(allCourses);
-
-      // Role distribution
-      const studentCount = allRoles.filter(r => r.role === "student").length;
-      const instructorCount = allRoles.filter(r => r.role === "instructor").length;
-      const adminCount = allRoles.filter(r => r.role === "admin").length;
-      setRoleData([
-        { name: "Students", value: studentCount },
-        { name: "Instructors", value: instructorCount },
-        { name: "Admins", value: adminCount },
-      ]);
-
-      setLoading(false);
-    };
-    fetch();
+    fetchData();
   }, []);
+
+  const approveInstructor = async (profileId: string) => {
+    const { error } = await supabase.from("profiles").update({ status: "approved" }).eq("id", profileId);
+    if (error) toast({ title: "Error", description: error.message, variant: "destructive" });
+    else { toast({ title: "Instructor Approved" }); fetchData(); }
+  };
+
+  const approveEnrollment = async (enrollId: string) => {
+    const { error } = await supabase.from("enrollments").update({ status: "approved", admin_approved: true }).eq("id", enrollId);
+    if (error) toast({ title: "Error", description: error.message, variant: "destructive" });
+    else { toast({ title: "Enrollment Finalized" }); fetchData(); }
+  };
 
   const changeUserRole = async (userId: string, currentRoleId: string | undefined, newRole: string) => {
     if (currentRoleId) {
@@ -174,8 +193,72 @@ const AdminDashboard = () => {
         <Tabs defaultValue="users">
           <TabsList className="bg-card/80">
             <TabsTrigger value="users">User Management</TabsTrigger>
+            <TabsTrigger value="approvals" className="relative">
+              Approvals
+              {(pendingInstructors.length + pendingEnrollments.length) > 0 && (
+                <span className="ml-2 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[10px] text-primary-foreground font-bold">
+                  {pendingInstructors.length + pendingEnrollments.length}
+                </span>
+              )}
+            </TabsTrigger>
             <TabsTrigger value="courses">Course Moderation</TabsTrigger>
           </TabsList>
+
+          <TabsContent value="approvals" className="space-y-6">
+            <div className="grid gap-6 lg:grid-cols-2">
+              {/* Instructor Approvals */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg">Instructor Registrations</CardTitle>
+                  <CardDescription>Wait for admin verification to grant access.</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {pendingInstructors.length === 0 ? (
+                    <p className="text-sm text-muted-foreground italic">No pending instructors.</p>
+                  ) : (
+                    pendingInstructors.map((inst) => (
+                      <div key={inst.id} className="flex items-center justify-between p-3 rounded-lg border border-border">
+                        <div>
+                          <p className="font-medium text-sm">{inst.display_name}</p>
+                          <p className="text-xs text-muted-foreground">{inst.institution}</p>
+                        </div>
+                        <div className="flex gap-2">
+                          <Button size="sm" variant="outline" className="h-8 text-xs border-emerald-500/50 text-emerald-600 hover:bg-emerald-50" onClick={() => approveInstructor(inst.id)}>Approve</Button>
+                          <Button size="sm" variant="ghost" className="h-8 text-xs text-destructive hover:bg-destructive/5">Reject</Button>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </CardContent>
+              </Card>
+
+              {/* Enrollment Approvals */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg">Final Student Enrollments</CardTitle>
+                  <CardDescription>Approved by instructor, waiting for final admin sign-off.</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {pendingEnrollments.length === 0 ? (
+                    <p className="text-sm text-muted-foreground italic">No pending final approvals.</p>
+                  ) : (
+                    pendingEnrollments.map((enr) => (
+                      <div key={enr.id} className="flex items-center justify-between p-3 rounded-lg border border-border">
+                        <div>
+                          <p className="font-medium text-sm">{(enr as any).profiles?.display_name}</p>
+                          <p className="text-xs text-muted-foreground">{(enr as any).courses?.title}</p>
+                        </div>
+                        <div className="flex gap-2">
+                          <Button size="sm" variant="outline" className="h-8 text-xs border-primary/50 text-primary hover:bg-primary/5" onClick={() => approveEnrollment(enr.id)}>Finalize</Button>
+                          <Button size="sm" variant="ghost" className="h-8 text-xs text-destructive">Reject</Button>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </CardContent>
+              </Card>
+            </div>
+          </TabsContent>
 
           <TabsContent value="users" className="space-y-4">
             <div className="relative max-w-sm">
