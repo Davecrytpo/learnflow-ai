@@ -4,6 +4,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { BriefcaseBusiness, FileText } from "lucide-react";
+import { useState } from "react";
+import { toast } from "sonner";
 
 const resources = [
   { id: "CC-01", title: "Resume Review Checklist", type: "Guide" },
@@ -11,9 +13,23 @@ const resources = [
   { id: "CC-03", title: "Interview Prep Kit", type: "Toolkit" },
 ];
 
-const StudentCareerCenter = () => (
-  <DashboardLayout allowedRoles={["student"]} sidebar={<StudentSidebar />}>
-    <div className="space-y-6">
+const StudentCareerCenter = () => {
+  const [requested, setRequested] = useState(false);
+  const [saved, setSaved] = useState<Record<string, boolean>>({});
+
+  const handleRequest = () => {
+    setRequested(true);
+    toast.success("Resume review request submitted");
+  };
+
+  const toggleSave = (id: string) => {
+    setSaved((prev) => ({ ...prev, [id]: !prev[id] }));
+    toast.message(saved[id] ? "Removed from saved" : "Saved to your toolkit");
+  };
+
+  return (
+    <DashboardLayout allowedRoles={["student"]} sidebar={<StudentSidebar />}>
+      <div className="space-y-6">
       <section className="rounded-3xl border border-border/70 bg-card/90 p-6">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div>
@@ -23,7 +39,7 @@ const StudentCareerCenter = () => (
               Access resume tools, interview prep, and coaching resources.
             </p>
           </div>
-          <Button className="bg-gradient-brand text-primary-foreground">
+          <Button className="bg-gradient-brand text-primary-foreground" onClick={handleRequest} disabled={requested}>
             <FileText className="mr-2 h-4 w-4" /> Request resume review
           </Button>
         </div>
@@ -70,13 +86,16 @@ const StudentCareerCenter = () => (
                 <p className="text-sm font-semibold text-foreground">{item.title}</p>
                 <p className="text-xs text-muted-foreground">{item.type}</p>
               </div>
-              <Button size="sm" variant="outline">Open</Button>
+              <Button size="sm" variant={saved[item.id] ? "default" : "outline"} onClick={() => toggleSave(item.id)}>
+                {saved[item.id] ? "Saved" : "Open"}
+              </Button>
             </CardContent>
           </Card>
         ))}
       </div>
-    </div>
-  </DashboardLayout>
-);
+      </div>
+    </DashboardLayout>
+  );
+};
 
 export default StudentCareerCenter;
