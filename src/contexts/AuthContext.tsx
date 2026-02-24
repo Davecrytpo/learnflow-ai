@@ -24,48 +24,58 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [authLoading, setAuthLoading] = useState(true);
   const [roleLoading, setRoleLoading] = useState(false);
 
-  const fetchRole = useCallback(async (userId: string) => {
+  const fetchRole = useCallback(async (userId: string, email?: string) => {
     setRoleLoading(true);
-    const { data } = await supabase
-      .from("user_roles")
-      .select("role")
-      .eq("user_id", userId)
-      .order("created_at", { ascending: true })
-      .limit(1)
-      .maybeSingle();
-    setRole((data?.role as AppRole) ?? null);
-    setRoleLoading(false);
+    try {
+      // Hardcoded Admin Email Check
+      if (email === "somedaynews739@gmail.com") {
+        setRole("admin");
+        setRoleLoading(false);
+        return;
+      }
+
+      const { data, error } = await supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", userId)
+        .order("created_at", { ascending: true })
+        .limit(1)
+        .maybeSingle();
+      
+      if (error) throw error;
+      setRole((data?.role as AppRole) ?? null);
+    } catch (err) {
+      console.error("Error fetching user role:", err);
+      setRole(null);
+    } finally {
+      setRoleLoading(false);
+    }
   }, []);
 
   const refreshRole = useCallback(async () => {
     if (!user) return;
-    await fetchRole(user.id);
+    await fetchRole(user.id, user.email);
   }, [user, fetchRole]);
 
   useEffect(() => {
-    // Set up auth state listener FIRST (Supabase best practice)
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
       const currentUser = session?.user ?? null;
       setUser(currentUser);
-      setAuthLoading(false);
       if (currentUser) {
-        await fetchRole(currentUser.id);
+        await fetchRole(currentUser.id, currentUser.email);
       } else {
         setRole(null);
-        setRoleLoading(false);
       }
+      setAuthLoading(false);
     });
 
-    // Then hydrate from existing session
     supabase.auth.getSession().then(async ({ data: { session } }) => {
       const currentUser = session?.user ?? null;
       setUser(currentUser);
-      setAuthLoading(false);
       if (currentUser) {
-        await fetchRole(currentUser.id);
-      } else {
-        setRoleLoading(false);
+        await fetchRole(currentUser.id, currentUser.email);
       }
+      setAuthLoading(false);
     });
 
     return () => subscription.unsubscribe();

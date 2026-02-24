@@ -3,13 +3,16 @@ import Hero from "@/components/landing/Hero";
 import Features from "@/components/landing/Features";
 import Testimonials from "@/components/landing/Testimonials";
 import CTA from "@/components/landing/CTA";
+import Newsletter from "@/components/landing/Newsletter";
 import Footer from "@/components/landing/Footer";
 import { motion } from "framer-motion";
 import { BookOpen, ClipboardCheck, Award, ArrowRight } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 
 const steps = [
+// ... existing steps ...
   { icon: BookOpen, step: "01", title: "Enroll or Create", description: "Students browse and enroll. Instructors build structured courses with modules, lessons, and rich media.", color: "from-primary to-emerald-400" },
   { icon: ClipboardCheck, step: "02", title: "Learn and Assess", description: "Work through lessons, take quizzes, submit assignments, and track progress in real time.", color: "from-accent to-amber-300" },
   { icon: Award, step: "03", title: "Earn and Verify", description: "Complete requirements and receive a digitally-signed certificate with a verification ID.", color: "from-emerald-500 to-teal-400" },
@@ -143,6 +146,7 @@ const Index = () => (
       <Features />
       <HowItWorks />
       <Testimonials />
+      <Newsletter />
       <CTA />
     </main>
     <Footer />

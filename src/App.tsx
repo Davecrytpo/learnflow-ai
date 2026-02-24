@@ -3,9 +3,30 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { lazy, Suspense } from "react";
+import { lazy, Suspense, Component, ErrorInfo, ReactNode } from "react";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ThemeProvider } from "next-themes";
+
+class ErrorBoundary extends Component<{children: ReactNode}, {hasError: boolean}> {
+  constructor(props: {children: ReactNode}) {
+    super(props);
+    this.state = { hasError: false };
+  }
+  static getDerivedStateFromError() { return { hasError: true }; }
+  componentDidCatch(error: Error, errorInfo: ErrorInfo) { console.error("Uncaught error:", error, errorInfo); }
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="flex min-h-screen flex-col items-center justify-center bg-background p-4 text-center">
+          <h1 className="text-2xl font-bold">Something went wrong.</h1>
+          <p className="mt-2 text-muted-foreground">The application encountered an unexpected error. Please refresh the page.</p>
+          <button className="mt-6 rounded-lg bg-primary px-4 py-2 text-primary-foreground" onClick={() => window.location.reload()}>Refresh Page</button>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
 
 const Index = lazy(() => import("./pages/Index"));
 const StudentPortal = lazy(() => import("./pages/StudentPortal"));
@@ -120,20 +141,21 @@ const queryClient = new QueryClient();
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <AuthProvider>
-            <Suspense
-              fallback={
-                <div className="flex min-h-screen items-center justify-center bg-background">
-                  <div className="h-10 w-10 animate-spin rounded-full border-2 border-primary border-t-transparent" />
-                </div>
-              }
-            >
-              <Routes>
-                <Route path="/" element={<Index />} />
+      <ErrorBoundary>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <AuthProvider>
+              <Suspense
+                fallback={
+                  <div className="flex min-h-screen items-center justify-center bg-background">
+                    <div className="h-10 w-10 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+                  </div>
+                }
+              >
+                <Routes>
+                  <Route path="/" element={<Index />} />
                 <Route path="/student" element={<StudentPortal />} />
                 <Route path="/instructor-portal" element={<InstructorPortal />} />
                 <Route path="/admin-portal" element={<AdminPortal />} />
