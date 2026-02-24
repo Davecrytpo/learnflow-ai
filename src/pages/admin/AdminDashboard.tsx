@@ -33,8 +33,12 @@ const AdminDashboard = () => {
       supabase.from("certificates").select("id"),
       supabase.from("user_roles").select("id, user_id, role"),
       supabase.from("profiles").select("*").eq("status", "pending"),
-      supabase.from("enrollments").select("*, courses(title), profiles:student_id(display_name)").eq("status", "pending").eq("instructor_approved", true)
+      supabase.from("enrollments").select("*, courses!inner(title), profiles!student_id(display_name)").eq("status", "pending").eq("instructor_approved", true)
     ]);
+
+    if (profilesRes.error) console.error("Profiles error:", profilesRes.error);
+    if (coursesRes.error) console.error("Courses error:", coursesRes.error);
+    if (pendingEnrRes.error) console.error("Pending Enrollments error:", pendingEnrRes.error);
 
     const allProfiles = profilesRes.data || [];
     const allRoles = rolesRes.data || [];

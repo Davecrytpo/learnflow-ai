@@ -1,7 +1,7 @@
 import Navbar from "@/components/landing/Navbar";
 import Footer from "@/components/landing/Footer";
 import { Button } from "@/components/ui/button";
-import { GraduationCap, ClipboardCheck, BarChart3, Users, Shield } from "lucide-react";
+import { GraduationCap, ClipboardCheck, BarChart3, Users, Shield, ArrowRight } from "lucide-react";
 import { Link } from "react-router-dom";
 
 const InstructorPortal = () => (
@@ -30,18 +30,21 @@ const InstructorPortal = () => (
 
       <section className="mt-10 grid gap-6 md:grid-cols-3">
         {[
-          { icon: GraduationCap, title: "Course Builder", body: "Create modules, lessons, resources, and assessments in one place." },
-          { icon: ClipboardCheck, title: "Grading Queue", body: "Grade submissions quickly with a focused, unified queue." },
-          { icon: BarChart3, title: "Analytics", body: "Track enrollment, progress, and completion trends." },
-          { icon: Users, title: "Cohorts", body: "Manage groups and track attendance per session." },
-          { icon: Shield, title: "Security", body: "Role-based access and audit-ready data controls." },
+          { icon: GraduationCap, title: "Course Builder", body: "Create modules, lessons, resources, and assessments in one place.", link: "/instructor/courses/new", label: "Start Building" },
+          { icon: ClipboardCheck, title: "Grading Queue", body: "Grade submissions quickly with a focused, unified queue.", link: "/instructor/grading", label: "Grade Now" },
+          { icon: BarChart3, title: "Analytics", body: "Track enrollment, progress, and completion trends.", link: "/instructor/analytics", label: "View Data" },
+          { icon: Users, title: "Cohorts", body: "Manage groups and track attendance per session.", link: "/instructor/attendance", label: "Manage Attendance" },
+          { icon: Shield, title: "Security", body: "Role-based access and audit-ready data controls.", link: "/admin-portal", label: "System Security" },
         ].map((f) => (
-          <div key={f.title} className="rounded-2xl border border-border bg-card/90 p-5">
+          <div key={f.title} className="flex flex-col rounded-2xl border border-border bg-card/90 p-5 transition-all hover:border-primary/30">
             <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-accent/10 text-accent">
               <f.icon className="h-5 w-5" />
             </div>
             <h3 className="mt-3 font-display text-lg font-semibold text-foreground">{f.title}</h3>
-            <p className="mt-2 text-sm text-muted-foreground">{f.body}</p>
+            <p className="mt-2 text-sm text-muted-foreground flex-1">{f.body}</p>
+            <Button asChild variant="ghost" size="sm" className="mt-4 w-fit text-accent gap-2">
+              <Link to={f.link}>{f.label} <ArrowRight className="h-3 w-3" /></Link>
+            </Button>
           </div>
         ))}
       </section>

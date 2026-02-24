@@ -1,7 +1,7 @@
 import Navbar from "@/components/landing/Navbar";
 import Footer from "@/components/landing/Footer";
 import { Button } from "@/components/ui/button";
-import { BookOpen, Award, TrendingUp, Calendar, ClipboardCheck } from "lucide-react";
+import { BookOpen, Award, TrendingUp, Calendar, ClipboardCheck, ArrowRight } from "lucide-react";
 import { Link } from "react-router-dom";
 
 const StudentPortal = () => (
@@ -30,18 +30,21 @@ const StudentPortal = () => (
 
       <section className="mt-10 grid gap-6 md:grid-cols-3">
         {[
-          { icon: BookOpen, title: "Course Access", body: "Browse catalog, enroll instantly, and resume from any device." },
-          { icon: ClipboardCheck, title: "Assessments", body: "Take quizzes, submit assignments, and see real-time grades." },
-          { icon: Award, title: "Certificates", body: "Earn and share verifiable certificates when you complete a course." },
-          { icon: TrendingUp, title: "Progress", body: "Track completion rate, milestones, and growth over time." },
-          { icon: Calendar, title: "Deadlines", body: "Stay on top of upcoming deadlines with a built-in calendar." },
+          { icon: BookOpen, title: "Course Access", body: "Browse catalog, enroll instantly, and resume from any device.", link: "/courses", label: "Browse Catalog" },
+          { icon: ClipboardCheck, title: "Assessments", body: "Take quizzes, submit assignments, and see real-time grades.", link: "/dashboard/assignments", label: "View Tasks" },
+          { icon: Award, title: "Certificates", body: "Earn and share verifiable certificates when you complete a course.", link: "/dashboard/certificates", label: "My Credentials" },
+          { icon: TrendingUp, title: "Progress", body: "Track completion rate, milestones, and growth over time.", link: "/dashboard/progress", label: "Track Growth" },
+          { icon: Calendar, title: "Deadlines", body: "Stay on top of upcoming deadlines with a built-in calendar.", link: "/dashboard/calendar", label: "Open Calendar" },
         ].map((f) => (
-          <div key={f.title} className="rounded-2xl border border-border bg-card/90 p-5">
+          <div key={f.title} className="flex flex-col rounded-2xl border border-border bg-card/90 p-5">
             <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
               <f.icon className="h-5 w-5" />
             </div>
             <h3 className="mt-3 font-display text-lg font-semibold text-foreground">{f.title}</h3>
-            <p className="mt-2 text-sm text-muted-foreground">{f.body}</p>
+            <p className="mt-2 text-sm text-muted-foreground flex-1">{f.body}</p>
+            <Button asChild variant="ghost" size="sm" className="mt-4 w-fit text-primary gap-2">
+              <Link to={f.link}>{f.label} <ArrowRight className="h-3 w-3" /></Link>
+            </Button>
           </div>
         ))}
       </section>
