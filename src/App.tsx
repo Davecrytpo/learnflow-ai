@@ -91,6 +91,7 @@ const AdminAccreditationEvidence = lazy(() => import("./pages/admin/Accreditatio
 const AdminCohortInsights = lazy(() => import("./pages/admin/CohortInsights"));
 const AdminMultiCampus = lazy(() => import("./pages/admin/MultiCampus"));
 const AdminCatalogSegmentation = lazy(() => import("./pages/admin/CatalogSegmentation"));
+const Academy = lazy(() => import("./pages/Academy"));
 const Login = lazy(() => import("./pages/Login"));
 const Signup = lazy(() => import("./pages/Signup"));
 const Onboarding = lazy(() => import("./pages/Onboarding"));
@@ -233,6 +234,7 @@ const App = () => (
                 <Route path="/admin/multi-campus" element={<AdminMultiCampus />} />
                 <Route path="/admin/catalog-segmentation" element={<AdminCatalogSegmentation />} />
                 <Route path="/admin/*" element={<AdminDashboard />} />
+                <Route path="/academy" element={<Academy />} />
                 <Route path="/about" element={<About />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>

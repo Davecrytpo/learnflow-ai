@@ -1,16 +1,17 @@
 import { motion } from "framer-motion";
 import { BarChart3, Award, Users, BookOpen, ClipboardCheck, GraduationCap, Shield, Brain, Filter } from "lucide-react";
 import { useMemo, useState } from "react";
+import { Link } from "react-router-dom";
 
 const features = [
-  { icon: Brain, title: "AI-Assisted Creation", description: "Generate outlines, lesson drafts, and assessments with built-in AI assistance.", tag: "AI" },
-  { icon: ClipboardCheck, title: "Full Assessment Suite", description: "Exercises, quizzes, tests, and exams with rubrics and auto-grading where it fits.", tag: "Core" },
-  { icon: BarChart3, title: "Live Analytics", description: "Track enrollment, progress, completion rates, and outcomes in real time.", tag: "Analytics" },
-  { icon: Award, title: "Digital Certificates", description: "Automated certificates with verifiable IDs and shareable links.", tag: "Certification" },
-  { icon: Users, title: "Role-Based Access", description: "Purpose-built dashboards for students, instructors, and administrators.", tag: "Security" },
-  { icon: BookOpen, title: "Curriculum Builder", description: "Structured modules, video embeds, attachments, and rich content.", tag: "Content" },
-  { icon: GraduationCap, title: "Outcomes Alignment", description: "Map courses to standards, grade levels, and institutional requirements.", tag: "Compliance" },
-  { icon: Shield, title: "Enterprise Security", description: "Row-level security, audit trails, and role-based permissions by default.", tag: "Security" },
+  { icon: Brain, title: "AI-Assisted Creation", description: "Generate outlines, lesson drafts, and assessments with built-in AI assistance.", tag: "AI", link: "/instructor-portal" },
+  { icon: ClipboardCheck, title: "Full Assessment Suite", description: "Exercises, quizzes, tests, and exams with rubrics and auto-grading where it fits.", tag: "Core", link: "/instructor-portal" },
+  { icon: BarChart3, title: "Live Analytics", description: "Track enrollment, progress, completion rates, and outcomes in real time.", tag: "Analytics", link: "/admin-portal" },
+  { icon: Award, title: "Digital Certificates", description: "Automated certificates with verifiable IDs and shareable links.", tag: "Certification", link: "/student" },
+  { icon: Users, title: "Role-Based Access", description: "Purpose-built dashboards for students, instructors, and administrators.", tag: "Security", link: "/login" },
+  { icon: BookOpen, title: "Curriculum Builder", description: "Structured modules, video embeds, attachments, and rich content.", tag: "Content", link: "/instructor-portal" },
+  { icon: GraduationCap, title: "Outcomes Alignment", description: "Map courses to standards, grade levels, and institutional requirements.", tag: "Compliance", link: "/academy" },
+  { icon: Shield, title: "Enterprise Security", description: "Row-level security, audit trails, and role-based permissions by default.", tag: "Security", link: "/admin-portal" },
 ];
 
 const Filters = ["All", "AI", "Core", "Analytics", "Certification", "Security", "Content", "Compliance"];
@@ -35,8 +36,7 @@ const Features = () => {
         >
           <p className="text-sm font-semibold uppercase tracking-[0.2em] text-primary">Platform Capabilities</p>
           <h2 className="mt-4 font-display text-4xl font-bold tracking-tight text-foreground sm:text-5xl">
-            Built for the{" "}
-            <span className="gradient-text">serious educator</span>
+            Built for the <span className="gradient-text">serious educator</span>
           </h2>
           <p className="mt-5 text-lg text-muted-foreground">
             Everything you need to deliver world-class education without the enterprise price tag.
@@ -84,12 +84,12 @@ const Features = () => {
                 </div>
                 <h3 className="font-display text-base font-semibold text-foreground">{f.title}</h3>
                 <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{f.description}</p>
-                <button
-                  type="button"
+                <Link
+                  to={f.link}
                   className="mt-4 inline-flex items-center gap-2 text-xs font-semibold text-primary hover:text-primary/80"
                 >
                   Explore capability
-                </button>
+                </Link>
               </div>
             </motion.div>
           ))}

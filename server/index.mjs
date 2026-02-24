@@ -21,6 +21,51 @@ const supabase = supabaseUrl && supabaseServiceKey
   ? createClient(supabaseUrl, supabaseServiceKey, { auth: { persistSession: false } })
   : null;
 
+const BREVO_API_KEY = process.env.BREVO_API_KEY;
+
+const sendEmail = async ({ to, subject, htmlContent }) => {
+  if (!BREVO_API_KEY) {
+    console.error("BREVO_API_KEY is not set. Skipping email.");
+    return;
+  }
+  try {
+    const response = await fetch("https://api.brevo.com/v3/smtp/email", {
+      method: "POST",
+      headers: {
+        "accept": "application/json",
+        "api-key": BREVO_API_KEY,
+        "content-type": "application/json"
+      },
+      body: JSON.stringify({
+        sender: { name: "Learnflow AI", email: "notifications@learnflowai.com" },
+        to: [{ email: to }],
+        subject,
+        htmlContent
+      })
+    });
+    return await response.json();
+  } catch (error) {
+    console.error("Brevo Email Error:", error);
+  }
+};
+
+app.post("/notifications/send-email", async (req, res) => {
+  const schema = z.object({
+    to: z.string().email(),
+    subject: z.string().min(3),
+    content: z.string().min(5)
+  });
+  const parse = schema.safeParse(req.body);
+  if (!parse.success) return res.status(400).json({ error: parse.error.flatten() });
+  
+  const result = await sendEmail({
+    to: parse.data.to,
+    subject: parse.data.subject,
+    htmlContent: `<html><body>${parse.data.content}</body></html>`
+  });
+  res.json({ success: true, result });
+});
+
 app.get("/health", (_req, res) => {
   res.json({ ok: true, service: "learnflow-api", ts: new Date().toISOString() });
 });

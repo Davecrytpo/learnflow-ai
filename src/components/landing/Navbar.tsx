@@ -37,6 +37,7 @@ const Navbar = () => {
         <div className="hidden items-center gap-8 md:flex">
           <Link to="/student" className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground">Student</Link>
           <Link to="/instructor-portal" className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground">Instructor</Link>
+          <Link to="/academy" className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground">Academy</Link>
           <Link to="/courses" className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground">Courses</Link>
           <a href="/#features" className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground">Features</a>
           <Link to="/about" className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground">About</Link>
@@ -67,6 +68,7 @@ const Navbar = () => {
             <div className="flex flex-col gap-4">
               <Link to="/student" className="text-sm font-medium text-muted-foreground" onClick={() => setMobileOpen(false)}>Student</Link>
               <Link to="/instructor-portal" className="text-sm font-medium text-muted-foreground" onClick={() => setMobileOpen(false)}>Instructor</Link>
+              <Link to="/academy" className="text-sm font-medium text-muted-foreground" onClick={() => setMobileOpen(false)}>Academy</Link>
               <Link to="/courses" className="text-sm font-medium text-muted-foreground" onClick={() => setMobileOpen(false)}>Courses</Link>
               <a href="/#features" className="text-sm font-medium text-muted-foreground" onClick={() => setMobileOpen(false)}>Features</a>
               <Link to="/about" className="text-sm font-medium text-muted-foreground" onClick={() => setMobileOpen(false)}>About</Link>

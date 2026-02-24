@@ -14,8 +14,10 @@ const Hero = () => {
   return (
     <section className="relative min-h-screen overflow-hidden bg-background pt-20">
       <div className="absolute inset-0 bg-aurora" />
+      <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1523240795612-9a054b0db644?auto=format&fit=crop&q=80&w=2000')] bg-cover bg-center opacity-[0.05]" />
       <div className="absolute inset-0 bg-grid-pattern bg-grid opacity-[0.05]" />
       <div className="absolute inset-0 bg-grain opacity-30 mix-blend-soft-light" />
+      <div className="absolute inset-0 bg-gradient-to-b from-background via-transparent to-background" />
 
       <div className="container relative mx-auto px-4 py-24 md:py-32 lg:py-40">
         <motion.div
@@ -145,12 +147,14 @@ const Hero = () => {
                 <p className="mb-2 text-xs font-semibold text-foreground">Continue Learning</p>
                 <div className="space-y-2">
                   {[
-                    { name: "Advanced Calculus", pct: 72, cat: "Math" },
-                    { name: "Computer Science Fundamentals", pct: 45, cat: "CS" },
-                    { name: "World History", pct: 89, cat: "History" },
+                    { name: "Advanced Calculus", pct: 72, cat: "Math", img: "https://images.unsplash.com/photo-1635070041078-e363dbe005cb?auto=format&fit=crop&q=80&w=100" },
+                    { name: "CS Fundamentals", pct: 45, cat: "CS", img: "https://images.unsplash.com/photo-1517694712202-14dd9538aa97?auto=format&fit=crop&q=80&w=100" },
+                    { name: "World History", pct: 89, cat: "History", img: "https://images.unsplash.com/photo-1461360370896-922624d12aa1?auto=format&fit=crop&q=80&w=100" },
                   ].map((c) => (
                     <div key={c.name} className="flex items-center gap-3 rounded-lg border border-border bg-secondary/20 p-2.5">
-                      <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-primary/10 text-[9px] font-bold text-primary">{c.cat}</div>
+                      <div className="h-8 w-8 flex-shrink-0 overflow-hidden rounded-lg bg-primary/10">
+                        <img src={c.img} alt={c.name} className="h-full w-full object-cover opacity-80" />
+                      </div>
                       <div className="flex-1 min-w-0">
                         <p className="truncate text-xs font-medium text-foreground">{c.name}</p>
                         <div className="mt-1 flex items-center gap-2">
