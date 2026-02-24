@@ -12,8 +12,11 @@ import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Badge } from "@/components/ui/badge";
+import { useToast } from "@/hooks/use-toast";
 import RichTextEditor from "@/components/ui/rich-text-editor";
-import { Loader2, PlusCircle, Trash2, GripVertical, ClipboardCheck, Edit3 } from "lucide-react";
+import { Loader2, PlusCircle, Trash2, GripVertical, ClipboardCheck, Edit3, FileText, ClipboardList, Link as LinkIcon, Sparkles } from "lucide-react";
+import { generateCurriculumOutline, generateLessonContent } from "@/lib/anthropic";
 
 const EditCourse = () => {
   const { courseId } = useParams<{ courseId: string }>();
@@ -24,8 +27,11 @@ const EditCourse = () => {
   const [lessons, setLessons] = useState<any[]>([]);
   const [quizzes, setQuizzes] = useState<any[]>([]);
   const [quizQuestions, setQuizQuestions] = useState<any[]>([]);
+  const [assignments, setAssignments] = useState<any[]>([]);
+  const [resources, setResources] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [aiLoading, setAiLoading] = useState(false);
 
   // Lesson Content Editing State
   const [editingLesson, setEditingLesson] = useState<any>(null);
@@ -59,7 +65,49 @@ const EditCourse = () => {
       setLoading(false);
     };
     fetch();
-  }, [courseId]);
+  }, [courseId, toast]);
+
+  const handleAIGenerateOutline = async () => {
+    if (!course?.title) return;
+    setAiLoading(true);
+    try {
+      const outline = await generateCurriculumOutline(course.title);
+      for (const mod of outline.modules) {
+        const { data: modData } = await supabase.from("modules").insert({
+          course_id: courseId, title: mod.title, order: modules.length,
+        }).select().single();
+        
+        if (modData) {
+          setModules(prev => [...prev, modData]);
+          for (const lessonTitle of mod.lessons) {
+            const { data: lessonData } = await supabase.from("lessons").insert({
+              course_id: courseId, module_id: modData.id, title: lessonTitle, order: lessons.length,
+            }).select().single();
+            if (lessonData) setLessons(prev => [...prev, lessonData]);
+          }
+        }
+      }
+      toast({ title: "Curriculum generated!", description: "AI has built the modules and lessons for you." });
+    } catch (error: any) {
+      toast({ title: "AI Generation failed", description: error.message, variant: "destructive" });
+    } finally {
+      setAiLoading(false);
+    }
+  };
+
+  const handleAIDraftLesson = async () => {
+    if (!editingLesson || !course) return;
+    setSavingContent(true);
+    try {
+      const content = await generateLessonContent(course.title, editingLesson.title);
+      setLessonContent(content);
+      toast({ title: "Draft ready!", description: "AI has generated educational content for this lesson." });
+    } catch (error: any) {
+      toast({ title: "AI Draft failed", description: error.message, variant: "destructive" });
+    } finally {
+      setSavingContent(false);
+    }
+  };
 
   const saveCourse = async () => {
     if (!course) return;
@@ -227,7 +275,7 @@ const EditCourse = () => {
 
   const deleteQuestion = async (id: string) => {
     await supabase.from("quiz_questions").delete().eq("id", id);
-    setQuizQuestions(quizQuestions.filter(q => q.id !== id));
+    setQuizQuestions(quizQuestions.filter(q => q.quiz_id !== id));
   };
 
   if (loading) {
@@ -305,6 +353,13 @@ const EditCourse = () => {
 
           <TabsContent value="curriculum">
             <div className="space-y-4">
+              <div className="flex justify-end">
+                <Button variant="outline" size="sm" className="gap-2 border-primary/20 bg-primary/5 text-primary" 
+                  onClick={handleAIGenerateOutline} disabled={aiLoading}>
+                  {aiLoading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Sparkles className="h-3.5 w-3.5" />}
+                  AI Generate Outline
+                </Button>
+              </div>
               {modules.map((mod) => (
                 <Card key={mod.id}>
                   <CardHeader className="flex flex-row items-center gap-2 pb-2">
@@ -522,7 +577,14 @@ const EditCourse = () => {
         <Dialog open={!!editingLesson} onOpenChange={(open) => !open && setEditingLesson(null)}>
           <DialogContent className="max-w-4xl h-[80vh] flex flex-col">
             <DialogHeader>
-              <DialogTitle>Edit Lesson Content: {editingLesson?.title}</DialogTitle>
+              <div className="flex items-center justify-between pr-8">
+                <DialogTitle>Edit Lesson Content: {editingLesson?.title}</DialogTitle>
+                <Button variant="outline" size="sm" className="gap-2 border-primary/20 bg-primary/5 text-primary" 
+                  onClick={handleAIDraftLesson} disabled={savingContent}>
+                  {savingContent ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Sparkles className="h-3.5 w-3.5" />}
+                  AI Draft Content
+                </Button>
+              </div>
             </DialogHeader>
             <div className="flex-1 overflow-hidden border border-border rounded-md">
               {editingLesson && (
@@ -547,3 +609,4 @@ const EditCourse = () => {
 };
 
 export default EditCourse;
+

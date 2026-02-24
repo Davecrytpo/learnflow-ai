@@ -12,7 +12,8 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import RichTextEditor from "@/components/ui/rich-text-editor";
-import { Loader2 } from "lucide-react";
+import { Loader2, Sparkles } from "lucide-react";
+import { generateCourseDraft } from "@/lib/anthropic";
 
 const categories = ["Technology", "Science", "Mathematics", "English/Language Arts", "Social Studies", "Business", "Arts", "Health Sciences", "Engineering", "Other"];
 
@@ -21,6 +22,7 @@ const CreateCourse = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
+  const [aiLoading, setAiLoading] = useState(false);
   const [form, setForm] = useState({
     title: "",
     description: "",
@@ -28,6 +30,30 @@ const CreateCourse = () => {
     category: "",
     cover_image_url: "",
   });
+
+  const handleAIAssist = async () => {
+    if (!form.title) {
+      toast({ title: "Topic required", description: "Please enter a course title or topic first.", variant: "destructive" });
+      return;
+    }
+
+    setAiLoading(true);
+    try {
+      const draft = await generateCourseDraft(form.title);
+      setForm({
+        ...form,
+        title: draft.title || form.title,
+        summary: draft.summary || "",
+        description: draft.description || "",
+        category: draft.category || "",
+      });
+      toast({ title: "Draft generated!", description: "AI has populated the course details for you." });
+    } catch (error: any) {
+      toast({ title: "AI Assist failed", description: error.message, variant: "destructive" });
+    } finally {
+      setAiLoading(false);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -66,11 +92,26 @@ const CreateCourse = () => {
           </div>
         </section>
         <Card>
-          <CardHeader><CardTitle>Course Details</CardTitle></CardHeader>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <CardTitle>Course Details</CardTitle>
+              <Button 
+                type="button" 
+                variant="outline" 
+                size="sm" 
+                className="gap-2 border-primary/20 bg-primary/5 text-primary hover:bg-primary/10"
+                onClick={handleAIAssist}
+                disabled={aiLoading}
+              >
+                {aiLoading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Sparkles className="h-3.5 w-3.5" />}
+                AI Assist
+              </Button>
+            </div>
+          </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="title">Course Title *</Label>
+                <Label htmlFor="title">Course Title or Topic *</Label>
                 <Input id="title" placeholder="e.g. Introduction to Web Development" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} required />
               </div>
               <div className="space-y-2">
@@ -113,3 +154,4 @@ const CreateCourse = () => {
 };
 
 export default CreateCourse;
+
