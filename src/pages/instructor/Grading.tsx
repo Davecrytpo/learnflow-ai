@@ -22,30 +22,36 @@ const Grading = () => {
   useEffect(() => {
     if (!user) return;
     const fetch = async () => {
-      // Get instructor's courses first
-      const coursesRes = await supabase.from("courses").select("id").eq("author_id", user.id);
-      const courseIds = (coursesRes.data || []).map((c) => c.id);
-      if (courseIds.length === 0) { setLoading(false); return; }
+      setLoading(true);
+      try {
+        // Get instructor's courses first
+        const coursesRes = await supabase.from("courses").select("id").eq("author_id", user.id);
+        const courseIds = (coursesRes.data || []).map((c) => c.id);
+        if (courseIds.length === 0) return;
 
-      // Get assignments for those courses
-      const assignRes = await supabase.from("assignments").select("id, title, course_id, max_score").in("course_id", courseIds);
-      const assignments = assignRes.data || [];
-      if (assignments.length === 0) { setLoading(false); return; }
+        // Get assignments for those courses
+        const assignRes = await supabase.from("assignments").select("id, title, course_id, max_score").in("course_id", courseIds);
+        const assignments = assignRes.data || [];
+        if (assignments.length === 0) return;
 
-      // Get ungraded submissions
-      const subRes = await supabase
-        .from("submissions")
-        .select("*")
-        .in("assignment_id", assignments.map((a) => a.id))
-        .is("graded_at", null)
-        .order("submitted_at", { ascending: true });
+        // Get ungraded submissions
+        const subRes = await supabase
+          .from("submissions")
+          .select("*")
+          .in("assignment_id", assignments.map((a) => a.id))
+          .is("graded_at", null)
+          .order("submitted_at", { ascending: true });
 
-      const subs = (subRes.data || []).map((s) => ({
-        ...s,
-        assignment: assignments.find((a) => a.id === s.assignment_id),
-      }));
-      setSubmissions(subs);
-      setLoading(false);
+        const subs = (subRes.data || []).map((s) => ({
+          ...s,
+          assignment: assignments.find((a) => a.id === s.assignment_id),
+        }));
+        setSubmissions(subs);
+      } catch (err: any) {
+        console.error("Grading fetch error:", err);
+      } finally {
+        setLoading(false);
+      }
     };
     fetch();
   }, [user]);

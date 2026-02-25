@@ -36,15 +36,22 @@ const Academy = () => {
 
   useEffect(() => {
     const fetch = async () => {
-      const { data } = await supabase
-        .from("courses")
-        .select("*, profiles:author_id(display_name)")
-        .eq("category", "Academy")
-        .eq("published", true)
-        .order("created_at", { ascending: false });
-      
-      setCourses(data || []);
-      setLoading(false);
+      setLoading(true);
+      try {
+        const { data, error } = await supabase
+          .from("courses")
+          .select("*, profiles:author_id(display_name)")
+          .eq("category", "Academy")
+          .eq("published", true)
+          .order("created_at", { ascending: false });
+        
+        if (error) throw error;
+        setCourses(data || []);
+      } catch (err: any) {
+        console.error("Academy fetch error:", err);
+      } finally {
+        setLoading(false);
+      }
     };
     fetch();
   }, []);

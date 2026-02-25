@@ -83,35 +83,40 @@ const CourseLearning = () => {
   useEffect(() => {
     if (!courseId || !user) return;
     const fetchAll = async () => {
-      const [courseRes, modRes, lessonRes, quizRes, assignRes, resRes, progressRes, attemptsRes, subRes] = await Promise.all([
-        supabase.from("courses").select("*").eq("id", courseId).single(),
-        supabase.from("modules").select("*").eq("course_id", courseId).order("order"),
-        supabase.from("lessons").select("*").eq("course_id", courseId).eq("published", true).order("order"),
-        supabase.from("quizzes").select("*").eq("course_id", courseId).eq("published", true).order("order"),
-        supabase.from("assignments").select("*").eq("course_id", courseId).order("created_at"),
-        supabase.from("course_resources").select("*").eq("course_id", courseId).order("created_at"),
-        supabase.from("lesson_progress").select("lesson_id").eq("user_id", user.id).eq("course_id", courseId).eq("completed", true),
-        supabase.from("quiz_attempts").select("*").eq("user_id", user.id),
-        supabase.from("submissions").select("*").eq("student_id", user.id),
-      ]);
+      setLoading(true);
+      try {
+        const [courseRes, modRes, lessonRes, quizRes, assignRes, resRes, progressRes, attemptsRes, subRes] = await Promise.all([
+          supabase.from("courses").select("*").eq("id", courseId).single(),
+          supabase.from("modules").select("*").eq("course_id", courseId).order("order"),
+          supabase.from("lessons").select("*").eq("course_id", courseId).eq("published", true).order("order"),
+          supabase.from("quizzes").select("*").eq("course_id", courseId).eq("published", true).order("order"),
+          supabase.from("assignments").select("*").eq("course_id", courseId).order("created_at"),
+          supabase.from("course_resources").select("*").eq("course_id", courseId).order("created_at"),
+          supabase.from("lesson_progress").select("lesson_id").eq("user_id", user.id).eq("course_id", courseId).eq("completed", true),
+          supabase.from("quiz_attempts").select("*").eq("user_id", user.id),
+          supabase.from("submissions").select("*").eq("student_id", user.id),
+        ]);
 
-      setCourse(courseRes.data);
-      setModules(modRes.data || []);
-      setLessons(lessonRes.data || []);
-      setQuizzes(quizRes.data || []);
-      setAssignments(assignRes.data || []);
-      setResources(resRes.data || []);
-      setSubmissions(subRes.data || []);
-      setCompletedLessons(new Set((progressRes.data || []).map((p: any) => p.lesson_id)));
-      setQuizAttempts(attemptsRes.data || []);
+        setCourse(courseRes.data);
+        setModules(modRes.data || []);
+        setLessons(lessonRes.data || []);
+        setQuizzes(quizRes.data || []);
+        setAssignments(assignRes.data || []);
+        setResources(resRes.data || []);
+        setSubmissions(subRes.data || []);
+        setCompletedLessons(new Set((progressRes.data || []).map((p: any) => p.lesson_id)));
+        setQuizAttempts(attemptsRes.data || []);
 
-      // Set first incomplete lesson as active
-      const completed = new Set((progressRes.data || []).map((p: any) => p.lesson_id));
-      const firstIncomplete = (lessonRes.data || []).find((l: any) => !completed.has(l.id));
-      if (firstIncomplete) setActiveLesson(firstIncomplete);
-      else if (lessonRes.data?.[0]) setActiveLesson(lessonRes.data[0]);
-
-      setLoading(false);
+        // Set first incomplete lesson as active
+        const completed = new Set((progressRes.data || []).map((p: any) => p.lesson_id));
+        const firstIncomplete = (lessonRes.data || []).find((l: any) => !completed.has(l.id));
+        if (firstIncomplete) setActiveLesson(firstIncomplete);
+        else if (lessonRes.data?.[0]) setActiveLesson(lessonRes.data[0]);
+      } catch (err: any) {
+        console.error("Course learning fetch error:", err);
+      } finally {
+        setLoading(false);
+      }
     };
     fetchAll();
   }, [courseId, user]);

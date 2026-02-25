@@ -28,28 +28,34 @@ const CourseDetail = () => {
   useEffect(() => {
     if (!courseId) return;
     const fetch = async () => {
-      const [courseRes, modRes, lessonRes, quizRes, enrollCountRes] = await Promise.all([
-        supabase.from("courses").select("*, profiles:author_id(display_name, avatar_url)").eq("id", courseId).single(),
-        supabase.from("modules").select("*").eq("course_id", courseId).order("order"),
-        supabase.from("lessons").select("id, title, module_id, duration_seconds, order").eq("course_id", courseId).eq("published", true).order("order"),
-        supabase.from("quizzes").select("id, title, quiz_type, module_id").eq("course_id", courseId).eq("published", true).order("order"),
-        supabase.from("enrollments").select("id").eq("course_id", courseId),
-      ]);
-      setCourse(courseRes.data);
-      setModules(modRes.data || []);
-      setLessons(lessonRes.data || []);
-      setQuizzes(quizRes.data || []);
-      setEnrollmentCount(enrollCountRes.data?.length || 0);
-
-      if (user) {
-        const [enrolledRes, userCountRes] = await Promise.all([
-          supabase.from("enrollments").select("id").eq("course_id", courseId).eq("student_id", user.id).maybeSingle(),
-          supabase.from("enrollments").select("*", { count: "exact", head: true }).eq("student_id", user.id).neq("status", "rejected")
+      setLoading(true);
+      try {
+        const [courseRes, modRes, lessonRes, quizRes, enrollCountRes] = await Promise.all([
+          supabase.from("courses").select("*, profiles:author_id(display_name, avatar_url)").eq("id", courseId).single(),
+          supabase.from("modules").select("*").eq("course_id", courseId).order("order"),
+          supabase.from("lessons").select("id, title, module_id, duration_seconds, order").eq("course_id", courseId).eq("published", true).order("order"),
+          supabase.from("quizzes").select("id, title, quiz_type, module_id").eq("course_id", courseId).eq("published", true).order("order"),
+          supabase.from("enrollments").select("id").eq("course_id", courseId),
         ]);
-        setIsEnrolled(!!enrolledRes.data);
-        setUserEnrollmentCount(userCountRes.count || 0);
+        setCourse(courseRes.data);
+        setModules(modRes.data || []);
+        setLessons(lessonRes.data || []);
+        setQuizzes(quizRes.data || []);
+        setEnrollmentCount(enrollCountRes.data?.length || 0);
+
+        if (user) {
+          const [enrolledRes, userCountRes] = await Promise.all([
+            supabase.from("enrollments").select("id").eq("course_id", courseId).eq("student_id", user.id).maybeSingle(),
+            supabase.from("enrollments").select("*", { count: "exact", head: true }).eq("student_id", user.id).neq("status", "rejected")
+          ]);
+          setIsEnrolled(!!enrolledRes.data);
+          setUserEnrollmentCount(userCountRes.count || 0);
+        }
+      } catch (err: any) {
+        console.error("Course detail fetch error:", err);
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     };
     fetch();
   }, [courseId, user]);

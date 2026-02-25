@@ -27,10 +27,17 @@ const Attendance = () => {
   useEffect(() => {
     if (!user) return;
     const fetchCourses = async () => {
-      const { data } = await supabase.from("courses").select("id, title").eq("author_id", user.id);
-      setCourses(data || []);
-      if (data && data.length > 0) setSelectedCourse(data[0].id);
-      setLoading(false);
+      setLoading(true);
+      try {
+        const { data, error } = await supabase.from("courses").select("id, title").eq("author_id", user.id);
+        if (error) throw error;
+        setCourses(data || []);
+        if (data && data.length > 0) setSelectedCourse(data[0].id);
+      } catch (err: any) {
+        console.error("Attendance fetch error:", err);
+      } finally {
+        setLoading(false);
+      }
     };
     fetchCourses();
   }, [user]);

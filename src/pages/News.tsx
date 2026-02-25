@@ -15,12 +15,19 @@ const NewsPage = () => {
 
   useEffect(() => {
     const fetchNews = async () => {
-      const { data } = await supabase
-        .from("news")
-        .select("*")
-        .order("created_at", { ascending: false });
-      setNews(data || []);
-      setLoading(false);
+      setLoading(true);
+      try {
+        const { data, error } = await supabase
+          .from("news")
+          .select("*")
+          .order("created_at", { ascending: false });
+        if (error) throw error;
+        setNews(data || []);
+      } catch (err: any) {
+        console.error("News fetch error:", err);
+      } finally {
+        setLoading(false);
+      }
     };
     fetchNews();
   }, []);

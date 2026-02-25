@@ -32,13 +32,20 @@ const CourseCatalog = () => {
 
   useEffect(() => {
     const fetch = async () => {
-      const { data } = await supabase
-        .from("courses")
-        .select("id, title, slug, summary, cover_image_url, category, author_id, profiles:author_id(display_name)")
-        .eq("published", true)
-        .order("created_at", { ascending: false });
-      setCourses(data || []);
-      setLoading(false);
+      setLoading(true);
+      try {
+        const { data, error } = await supabase
+          .from("courses")
+          .select("id, title, slug, summary, cover_image_url, category, author_id, profiles:author_id(display_name)")
+          .eq("published", true)
+          .order("created_at", { ascending: false });
+        if (error) throw error;
+        setCourses(data || []);
+      } catch (err: any) {
+        console.error("Course catalog fetch error:", err);
+      } finally {
+        setLoading(false);
+      }
     };
     fetch();
   }, []);

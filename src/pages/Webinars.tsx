@@ -17,12 +17,19 @@ const WebinarsPage = () => {
 
   useEffect(() => {
     const fetchWebinars = async () => {
-      const { data } = await supabase
-        .from("webinars")
-        .select("*")
-        .order("start_time", { ascending: true });
-      setWebinars(data || []);
-      setLoading(false);
+      setLoading(true);
+      try {
+        const { data, error } = await supabase
+          .from("webinars")
+          .select("*")
+          .order("start_time", { ascending: true });
+        if (error) throw error;
+        setWebinars(data || []);
+      } catch (err: any) {
+        console.error("Webinars fetch error:", err);
+      } finally {
+        setLoading(false);
+      }
     };
     fetchWebinars();
   }, []);
