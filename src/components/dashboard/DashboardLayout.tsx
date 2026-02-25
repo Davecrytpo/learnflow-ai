@@ -2,7 +2,7 @@ import { ReactNode, useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useAuthContext } from "@/contexts/AuthContext";
 import { AppRole } from "@/hooks/useUserRole";
-import { Loader2, LogOut, Moon, Sun, Bell, Search, Settings, User } from "lucide-react";
+import { Loader2, LogOut, Moon, Sun, Bell, Search, Settings, User, BookOpen, Award, Shield } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
