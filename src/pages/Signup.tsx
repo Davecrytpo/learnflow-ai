@@ -1,62 +1,22 @@
-import { useState, useEffect } from "react";
-import { Link, useNavigate, useSearchParams, useLocation } from "react-router-dom";
+import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { GraduationCap, Loader2, BookOpen, Users } from "lucide-react";
+import { GraduationCap, Loader2, ArrowRight } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-
-const gradeOptions = [
-  "Elementary (K-5)",
-  "Middle School (6-8)",
-  "High School (9-12)",
-  "Undergraduate",
-  "Graduate",
-  "Professional Development",
-];
-
-const subjectOptions = [
-  "Mathematics", "Science", "English/Language Arts", "Social Studies",
-  "Computer Science", "Foreign Languages", "Arts", "Physical Education",
-  "Business", "Engineering", "Health Sciences", "Other",
-];
-
-const stateOptions = [
-  "AL","AK","AZ","AR","CA","CO","CT","DE","FL","GA","HI","ID","IL","IN","IA",
-  "KS","KY","LA","ME","MD","MA","MI","MN","MS","MO","MT","NE","NV","NH","NJ",
-  "NM","NY","NC","ND","OH","OK","OR","PA","RI","SC","SD","TN","TX","UT","VT",
-  "VA","WA","WV","WI","WY","DC",
-];
+import Navbar from "@/components/landing/Navbar";
+import Footer from "@/components/landing/Footer";
 
 const Signup = () => {
-  const [searchParams] = useSearchParams();
-  const location = useLocation();
-  const onboardData = location.state || {};
-  
-  const initialRole = onboardData.role || (searchParams.get("role") === "instructor" ? "instructor" : "student");
-  const isRoleLocked = onboardData.role !== undefined || searchParams.get("role") !== null;
-
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [selectedRole, setSelectedRole] = useState<"student" | "instructor">(initialRole);
-  const [institution, setInstitution] = useState("");
-  const [gradeLevel, setGradeLevel] = useState(onboardData.level || "");
-  const [subjectArea, setSubjectArea] = useState(onboardData.subject || onboardData.goal || "");
-  const [state, setState] = useState("");
-  const [phone, setPhone] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
-
-  useEffect(() => {
-    if (onboardData.role) {
-      setSelectedRole(onboardData.role);
-    }
-  }, [onboardData.role]);
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -76,19 +36,7 @@ const Signup = () => {
       options: {
         data: { 
           full_name: name,
-          role: selectedRole,
-          institution: institution || null,
-          grade_level: gradeLevel || onboardData.level || null,
-          subject_areas: subjectArea ? [subjectArea] : (onboardData.subject ? [onboardData.subject] : null),
-          state: state || null,
-          phone: phone || null,
-          // Extra instructor/student specific data
-          learning_goal: onboardData.goal || null,
-          learning_style: onboardData.style || null,
-          years_experience: onboardData.experience || null,
-          teaching_format: onboardData.format || null,
-          linkedin_url: onboardData.linkedin || null,
-          bio: onboardData.bio || null
+          role: 'student'
         },
         emailRedirectTo: window.location.origin,
       },
@@ -100,171 +48,102 @@ const Signup = () => {
       return;
     }
 
-    // With email confirmation, authData.session might be null
     if (authData.user && authData.session) {
-      // Role and profile are now handled by the database trigger
       setLoading(false);
       navigate("/dashboard");
     } else {
       setLoading(false);
-      toast({ title: "Check your email", description: "We sent you a confirmation link. Please verify your email to continue." });
+      toast({ title: "Verification required", description: "Please check your email to verify your student account." });
       navigate("/login");
     }
   };
 
   return (
-    <div className="flex min-h-screen">
-      {/* Left panel */}
-      <div className="hidden w-1/2 lg:flex lg:flex-col lg:items-center lg:justify-center bg-gradient-to-br from-primary via-primary to-accent">
-        <div className="max-w-md px-8 text-primary-foreground">
-          <GraduationCap className="mb-6 h-12 w-12" />
-          <h2 className="text-3xl font-bold">
-            {selectedRole === "instructor" ? "Empower your students" : "Start your learning journey"}
-          </h2>
-          <p className="mt-4 text-lg text-primary-foreground/80">
-            {selectedRole === "instructor"
-              ? "Create courses with AI assistance, manage assessments, track student progress, and issue certificates - all completely free."
-              : "Access quality courses, track your progress, earn certificates, and build knowledge that matters."}
-          </p>
-          <div className="mt-8 space-y-3 text-sm text-primary-foreground/70">
-            <p>OK 100% Free - No hidden costs</p>
-            <p>OK US Education Standards compliant</p>
-            <p>OK Certificates upon completion</p>
-            <p>OK AI-powered learning tools</p>
+    <div className="min-h-screen bg-background flex flex-col">
+      <Navbar />
+      <main className="flex-1 flex items-center justify-center py-20 px-6">
+        <div className="w-full max-w-md space-y-8">
+          <div className="text-center">
+            <div className="h-16 w-16 bg-primary/10 rounded-2xl flex items-center justify-center mx-auto mb-6 text-primary">
+              <GraduationCap className="h-10 w-10" />
+            </div>
+            <h1 className="text-3xl font-display font-bold">Student Registration</h1>
+            <p className="text-muted-foreground mt-2">Create your account to join our global academic community.</p>
+          </div>
+
+          <div className="bg-card border border-border p-8 rounded-3xl shadow-xl">
+            <form onSubmit={handleSignup} className="space-y-5">
+              <div className="space-y-2">
+                <Label htmlFor="name">Full Name</Label>
+                <Input 
+                  id="name" 
+                  placeholder="John Doe" 
+                  value={name} 
+                  onChange={(e) => setName(e.target.value)} 
+                  required 
+                  className="h-12 rounded-xl"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="email">University Email</Label>
+                <Input 
+                  id="email" 
+                  type="email" 
+                  placeholder="student@globaluniversity.edu" 
+                  value={email} 
+                  onChange={(e) => setEmail(e.target.value)} 
+                  required 
+                  className="h-12 rounded-xl"
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="password">Password</Label>
+                  <Input 
+                    id="password" 
+                    type="password" 
+                    value={password} 
+                    onChange={(e) => setPassword(e.target.value)} 
+                    required 
+                    className="h-12 rounded-xl"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="confirmPassword">Confirm</Label>
+                  <Input 
+                    id="confirmPassword" 
+                    type="password" 
+                    value={confirmPassword} 
+                    onChange={(e) => setConfirmPassword(e.target.value)} 
+                    required 
+                    className="h-12 rounded-xl"
+                  />
+                </div>
+              </div>
+
+              <Button type="submit" className="w-full h-12 rounded-xl bg-primary text-white font-bold" disabled={loading}>
+                {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                Create Student Account
+              </Button>
+            </form>
+
+            <div className="mt-6 text-center text-sm">
+              <span className="text-muted-foreground">Already have an account? </span>
+              <Link to="/login" className="text-primary font-bold hover:underline">Log in</Link>
+            </div>
+          </div>
+
+          <div className="text-center">
+            <p className="text-xs text-muted-foreground">
+              By registering, you agree to the Global University Institute <br />
+              <Link to="/about" className="underline">Terms of Service</Link> and <Link to="/about" className="underline">Privacy Policy</Link>.
+            </p>
           </div>
         </div>
-      </div>
-
-      {/* Right panel */}
-      <div className="flex w-full items-center justify-center overflow-auto px-4 py-8 lg:w-1/2">
-        <div className="w-full max-w-md">
-          <Link to="/" className="mb-6 flex items-center gap-2 lg:hidden">
-            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br from-primary to-accent">
-              <GraduationCap className="h-5 w-5 text-primary-foreground" />
-            </div>
-            <span className="text-xl font-bold">Global University Institute</span>
-          </Link>
-
-          <h1 className="text-2xl font-bold text-foreground">
-            {isRoleLocked 
-              ? (selectedRole === "instructor" ? "Instructor Application" : "Create Learning Space") 
-              : "Create your account"
-            }
-          </h1>
-          <p className="mt-2 text-sm text-muted-foreground">
-            Already have an account?{" "}
-            <Link to={`/login?role=${selectedRole}`} className="text-primary hover:underline">Sign in</Link>
-          </p>
-
-          {/* Role selector - only show if not coming from onboarding */}
-          {!isRoleLocked && (
-            <div className="mt-6 grid grid-cols-2 gap-3">
-              <button
-                type="button"
-                onClick={() => setSelectedRole("student")}
-                className={`flex flex-col items-center rounded-xl border p-4 transition-all ${
-                  selectedRole === "student"
-                    ? "border-primary bg-primary/5 shadow-sm"
-                    : "border-border hover:border-primary/30"
-                }`}
-              >
-                <BookOpen className={`h-5 w-5 ${selectedRole === "student" ? "text-primary" : "text-muted-foreground"}`} />
-                <span className="mt-1 text-sm font-medium">Student</span>
-                <span className="text-xs text-muted-foreground">I want to learn</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => setSelectedRole("instructor")}
-                className={`flex flex-col items-center rounded-xl border p-4 transition-all ${
-                  selectedRole === "instructor"
-                    ? "border-accent bg-accent/5 shadow-sm"
-                    : "border-border hover:border-accent/30"
-                }`}
-              >
-                <Users className={`h-5 w-5 ${selectedRole === "instructor" ? "text-accent" : "text-muted-foreground"}`} />
-                <span className="mt-1 text-sm font-medium">Instructor</span>
-                <span className="text-xs text-muted-foreground">I want to teach</span>
-              </button>
-            </div>
-          )}
-
-          <form onSubmit={handleSignup} className="mt-6 space-y-4">
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div className="space-y-2 sm:col-span-2">
-                <Label htmlFor="name">Full Name *</Label>
-                <Input id="name" placeholder="John Doe" value={name} onChange={(e) => setName(e.target.value)} required />
-              </div>
-              <div className="space-y-2 sm:col-span-2">
-                <Label htmlFor="email">Email Address *</Label>
-                <Input id="email" type="email" placeholder="you@school.edu" value={email} onChange={(e) => setEmail(e.target.value)} required />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="password">Password *</Label>
-                <Input id="password" type="password" placeholder="Min 8 characters" value={password} onChange={(e) => setPassword(e.target.value)} required minLength={8} />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="confirmPassword">Confirm Password *</Label>
-                <Input id="confirmPassword" type="password" placeholder="Re-enter password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} required minLength={8} />
-              </div>
-            </div>
-
-            <div className="rounded-lg border border-border bg-card/50 p-4 space-y-4">
-              <p className="text-sm font-medium text-foreground">Educational Information</p>
-              <div className="grid gap-4 sm:grid-cols-2">
-                <div className="space-y-2 sm:col-span-2">
-                  <Label htmlFor="institution">School / Institution</Label>
-                  <Input id="institution" placeholder="e.g. Springfield High School" value={institution} onChange={(e) => setInstitution(e.target.value)} />
-                </div>
-                <div className="space-y-2">
-                  <Label>Grade Level</Label>
-                  <Select value={gradeLevel} onValueChange={setGradeLevel}>
-                    <SelectTrigger><SelectValue placeholder="Select level" /></SelectTrigger>
-                    <SelectContent>
-                      {gradeOptions.map(g => <SelectItem key={g} value={g}>{g}</SelectItem>)}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-2">
-                  <Label>{selectedRole === "instructor" ? "Teaching Subject" : "Area of Interest"}</Label>
-                  <Select value={subjectArea} onValueChange={setSubjectArea}>
-                    <SelectTrigger><SelectValue placeholder="Select subject" /></SelectTrigger>
-                    <SelectContent>
-                      {subjectOptions.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-2">
-                  <Label>State</Label>
-                  <Select value={state} onValueChange={setState}>
-                    <SelectTrigger><SelectValue placeholder="Select state" /></SelectTrigger>
-                    <SelectContent>
-                      {stateOptions.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="phone">Phone (optional)</Label>
-                  <Input id="phone" type="tel" placeholder="(555) 123-4567" value={phone} onChange={(e) => setPhone(e.target.value)} />
-                </div>
-              </div>
-            </div>
-
-            <Button type="submit" className="w-full" disabled={loading}>
-              {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              {selectedRole === "instructor" ? "Register as Instructor" : "Create Student Account"}
-            </Button>
-          </form>
-
-          <p className="mt-6 text-center text-xs text-muted-foreground">
-            By signing up, you agree to our Terms of Service and Privacy Policy.
-          </p>
-        </div>
-      </div>
+      </main>
+      <Footer />
     </div>
   );
 };
 
 export default Signup;
-
-
-

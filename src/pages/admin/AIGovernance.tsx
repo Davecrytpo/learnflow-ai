@@ -1,93 +1,154 @@
+import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import AdminSidebar from "@/components/dashboard/AdminSidebar";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Bot, ShieldCheck } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Bot, ShieldAlert, Zap, Loader2, Search, Trash2 } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { Input } from "@/components/ui/input";
 
-const policies = [
-  { id: "AI-01", name: "Adaptive Recommendations", status: "Approved", owner: "AI Council" },
-  { id: "AI-02", name: "Proctoring Insights", status: "In review", owner: "Compliance" },
-  { id: "AI-03", name: "Content Generation", status: "Approved", owner: "Product" },
-];
+const AIGovernance = () => {
+  const { toast } = useToast();
+  const [logs, setLogs] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState("");
 
-const badgeFor = (status: string) => {
-  if (status === "Approved") return "bg-emerald-500/10 text-emerald-600";
-  return "bg-amber-500/10 text-amber-600";
-};
+  const fetchLogs = async () => {
+    setLoading(true);
+    const { data, error } = await supabase
+      .from("ai_governance_logs")
+      .select("*")
+      .order("created_at", { ascending: false });
+    
+    if (error) {
+      toast({ title: "Audit failed", description: error.message, variant: "destructive" });
+    } else {
+      setLogs(data || []);
+    }
+    setLoading(false);
+  };
 
-const AdminAIGovernance = () => (
-  <DashboardLayout allowedRoles={["admin"]} sidebar={<AdminSidebar />}>
-    <div className="space-y-6">
-      <section className="rounded-3xl border border-border/70 bg-card/90 p-6">
-        <div className="flex flex-wrap items-center justify-between gap-4">
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary">AI Governance</p>
-            <h1 className="mt-2 font-display text-3xl font-bold text-foreground">Responsible AI controls</h1>
-            <p className="mt-2 text-sm text-muted-foreground">
-              Review AI policies, audit logs, and bias checks across features.
-            </p>
+  useEffect(() => {
+    fetchLogs();
+  }, []);
+
+  const clearLogs = async () => {
+    if (!confirm("Clear all governance logs? This is irreversible.")) return;
+    await supabase.from("ai_governance_logs").delete().neq("id", "00000000-0000-0000-0000-000000000000");
+    toast({ title: "Logs cleared" });
+    fetchLogs();
+  };
+
+  const filtered = logs.filter(l => 
+    l.model.toLowerCase().includes(search.toLowerCase()) || 
+    l.request_type?.toLowerCase().includes(search.toLowerCase())
+  );
+
+  return (
+    <DashboardLayout allowedRoles={["admin"]} sidebar={<AdminSidebar />}>
+      <div className="space-y-6">
+        <section className="relative overflow-hidden rounded-3xl border border-border/70 bg-card/90 p-6">
+          <div className="absolute inset-0 bg-aurora opacity-60" />
+          <div className="relative flex flex-wrap items-center justify-between gap-4">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary">AI Ethics & Safety</p>
+              <h1 className="mt-2 font-display text-3xl font-bold text-foreground">AI Governance</h1>
+              <p className="mt-2 text-sm text-muted-foreground">Monitor institutional AI usage, token consumption, and safety compliance.</p>
+            </div>
+            <Button variant="outline" className="text-destructive hover:bg-destructive/10" onClick={clearLogs}>
+              <Trash2 className="mr-2 h-4 w-4" /> Purge Audit Trail
+            </Button>
           </div>
-          <Button className="bg-gradient-brand text-primary-foreground">
-            <ShieldCheck className="mr-2 h-4 w-4" /> Run audit
-          </Button>
-        </div>
-      </section>
+        </section>
 
-      <div className="grid gap-4 md:grid-cols-3">
+        <div className="grid gap-6 md:grid-cols-3">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground">Active Models</CardTitle>
+              <Bot className="h-4 w-4 text-primary" />
+            </CardHeader>
+            <CardContent>
+              <p className="text-2xl font-bold">GPT-4o, Claude 3.5</p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground">Tokens Consumed</CardTitle>
+              <Zap className="h-4 w-4 text-amber-500" />
+            </CardHeader>
+            <CardContent>
+              <p className="text-2xl font-bold">{logs.reduce((acc, curr) => acc + (curr.tokens_used || 0), 0).toLocaleString()}</p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground">Safety Status</CardTitle>
+              <Badge className="bg-emerald-500/10 text-emerald-600">Compliant</Badge>
+            </CardHeader>
+            <CardContent>
+              <p className="text-2xl font-bold text-emerald-600">Secure</p>
+            </CardContent>
+          </Card>
+        </div>
+
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Policies</CardTitle>
-            <Bot className="h-4 w-4 text-primary" />
+          <CardHeader>
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div>
+                <CardTitle>Usage Logs</CardTitle>
+                <CardDescription>Real-time oversight of AI-assisted activities.</CardDescription>
+              </div>
+              <div className="relative w-full sm:w-64">
+                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                <Input placeholder="Filter by model..." value={search} onChange={e => setSearch(e.target.value)} className="pl-10" />
+              </div>
+            </div>
           </CardHeader>
           <CardContent>
-            <p className="text-2xl font-bold">9</p>
-            <p className="text-xs text-muted-foreground">Active policies</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Pending review</CardTitle>
-            <Badge className="bg-amber-500/10 text-amber-600" variant="secondary">2</Badge>
-          </CardHeader>
-          <CardContent>
-            <p className="text-2xl font-bold">2</p>
-            <p className="text-xs text-muted-foreground">Waiting approval</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Bias checks</CardTitle>
-            <Badge className="bg-emerald-500/10 text-emerald-600" variant="secondary">Pass</Badge>
-          </CardHeader>
-          <CardContent>
-            <p className="text-2xl font-bold">Pass</p>
-            <p className="text-xs text-muted-foreground">Last run Feb 20</p>
+            {loading ? (
+              <div className="flex justify-center py-12"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>
+            ) : filtered.length === 0 ? (
+              <div className="text-center py-12 border-2 border-dashed rounded-2xl text-muted-foreground">No logs found.</div>
+            ) : (
+              <div className="rounded-xl border border-border overflow-hidden">
+                <table className="w-full text-sm">
+                  <thead className="bg-secondary/40 text-muted-foreground font-medium border-b border-border">
+                    <tr>
+                      <th className="text-left p-4">Request Details</th>
+                      <th className="text-left p-4">Model</th>
+                      <th className="text-left p-4">Consumption</th>
+                      <th className="text-right p-4">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-border/60">
+                    {filtered.map(l => (
+                      <tr key={l.id} className="hover:bg-accent/5 transition-colors">
+                        <td className="p-4">
+                          <p className="font-semibold text-foreground uppercase text-[10px] tracking-widest">{l.request_type}</p>
+                          <p className="text-xs text-muted-foreground mt-1">{new Date(l.created_at).toLocaleString()}</p>
+                        </td>
+                        <td className="p-4">
+                          <Badge variant="outline" className="font-mono text-[10px]">{l.model}</Badge>
+                        </td>
+                        <td className="p-4 font-mono text-xs">
+                          {l.tokens_used} tokens
+                        </td>
+                        <td className="p-4 text-right">
+                          <Badge variant="secondary" className="bg-emerald-500/10 text-emerald-600 text-[9px] uppercase tracking-tighter">{l.status}</Badge>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>
+    </DashboardLayout>
+  );
+};
 
-      <Card className="p-4">
-        <CardHeader className="px-0 pt-0">
-          <CardTitle className="text-lg">Policy register</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-3 px-0 pb-0">
-          {policies.map((policy) => (
-            <div key={policy.id} className="flex flex-wrap items-center justify-between gap-4 rounded-lg border border-border p-3">
-              <div>
-                <p className="text-sm font-semibold text-foreground">{policy.name}</p>
-                <p className="text-xs text-muted-foreground">Owner: {policy.owner}</p>
-              </div>
-              <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                <Badge className={badgeFor(policy.status)} variant="secondary">{policy.status}</Badge>
-                <Button size="sm" variant="outline">Review</Button>
-              </div>
-            </div>
-          ))}
-        </CardContent>
-      </Card>
-    </div>
-  </DashboardLayout>
-);
-
-export default AdminAIGovernance;
+export default AIGovernance;

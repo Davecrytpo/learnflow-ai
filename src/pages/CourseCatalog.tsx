@@ -38,6 +38,7 @@ const CourseCatalog = () => {
           .from("courses")
           .select("id, title, slug, summary, cover_image_url, category, author_id, profiles:author_id(display_name)")
           .eq("published", true)
+          .eq("status", "approved")
           .order("created_at", { ascending: false });
         if (error) throw error;
         setCourses(data || []);

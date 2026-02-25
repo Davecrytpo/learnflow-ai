@@ -85,6 +85,24 @@ const CourseLearning = () => {
     const fetchAll = async () => {
       setLoading(true);
       try {
+        // 1. Strict Enrollment Verification
+        const { data: enrollment, error: enrollErr } = await supabase
+          .from("enrollments")
+          .select("status")
+          .eq("course_id", courseId)
+          .eq("student_id", user.id)
+          .maybeSingle();
+
+        if (!enrollment || enrollment.status !== 'approved') {
+          toast({ 
+            title: "Access Denied", 
+            description: "Your enrollment is pending administrator verification of tuition payment.", 
+            variant: "destructive" 
+          });
+          navigate("/dashboard");
+          return;
+        }
+
         const [courseRes, modRes, lessonRes, quizRes, assignRes, resRes, progressRes, attemptsRes, subRes] = await Promise.all([
           supabase.from("courses").select("*").eq("id", courseId).single(),
           supabase.from("modules").select("*").eq("course_id", courseId).order("order"),

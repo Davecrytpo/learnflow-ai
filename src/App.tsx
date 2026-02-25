@@ -119,8 +119,6 @@ const Webinars = lazy(() => import("./pages/Webinars"));
 const Verification = lazy(() => import("./pages/Verification"));
 const Login = lazy(() => import("./pages/Login"));
 const Signup = lazy(() => import("./pages/Signup"));
-const StudentFlow = lazy(() => import("./pages/onboarding/StudentFlow"));
-const InstructorFlow = lazy(() => import("./pages/onboarding/InstructorFlow"));
 const Onboarding = lazy(() => import("./pages/Onboarding"));
 const Dashboard = lazy(() => import("./pages/Dashboard"));
 const About = lazy(() => import("./pages/About"));
@@ -159,8 +157,6 @@ const App = () => (
               >
                 <Routes>
                   <Route path="/" element={<Index />} />
-                  <Route path="/learn" element={<StudentFlow />} />
-                  <Route path="/teach" element={<InstructorFlow />} />
                   <Route path="/student" element={<StudentPortal />} />
                   <Route path="/instructor-portal" element={<InstructorPortal />} />
                   <Route path="/admin-portal" element={<AdminPortal />} />

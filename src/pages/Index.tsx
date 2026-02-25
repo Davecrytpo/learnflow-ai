@@ -1,109 +1,184 @@
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { GraduationCap, Users, ArrowRight, Sparkles, BookOpen } from "lucide-react";
+import { 
+  GraduationCap, 
+  Users, 
+  ArrowRight, 
+  Building2, 
+  BookOpen, 
+  ShieldCheck,
+  Globe,
+  Award,
+  ChevronRight,
+  Library
+} from "lucide-react";
 import { motion } from "framer-motion";
+import Navbar from "@/components/landing/Navbar";
+import Footer from "@/components/landing/Footer";
 
 const Index = () => {
   const navigate = useNavigate();
 
   return (
-    <div className="min-h-screen bg-background relative overflow-hidden flex flex-col items-center justify-center">
-      {/* Dynamic Background */}
-      <div className="absolute inset-0 bg-grid-pattern opacity-[0.03] pointer-events-none" />
-      <div className="absolute top-[-20%] right-[-10%] w-[600px] h-[600px] bg-primary/20 rounded-full blur-[120px] pointer-events-none mix-blend-screen" />
-      <div className="absolute bottom-[-20%] left-[-10%] w-[600px] h-[600px] bg-accent/20 rounded-full blur-[120px] pointer-events-none mix-blend-screen" />
-
-      <motion.div 
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.8 }}
-        className="z-10 text-center max-w-4xl px-6"
-      >
-        <div className="mb-6 flex items-center justify-center gap-2">
-          <div className="h-10 w-10 rounded-xl bg-gradient-brand flex items-center justify-center shadow-lg shadow-primary/25">
-            <Sparkles className="h-5 w-5 text-white" />
-          </div>
-          <span className="font-display text-xl font-bold tracking-tight">Global University Institute</span>
-        </div>
-
-        <h1 className="font-display text-5xl md:text-7xl font-bold tracking-tight leading-[1.1] mb-6">
-          Learn. Teach. <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-accent">Grow.</span>
-        </h1>
-        
-        <p className="text-xl text-muted-foreground mb-12 max-w-2xl mx-auto leading-relaxed">
-          We are not just an LMS. We are a smart learning ecosystem where your identity shapes your experience.
-        </p>
-
-        <div className="grid md:grid-cols-2 gap-6 max-w-2xl mx-auto">
-          {/* Student Path */}
-          <motion.div 
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-            className="group relative cursor-pointer"
-            onClick={() => navigate("/learn")}
-          >
-            <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-primary/5 rounded-3xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-            <div className="relative h-full bg-card/50 backdrop-blur-xl border border-primary/20 hover:border-primary/50 rounded-3xl p-8 text-left transition-all duration-300 shadow-2xl shadow-black/5">
-              <div className="h-14 w-14 rounded-2xl bg-primary/10 flex items-center justify-center mb-6 group-hover:bg-primary group-hover:text-white transition-colors duration-300">
-                <GraduationCap className="h-7 w-7 text-primary group-hover:text-white transition-colors" />
-              </div>
-              <h3 className="text-2xl font-bold mb-2">I Want to Learn</h3>
-              <p className="text-muted-foreground mb-6 text-sm">
-                Get a personalized learning path, AI recommendations, and career certification.
-              </p>
-              <div className="flex items-center text-primary font-medium text-sm group-hover:translate-x-1 transition-transform">
-                Start Learning <ArrowRight className="ml-2 h-4 w-4" />
-              </div>
-            </div>
-          </motion.div>
-
-          {/* Instructor Path */}
-          <motion.div 
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-            className="group relative cursor-pointer"
-            onClick={() => navigate("/teach")}
-          >
-            <div className="absolute inset-0 bg-gradient-to-br from-accent/20 to-accent/5 rounded-3xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-            <div className="relative h-full bg-card/50 backdrop-blur-xl border border-accent/20 hover:border-accent/50 rounded-3xl p-8 text-left transition-all duration-300 shadow-2xl shadow-black/5">
-              <div className="h-14 w-14 rounded-2xl bg-accent/10 flex items-center justify-center mb-6 group-hover:bg-accent group-hover:text-white transition-colors duration-300">
-                <Users className="h-7 w-7 text-accent group-hover:text-white transition-colors" />
-              </div>
-              <h3 className="text-2xl font-bold mb-2">I Want to Teach</h3>
-              <p className="text-muted-foreground mb-6 text-sm">
-                Build your brand, manage students, and earn revenue with professional tools.
-              </p>
-              <div className="flex items-center text-accent font-medium text-sm group-hover:translate-x-1 transition-transform">
-                Start Teaching <ArrowRight className="ml-2 h-4 w-4" />
-              </div>
-            </div>
-          </motion.div>
-        </div>
-
-        <div className="mt-16 flex items-center justify-center gap-8 text-sm text-muted-foreground/60">
-          <div className="flex items-center gap-2">
-            <div className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-            <span>AI-Powered</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="h-1.5 w-1.5 rounded-full bg-blue-500" />
-            <span>Certified</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="h-1.5 w-1.5 rounded-full bg-purple-500" />
-            <span>Global</span>
-          </div>
-        </div>
-      </motion.div>
+    <div className="min-h-screen bg-background">
+      <Navbar />
       
-      {/* Admin Link (Hidden/Subtle) */}
-      <div className="absolute bottom-6 right-6">
-        <Link to="/login" className="text-xs text-muted-foreground/30 hover:text-primary transition-colors">
-          Admin Login
-        </Link>
-      </div>
+      {/* Hero Section */}
+      <section className="relative pt-32 pb-20 overflow-hidden">
+        <div className="absolute inset-0 bg-grid-pattern opacity-[0.03] pointer-events-none" />
+        <div className="container mx-auto px-6 relative z-10">
+          <div className="max-w-4xl">
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-bold mb-6"
+            >
+              <Globe className="h-3 w-3" />
+              <span>World-Class Academic Excellence</span>
+            </motion.div>
+            <motion.h1 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.1 }}
+              className="text-5xl md:text-7xl font-display font-bold tracking-tight leading-[1.1] mb-6"
+            >
+              Global University <br />
+              <span className="text-primary">Institute</span>
+            </motion.h1>
+            <motion.p 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2 }}
+              className="text-xl text-muted-foreground mb-10 max-w-2xl leading-relaxed"
+            >
+              Empowering the next generation of leaders through rigorous academic programs, 
+              innovative research, and a global network of scholars.
+            </motion.p>
+            <div className="flex flex-wrap gap-4">
+              <Button size="lg" className="h-12 px-8 rounded-full shadow-lg shadow-primary/20" onClick={() => navigate("/login")}>
+                Student Portal <ArrowRight className="ml-2 h-4 w-4" />
+              </Button>
+              <Button size="lg" variant="outline" className="h-12 px-8 rounded-full" onClick={() => navigate("/login")}>
+                Staff Login
+              </Button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* About Section */}
+      <section className="py-20 bg-muted/30">
+        <div className="container mx-auto px-6">
+          <div className="grid md:grid-cols-2 gap-12 items-center">
+            <div>
+              <h2 className="text-3xl font-display font-bold mb-6">About the University</h2>
+              <p className="text-muted-foreground leading-relaxed mb-6">
+                Established with a vision to democratize elite education, Global University Institute 
+                stands at the intersection of tradition and technology. Our institutional mission 
+                is to provide a scalable, high-integrity learning environment for students worldwide.
+              </p>
+              <div className="grid grid-cols-2 gap-6">
+                <div className="space-y-2">
+                  <p className="text-3xl font-bold text-primary">150+</p>
+                  <p className="text-sm text-muted-foreground font-medium">Expert Faculty</p>
+                </div>
+                <div className="space-y-2">
+                  <p className="text-3xl font-bold text-primary">12k+</p>
+                  <p className="text-sm text-muted-foreground font-medium">Global Students</p>
+                </div>
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="bg-background p-6 rounded-2xl border border-border shadow-sm">
+                <ShieldCheck className="h-8 w-8 text-primary mb-4" />
+                <h4 className="font-bold mb-2">Accredited</h4>
+                <p className="text-xs text-muted-foreground">Internationally recognized degrees and certifications.</p>
+              </div>
+              <div className="bg-background p-6 rounded-2xl border border-border shadow-sm mt-8">
+                <Award className="h-8 w-8 text-accent mb-4" />
+                <h4 className="font-bold mb-2">Excellence</h4>
+                <p className="text-xs text-muted-foreground">Consistently ranked in the top 5% for student outcomes.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Faculties & Departments */}
+      <section className="py-24">
+        <div className="container mx-auto px-6">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl font-display font-bold mb-4">Faculties & Departments</h2>
+            <p className="text-muted-foreground max-w-2xl mx-auto">Explore our diverse range of academic divisions and specialized research areas.</p>
+          </div>
+          
+          <div className="grid md:grid-cols-3 gap-8">
+            {[
+              { title: "Faculty of Engineering", icon: Building2, depts: ["Computer Science", "Mechanical Engineering", "Electrical Systems"] },
+              { title: "Faculty of Business", icon: BookOpen, depts: ["Strategic Management", "Finance & Accounting", "Global Logistics"] },
+              { title: "Faculty of Humanities", icon: Library, depts: ["Political Science", "Digital Arts", "Institutional Ethics"] },
+            ].map((f, i) => (
+              <Card key={i} className="p-8 hover:border-primary/50 transition-colors group cursor-pointer">
+                <div className="h-12 w-12 rounded-xl bg-primary/10 flex items-center justify-center text-primary mb-6 group-hover:bg-primary group-hover:text-white transition-colors">
+                  <f.icon className="h-6 w-6" />
+                </div>
+                <h3 className="text-xl font-bold mb-4">{f.title}</h3>
+                <ul className="space-y-2 mb-6">
+                  {f.depts.map(d => (
+                    <li key={d} className="text-sm text-muted-foreground flex items-center gap-2">
+                      <ChevronRight className="h-3 w-3 text-primary" /> {d}
+                    </li>
+                  ))}
+                </ul>
+                <Button variant="link" className="p-0 h-auto text-primary font-bold">Explore Faculty</Button>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Access Portals */}
+      <section className="py-20 border-t border-border">
+        <div className="container mx-auto px-6 text-center">
+          <h2 className="text-3xl font-display font-bold mb-12">Institutional Access</h2>
+          <div className="flex flex-wrap justify-center gap-8">
+            <Link to="/login" className="group">
+              <div className="text-center space-y-4">
+                <div className="h-20 w-20 mx-auto rounded-full bg-slate-100 flex items-center justify-center group-hover:bg-primary group-hover:text-white transition-all shadow-inner">
+                  <GraduationCap className="h-10 w-10" />
+                </div>
+                <p className="font-bold">Student Portal</p>
+              </div>
+            </Link>
+            <Link to="/login" className="group">
+              <div className="text-center space-y-4">
+                <div className="h-20 w-20 mx-auto rounded-full bg-slate-100 flex items-center justify-center group-hover:bg-primary group-hover:text-white transition-all shadow-inner">
+                  <Users className="h-10 w-10" />
+                </div>
+                <p className="font-bold">Staff Login</p>
+              </div>
+            </Link>
+            <Link to="/admin" className="group">
+              <div className="text-center space-y-4">
+                <div className="h-20 w-20 mx-auto rounded-full bg-slate-100 flex items-center justify-center group-hover:bg-slate-900 group-hover:text-white transition-all shadow-inner">
+                  <Building2 className="h-10 w-10" />
+                </div>
+                <p className="font-bold">Administration</p>
+              </div>
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      <Footer />
     </div>
   );
 };
+
+const Card = ({ children, className = "", ...props }: any) => (
+  <div className={`bg-card rounded-3xl border border-border shadow-sm transition-all ${className}`} {...props}>
+    {children}
+  </div>
+);
 
 export default Index;
