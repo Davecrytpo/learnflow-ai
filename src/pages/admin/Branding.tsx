@@ -1,89 +1,174 @@
+import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import AdminSidebar from "@/components/dashboard/AdminSidebar";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Palette, UploadCloud } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Palette, UploadCloud, Save, Loader2, Layout } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { Badge } from "@/components/ui/badge";
 
-const themes = [
-  { id: "BR-01", name: "Default Civic Brass", status: "Active" },
-  { id: "BR-02", name: "Executive Night", status: "Draft" },
-];
+const AdminBranding = () => {
+  const { toast } = useToast();
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [theme, setTheme] = useState({
+    site_name: "Learnflow AI",
+    primary_color: "#0f172a",
+    logo_url: "",
+    landing_hero_text: "Enterprise LMS for modern education."
+  });
 
-const badgeFor = (status: string) => {
-  if (status === "Active") return "bg-emerald-500/10 text-emerald-600";
-  return "bg-amber-500/10 text-amber-600";
-};
+  useEffect(() => {
+    const fetchTheme = async () => {
+      setLoading(true);
+      const { data } = await supabase
+        .from("system_settings")
+        .select("value")
+        .eq("key", "appearance_config")
+        .single();
+      
+      if (data) {
+        setTheme({ ...theme, ...data.value });
+      }
+      setLoading(false);
+    };
+    fetchTheme();
+  }, []);
 
-const AdminBranding = () => (
-  <DashboardLayout allowedRoles={["admin"]} sidebar={<AdminSidebar />}>
-    <div className="space-y-6">
-      <section className="rounded-3xl border border-border/70 bg-card/90 p-6">
-        <div className="flex flex-wrap items-center justify-between gap-4">
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary">Branding</p>
-            <h1 className="mt-2 font-display text-3xl font-bold text-foreground">Customize your LMS</h1>
+  const handleSave = async () => {
+    setSaving(true);
+    const { error } = await supabase
+      .from("system_settings")
+      .upsert({ 
+        key: "appearance_config", 
+        value: theme,
+        description: "Site appearance and branding"
+      });
+
+    if (error) {
+      toast({ title: "Save failed", description: error.message, variant: "destructive" });
+    } else {
+      toast({ title: "Branding updated", description: "Visual changes will be reflected shortly." });
+      // In a real app, we might trigger a context refresh here
+    }
+    setSaving(false);
+  };
+
+  return (
+    <DashboardLayout allowedRoles={["admin"]} sidebar={<AdminSidebar />}>
+      <div className="space-y-6">
+        <section className="relative overflow-hidden rounded-3xl border border-border/70 bg-card/90 p-6">
+          <div className="absolute inset-0 bg-aurora opacity-60" />
+          <div className="absolute inset-0 bg-grid-pattern bg-grid opacity-[0.03]" />
+          <div className="relative">
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary">Appearance</p>
+            <h1 className="mt-2 font-display text-3xl font-bold text-foreground">Branding & Themes</h1>
             <p className="mt-2 text-sm text-muted-foreground">
-              Upload logos, set brand colors, and apply custom themes.
+              Customize the look and feel of your learning platform.
             </p>
           </div>
-          <Button className="bg-gradient-brand text-primary-foreground">
-            <UploadCloud className="mr-2 h-4 w-4" /> Upload assets
-          </Button>
-        </div>
-      </section>
+        </section>
 
-      <div className="grid gap-4 md:grid-cols-3">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Themes</CardTitle>
-            <Palette className="h-4 w-4 text-primary" />
-          </CardHeader>
-          <CardContent>
-            <p className="text-2xl font-bold">3</p>
-            <p className="text-xs text-muted-foreground">Configured</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Custom domains</CardTitle>
-            <Badge className="bg-primary/10 text-primary" variant="secondary">2</Badge>
-          </CardHeader>
-          <CardContent>
-            <p className="text-2xl font-bold">2</p>
-            <p className="text-xs text-muted-foreground">Verified</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Assets</CardTitle>
-            <Badge className="bg-amber-500/10 text-amber-600" variant="secondary">12</Badge>
-          </CardHeader>
-          <CardContent>
-            <p className="text-2xl font-bold">12</p>
-            <p className="text-xs text-muted-foreground">Logos and icons</p>
-          </CardContent>
-        </Card>
-      </div>
-
-      <div className="grid gap-4 lg:grid-cols-2">
-        {themes.map((theme) => (
-          <Card key={theme.id} className="p-4">
-            <CardContent className="flex items-center justify-between gap-4 p-0">
-              <div>
-                <p className="text-sm font-semibold text-foreground">{theme.name}</p>
-                <p className="text-xs text-muted-foreground">Theme preset</p>
+        <div className="grid gap-6 lg:grid-cols-2">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Palette className="h-5 w-5 text-primary" /> Visual Identity
+              </CardTitle>
+              <CardDescription>Configure core brand elements.</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <Label>Site Name</Label>
+                <Input 
+                  value={theme.site_name} 
+                  onChange={(e) => setTheme({...theme, site_name: e.target.value})} 
+                />
               </div>
-              <div className="flex items-center gap-3 text-xs text-muted-foreground">
-                <Badge className={badgeFor(theme.status)} variant="secondary">{theme.status}</Badge>
-                <Button size="sm" variant="outline">Apply</Button>
+              <div className="space-y-2">
+                <Label>Primary Brand Color</Label>
+                <div className="flex gap-2">
+                  <Input 
+                    type="color" 
+                    className="w-12 p-1 h-10"
+                    value={theme.primary_color}
+                    onChange={(e) => setTheme({...theme, primary_color: e.target.value})}
+                  />
+                  <Input 
+                    className="flex-1" 
+                    value={theme.primary_color}
+                    onChange={(e) => setTheme({...theme, primary_color: e.target.value})}
+                  />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label>Logo URL</Label>
+                <div className="flex gap-2">
+                  <Input 
+                    placeholder="https://..." 
+                    value={theme.logo_url}
+                    onChange={(e) => setTheme({...theme, logo_url: e.target.value})}
+                  />
+                  <Button variant="outline" size="icon">
+                    <UploadCloud className="h-4 w-4" />
+                  </Button>
+                </div>
+                <p className="text-xs text-muted-foreground">Recommended: 200x50px transparent PNG</p>
               </div>
             </CardContent>
           </Card>
-        ))}
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Layout className="h-5 w-5 text-primary" /> Content & Layout
+              </CardTitle>
+              <CardDescription>Manage landing page text and presets.</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <Label>Landing Hero Text</Label>
+                <Input 
+                  value={theme.landing_hero_text}
+                  onChange={(e) => setTheme({...theme, landing_hero_text: e.target.value})}
+                />
+              </div>
+              
+              <div className="pt-4">
+                <Label>Theme Presets</Label>
+                <div className="grid grid-cols-2 gap-3 mt-3">
+                  <button 
+                    className="border rounded-lg p-3 text-left hover:border-primary transition-colors flex flex-col gap-2"
+                    onClick={() => setTheme({...theme, primary_color: "#0f172a"})}
+                  >
+                    <div className="h-4 w-full bg-slate-900 rounded-sm" />
+                    <span className="text-xs font-medium">Slate Enterprise</span>
+                  </button>
+                  <button 
+                    className="border rounded-lg p-3 text-left hover:border-primary transition-colors flex flex-col gap-2"
+                    onClick={() => setTheme({...theme, primary_color: "#2563eb"})}
+                  >
+                    <div className="h-4 w-full bg-blue-600 rounded-sm" />
+                    <span className="text-xs font-medium">Academic Blue</span>
+                  </button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        <div className="flex justify-end">
+          <Button size="lg" onClick={handleSave} disabled={saving}>
+            {saving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
+            Publish Branding
+          </Button>
+        </div>
       </div>
-    </div>
-  </DashboardLayout>
-);
+    </DashboardLayout>
+  );
+};
 
 export default AdminBranding;

@@ -1,101 +1,163 @@
+import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import AdminSidebar from "@/components/dashboard/AdminSidebar";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
-import { Download, LineChart, TrendingUp } from "lucide-react";
+import { Download, LineChart, TrendingUp, Users, GraduationCap, Loader2 } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
-const reports = [
-  { id: "R-2026-02", title: "Monthly Learning Outcomes", scope: "All programs", status: "Ready" },
-  { id: "R-2026-01", title: "Cohort Completion Analysis", scope: "Q1 cohorts", status: "Ready" },
-  { id: "R-2025-12", title: "Engagement Drop-off Report", scope: "Enterprise clients", status: "Scheduled" },
-];
+const AdminReports = () => {
+  const { toast } = useToast();
+  const [loading, setLoading] = useState(true);
+  const [stats, setStats] = useState({
+    totalEnrollments: 0,
+    completedEnrollments: 0,
+    certificatesIssued: 0,
+    activeLearners: 0
+  });
 
-const badgeFor = (status: string) => {
-  if (status === "Ready") return "bg-emerald-500/10 text-emerald-600";
-  return "bg-amber-500/10 text-amber-600";
-};
+  useEffect(() => {
+    const fetchStats = async () => {
+      setLoading(true);
+      
+      const [enrollRes, certRes] = await Promise.all([
+        supabase.from("enrollments").select("status"),
+        supabase.from("certificates").select("id")
+      ]);
 
-const AdminReports = () => (
-  <DashboardLayout allowedRoles={["admin"]} sidebar={<AdminSidebar />}>
-    <div className="space-y-6">
-      <section className="rounded-3xl border border-border/70 bg-card/90 p-6">
-        <div className="flex flex-wrap items-center justify-between gap-4">
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary">Reports</p>
-            <h1 className="mt-2 font-display text-3xl font-bold text-foreground">Executive reporting</h1>
-            <p className="mt-2 text-sm text-muted-foreground">
-              Generate insights across cohorts, courses, and enterprise clients.
-            </p>
+      const enrolls = enrollRes.data || [];
+      const certs = certRes.data || [];
+
+      setStats({
+        totalEnrollments: enrolls.length,
+        completedEnrollments: enrolls.filter(e => e.status === 'completed').length,
+        activeLearners: enrolls.filter(e => e.status === 'active' || e.status === 'approved').length,
+        certificatesIssued: certs.length
+      });
+      setLoading(false);
+    };
+    fetchStats();
+  }, []);
+
+  const handleExport = () => {
+    const csvContent = "data:text/csv;charset=utf-8," 
+      + "Metric,Value\n"
+      + `Total Enrollments,${stats.totalEnrollments}\n`
+      + `Active Learners,${stats.activeLearners}\n`
+      + `Completed Courses,${stats.completedEnrollments}\n`
+      + `Certificates Issued,${stats.certificatesIssued}`;
+    
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", "learnflow_report.csv");
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    toast({ title: "Report downloaded", description: "Your CSV export is ready." });
+  };
+
+  return (
+    <DashboardLayout allowedRoles={["admin"]} sidebar={<AdminSidebar />}>
+      <div className="space-y-6">
+        <section className="relative overflow-hidden rounded-3xl border border-border/70 bg-card/90 p-6">
+          <div className="absolute inset-0 bg-aurora opacity-60" />
+          <div className="absolute inset-0 bg-grid-pattern bg-grid opacity-[0.03]" />
+          <div className="relative flex flex-wrap items-center justify-between gap-4">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary">Intelligence</p>
+              <h1 className="mt-2 font-display text-3xl font-bold text-foreground">Executive Reports</h1>
+              <p className="mt-2 text-sm text-muted-foreground">
+                Real-time insights into platform adoption and learner success.
+              </p>
+            </div>
+            <Button className="bg-gradient-brand text-primary-foreground shadow-lg shadow-primary/20" onClick={handleExport}>
+              <Download className="mr-2 h-4 w-4" /> Export Summary
+            </Button>
           </div>
-          <Button className="bg-gradient-brand text-primary-foreground">
-            <Download className="mr-2 h-4 w-4" /> Export bundle
-          </Button>
-        </div>
-      </section>
+        </section>
 
-      <div className="grid gap-4 md:grid-cols-3">
+        {loading ? (
+          <div className="flex justify-center py-12"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>
+        ) : (
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between pb-2">
+                <CardTitle className="text-sm font-medium text-muted-foreground">Total Enrollments</CardTitle>
+                <Users className="h-4 w-4 text-primary" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{stats.totalEnrollments}</div>
+                <p className="text-xs text-muted-foreground">Lifetime registrations</p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between pb-2">
+                <CardTitle className="text-sm font-medium text-muted-foreground">Active Learners</CardTitle>
+                <TrendingUp className="h-4 w-4 text-emerald-500" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{stats.activeLearners}</div>
+                <p className="text-xs text-muted-foreground">Currently engaged</p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between pb-2">
+                <CardTitle className="text-sm font-medium text-muted-foreground">Completion Rate</CardTitle>
+                <LineChart className="h-4 w-4 text-primary" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">
+                  {stats.totalEnrollments > 0 ? Math.round((stats.completedEnrollments / stats.totalEnrollments) * 100) : 0}%
+                </div>
+                <p className="text-xs text-muted-foreground">Global average</p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between pb-2">
+                <CardTitle className="text-sm font-medium text-muted-foreground">Certificates</CardTitle>
+                <GraduationCap className="h-4 w-4 text-amber-500" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{stats.certificatesIssued}</div>
+                <p className="text-xs text-muted-foreground">Credentials awarded</p>
+              </CardContent>
+            </Card>
+          </div>
+        )}
+
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Active reports</CardTitle>
-            <LineChart className="h-4 w-4 text-primary" />
+          <CardHeader>
+            <CardTitle>Standard Reports</CardTitle>
+            <CardDescription>Pre-configured datasets available for instant view.</CardDescription>
           </CardHeader>
           <CardContent>
-            <p className="text-2xl font-bold">12</p>
-            <p className="text-xs text-muted-foreground">Across orgs</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Scheduled</CardTitle>
-            <Badge className="bg-amber-500/10 text-amber-600" variant="secondary">4</Badge>
-          </CardHeader>
-          <CardContent>
-            <p className="text-2xl font-bold">4</p>
-            <p className="text-xs text-muted-foreground">Next 7 days</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Engagement trend</CardTitle>
-            <TrendingUp className="h-4 w-4 text-emerald-500" />
-          </CardHeader>
-          <CardContent>
-            <p className="text-2xl font-bold">+14%</p>
-            <p className="text-xs text-muted-foreground">30-day delta</p>
+            <div className="space-y-4">
+              {[
+                { title: "Monthly User Growth", desc: "New registrations by week", status: "Live" },
+                { title: "Course Popularity Index", desc: "Most viewed and enrolled courses", status: "Live" },
+                { title: "Financial Transaction Log", desc: "Purchase history and revenue", status: "Restricted" }
+              ].map((r, i) => (
+                <div key={i} className="flex items-center justify-between p-4 rounded-xl border border-border bg-card/50">
+                  <div>
+                    <p className="font-semibold text-foreground">{r.title}</p>
+                    <p className="text-sm text-muted-foreground">{r.desc}</p>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <Badge variant={r.status === "Live" ? "default" : "secondary"}>{r.status}</Badge>
+                    <Button variant="outline" size="sm">View Data</Button>
+                  </div>
+                </div>
+              ))}
+            </div>
           </CardContent>
         </Card>
       </div>
-
-      <Card className="p-4">
-        <CardHeader className="px-0 pt-0">
-          <CardTitle className="text-lg">Report library</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-3 px-0 pb-0">
-          <div className="flex flex-wrap items-center gap-3">
-            <Input placeholder="Search reports" className="max-w-xs" />
-            <Button variant="outline">Filter</Button>
-            <Button variant="ghost">Schedule</Button>
-          </div>
-          <div className="space-y-3">
-            {reports.map((report) => (
-              <div key={report.id} className="flex flex-wrap items-center justify-between gap-4 rounded-lg border border-border p-3">
-                <div>
-                  <p className="text-sm font-semibold text-foreground">{report.title}</p>
-                  <p className="text-xs text-muted-foreground">{report.scope}</p>
-                </div>
-                <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                  <Badge className={badgeFor(report.status)} variant="secondary">{report.status}</Badge>
-                  <Button size="sm" variant="outline">View</Button>
-                </div>
-              </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
-    </div>
-  </DashboardLayout>
-);
+    </DashboardLayout>
+  );
+};
 
 export default AdminReports;
