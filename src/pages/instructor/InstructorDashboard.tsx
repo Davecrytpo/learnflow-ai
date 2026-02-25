@@ -50,7 +50,7 @@ const InstructorDashboard = () => {
         // Manual mapping to ensure stability
         const pendingWithData = (pendingRes.data || []).map(p => ({
           ...p,
-          courses: myCourses.find(c => c.id === p.course_id),
+          courses: (myCourses || []).find(c => c.id === p.course_id),
           profiles: (profilesRes.data || []).find(prof => prof.user_id === p.student_id)
         }));
         setPendingStudents(pendingWithData);

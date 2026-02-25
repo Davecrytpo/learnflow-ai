@@ -52,8 +52,8 @@ const AdminDashboard = () => {
       // Manually map foreign data to avoid inner-join complexity crashes
       const pendingWithData = (rawEnrollments || []).map(enr => ({
         ...enr,
-        courses: allCourses.find(c => c.id === enr.course_id) || { title: "Deleted Course" },
-        profiles: allProfiles.find(p => p.user_id === enr.student_id) || { display_name: "Unknown Student" }
+        courses: (allCourses || []).find(c => c.id === enr.course_id) || { title: "Deleted Course" },
+        profiles: (allProfiles || []).find(p => p.user_id === enr.student_id) || { display_name: "Unknown Student" }
       }));
 
       setStats({
