@@ -23,7 +23,7 @@ const Index = () => {
           <div className="h-10 w-10 rounded-xl bg-gradient-brand flex items-center justify-center shadow-lg shadow-primary/25">
             <Sparkles className="h-5 w-5 text-white" />
           </div>
-          <span className="font-display text-xl font-bold tracking-tight">Global Institute</span>
+          <span className="font-display text-xl font-bold tracking-tight">Global University Institute</span>
         </div>
 
         <h1 className="font-display text-5xl md:text-7xl font-bold tracking-tight leading-[1.1] mb-6">

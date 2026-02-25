@@ -49,7 +49,7 @@ const Login = () => {
                 <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
             </div>
-            <span className="font-display text-xl font-bold">Global Institute</span>
+            <span className="font-display text-xl font-bold">Global University Institute</span>
           </div>
           <h2 className="font-display text-4xl font-bold leading-tight">
             {selectedRole === "instructor" ? "Welcome back, instructor" : "Welcome back to your learning journey"}

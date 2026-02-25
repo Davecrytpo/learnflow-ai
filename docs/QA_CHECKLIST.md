@@ -1,4 +1,4 @@
-# Global Institute - QA Checklist
+# Global University Institute - QA Checklist
 
 Use this checklist to validate functionality, routing, and UI integrity.
 

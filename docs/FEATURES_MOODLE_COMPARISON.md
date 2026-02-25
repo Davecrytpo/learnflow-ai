@@ -1,9 +1,9 @@
-# Global Institute vs Moodle - Feature Coverage
+# Global University Institute vs Moodle - Feature Coverage
 
-This document maps Global Institute's current UI coverage against common Moodle LMS capabilities. It is intended as a product breadth checklist for parity and "exceed" goals.
+This document maps Global University Institute's current UI coverage against common Moodle LMS capabilities. It is intended as a product breadth checklist for parity and "exceed" goals.
 
 **Legend**
-- `Done` Implemented UI/workflows in Global Institute
+- `Done` Implemented UI/workflows in Global University Institute
 - `Planned` Not yet implemented
 - `N/A` Not applicable for current scope
 

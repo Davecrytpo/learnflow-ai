@@ -9,87 +9,48 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { Users, BookOpen, GraduationCap, Award, Search, Shield, Trash2, Eye, EyeOff } from "lucide-react";
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
+import { Users, BookOpen, GraduationCap, Award, Search, Shield, Trash2, Eye, CheckCircle, XCircle } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 
 const AdminDashboard = () => {
   const { toast } = useToast();
   const [loading, setLoading] = useState(true);
-  const [stats, setStats] = useState({ users: 0, courses: 0, enrollments: 0, certificates: 0 });
-  const [users, setUsers] = useState<any[]>([]);
-  const [courses, setCourses] = useState<any[]>([]);
-  const [pendingInstructors, setPendingInstructors] = useState<any[]>([]);
+  const [stats, setStats] = useState({ users: 0, courses: 0, enrollments: 0, pendingCourses: 0, pendingEnr: 0 });
+  
+  const [pendingCourses, setPendingCourses] = useState<any[]>([]);
   const [pendingEnrollments, setPendingEnrollments] = useState<any[]>([]);
-  const [userSearch, setUserSearch] = useState("");
-  const [courseSearch, setCourseSearch] = useState("");
-  const [roleData, setRoleData] = useState<any[]>([]);
+  const [instructors, setInstructors] = useState<any[]>([]);
 
   const fetchData = async () => {
     setLoading(true);
     try {
-      // Fetch core platform entities
-      const [profilesRes, coursesRes, enrollRes, certRes, rolesRes] = await Promise.all([
-        supabase.from("profiles").select("*").order('created_at', { ascending: false }),
-        supabase.from("courses").select("*").order('created_at', { ascending: false }),
-        supabase.from("enrollments").select("*"),
-        supabase.from("certificates").select("*"),
-        supabase.from("user_roles").select("*"),
+      const [coursesRes, enrollRes, usersRes, rolesRes] = await Promise.all([
+        supabase.from("courses").select("*, profiles:author_id(display_name)"),
+        supabase.from("enrollments").select("*, courses(title), profiles:student_id(display_name)"),
+        supabase.from("profiles").select("*"),
+        supabase.from("user_roles").select("*").eq("role", "instructor")
       ]);
 
-      if (profilesRes.error) throw profilesRes.error;
-      if (coursesRes.error) throw coursesRes.error;
-
-      const allProfiles = profilesRes.data || [];
-      const allRoles = rolesRes.data || [];
       const allCourses = coursesRes.data || [];
       const allEnrollments = enrollRes.data || [];
+      
+      setPendingCourses(allCourses.filter(c => c.status === 'pending'));
+      setPendingEnrollments(allEnrollments.filter(e => e.status === 'pending'));
+      
+      // Get list of instructor user_ids to fetch their profiles
+      const instructorIds = (rolesRes.data || []).map(r => r.user_id);
+      setInstructors((usersRes.data || []).filter(u => instructorIds.includes(u.user_id)));
 
-      // Update basic platform stats
       setStats({
-        users: allProfiles.length,
+        users: (usersRes.data || []).length,
         courses: allCourses.length,
         enrollments: allEnrollments.length,
-        certificates: certRes.data?.length || 0,
+        pendingCourses: allCourses.filter(c => c.status === 'pending').length,
+        pendingEnr: allEnrollments.filter(e => e.status === 'pending').length
       });
 
-      // Filter pending requests
-      setPendingInstructors(allProfiles.filter(p => p.status === "pending"));
-      
-      const pendingEnr = allEnrollments
-        .filter(enr => enr.status === "pending" && enr.instructor_approved === true)
-        .map(enr => ({
-          ...enr,
-          courses: allCourses.find(c => c.id === enr.course_id) || { title: "Deleted Course" },
-          profiles: allProfiles.find(p => p.user_id === enr.student_id) || { display_name: "Unknown Student" }
-        }));
-      setPendingEnrollments(pendingEnr);
-
-      // Map users with their roles for the management table
-      const usersWithRoles = allProfiles.map(p => ({
-        ...p,
-        role: allRoles.find(r => r.user_id === p.user_id)?.role || "student",
-        role_id: allRoles.find(r => r.user_id === p.user_id)?.id,
-      }));
-      setUsers(usersWithRoles);
-      setCourses(allCourses);
-
-      // Prepare chart data
-      const studentCount = allRoles.filter(r => r.role === "student").length || allProfiles.length;
-      const instructorCount = allRoles.filter(r => r.role === "instructor").length;
-      const adminCount = allRoles.filter(r => r.role === "admin").length;
-      
-      setRoleData([
-        { name: "Students", value: studentCount },
-        { name: "Instructors", value: instructorCount },
-        { name: "Admins", value: adminCount },
-      ]);
     } catch (err: any) {
-      console.error("Dashboard Fetch Error:", err);
-      toast({ 
-        title: "Platform Sync Error", 
-        description: "Some real-time metrics might be unavailable.", 
-        variant: "destructive" 
-      });
+      toast({ title: "Sync Error", description: err.message, variant: "destructive" });
     } finally {
       setLoading(false);
     }
@@ -99,321 +60,162 @@ const AdminDashboard = () => {
     fetchData();
   }, []);
 
-  const approveInstructor = async (profileId: string) => {
-    const { error } = await supabase.from("profiles").update({ status: "approved" }).eq("id", profileId);
-    if (error) {
-      toast({ title: "Approval Failed", description: error.message, variant: "destructive" });
-    } else {
-      toast({ title: "Instructor Verified", description: "The instructor can now create and publish courses." });
-      fetchData();
-    }
+  const handleCourseAction = async (id: string, status: 'approved' | 'rejected') => {
+    const { error } = await supabase.from("courses").update({ status }).eq("id", id);
+    if (error) toast({ title: "Error", variant: "destructive" });
+    else { toast({ title: `Course ${status}` }); fetchData(); }
   };
 
-  const rejectInstructor = async (profileId: string) => {
-    const { error } = await supabase.from("profiles").update({ status: "rejected" }).eq("id", profileId);
-    if (error) {
-      toast({ title: "Action Failed", description: error.message, variant: "destructive" });
-    } else {
-      toast({ title: "Request Rejected", description: "The instructor registration has been declined." });
-      fetchData();
-    }
+  const handleEnrollAction = async (id: string, status: 'approved' | 'rejected') => {
+    const { error } = await supabase.from("enrollments").update({ status }).eq("id", id);
+    if (error) toast({ title: "Error", variant: "destructive" });
+    else { toast({ title: `Enrollment ${status}` }); fetchData(); }
   };
-
-  const approveEnrollment = async (enrollId: string) => {
-    const { error } = await supabase.from("enrollments").update({ 
-      status: "approved", 
-      admin_approved: true 
-    }).eq("id", enrollId);
-    
-    if (error) {
-      toast({ title: "Finalization Failed", description: error.message, variant: "destructive" });
-    } else {
-      toast({ title: "Enrollment Finalized", description: "The student now has full access to the course." });
-      fetchData();
-    }
-  };
-
-  const rejectEnrollment = async (enrollId: string) => {
-    const { error } = await supabase.from("enrollments").update({ status: "rejected" }).eq("id", enrollId);
-    if (error) {
-      toast({ title: "Rejection Failed", description: error.message, variant: "destructive" });
-    } else {
-      toast({ title: "Enrollment Rejected" });
-      fetchData();
-    }
-  };
-
-  const changeUserRole = async (userId: string, currentRoleId: string | undefined, newRole: string) => {
-    try {
-      if (currentRoleId) {
-        await supabase.from("user_roles").update({ role: newRole as any }).eq("id", currentRoleId);
-      } else {
-        await supabase.from("user_roles").insert({ user_id: userId, role: newRole as any });
-      }
-      toast({ title: "Permissions Updated", description: `User role changed to ${newRole}.` });
-      fetchData();
-    } catch (err: any) {
-      toast({ title: "Update Failed", description: err.message, variant: "destructive" });
-    }
-  };
-
-  const toggleCoursePublish = async (courseId: string, current: boolean) => {
-    const { error } = await supabase.from("courses").update({ published: !current }).eq("id", courseId);
-    if (error) {
-      toast({ title: "Action Failed", variant: "destructive" });
-    } else {
-      toast({ title: current ? "Course Hidden" : "Course Published" });
-      fetchData();
-    }
-  };
-
-  const deleteCourse = async (courseId: string) => {
-    const confirmDelete = window.confirm("Are you sure you want to delete this course? This action cannot be undone.");
-    if (!confirmDelete) return;
-
-    const { error } = await supabase.from("courses").delete().eq("id", courseId);
-    if (error) {
-      toast({ title: "Delete Failed", description: error.message, variant: "destructive" });
-    } else {
-      toast({ title: "Course Removed" });
-      fetchData();
-    }
-  };
-
-  const COLORS = ["hsl(168, 60%, 33%)", "hsl(22, 86%, 55%)", "hsl(168, 62%, 45%)"];
-
-  const filteredUsers = users.filter(u =>
-    (u.display_name || "").toLowerCase().includes(userSearch.toLowerCase()) ||
-    (u.user_id || "").toLowerCase().includes(userSearch.toLowerCase())
-  );
-
-  const filteredCourses = courses.filter(c =>
-    c.title.toLowerCase().includes(courseSearch.toLowerCase())
-  );
 
   return (
     <DashboardLayout allowedRoles={["admin"]} sidebar={<AdminSidebar />}>
       <div className="space-y-6">
         <section className="relative overflow-hidden rounded-3xl border border-border/70 bg-card/90 p-6">
           <div className="absolute inset-0 bg-aurora opacity-60" />
-          <div className="absolute inset-0 bg-grid-pattern bg-grid opacity-[0.03]" />
           <div className="relative">
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary">Administration</p>
-            <h1 className="mt-2 font-display text-3xl font-bold text-foreground">Platform health and governance</h1>
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary">University Administration</p>
+            <h1 className="mt-2 font-display text-3xl font-bold text-foreground">Global University Institute</h1>
             <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
-              Manage users, courses, and system integrity with clear visibility into activity and growth.
+              Centralized control for user verification, course accreditation, and enrollment processing.
             </p>
           </div>
         </section>
 
-        {/* Stats */}
+        {/* Actionable Stats */}
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {[
-            { label: "Total Users", value: stats.users, icon: Users, color: "text-primary" },
-            { label: "Total Courses", value: stats.courses, icon: BookOpen, color: "text-accent" },
-            { label: "Enrollments", value: stats.enrollments, icon: GraduationCap, color: "text-primary" },
-            { label: "Certificates", value: stats.certificates, icon: Award, color: "text-accent" },
-          ].map(s => (
-            <Card key={s.label} className="relative overflow-hidden">
-              <div className="absolute left-0 top-0 h-1 w-full bg-gradient-brand" />
-              <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground">{s.label}</CardTitle>
-                <s.icon className={`h-4 w-4 ${s.color}`} />
-              </CardHeader>
-              <CardContent>
-                {loading ? <Skeleton className="h-8 w-16" /> : <p className="text-2xl font-bold">{s.value}</p>}
-              </CardContent>
-            </Card>
-          ))}
+          <Card className="border-primary/20 bg-primary/5">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-xs font-bold uppercase text-primary">Pending Courses</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-3xl font-bold text-primary">{stats.pendingCourses}</p>
+            </CardContent>
+          </Card>
+          <Card className="border-accent/20 bg-accent/5">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-xs font-bold uppercase text-accent">Pending Enrollments</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-3xl font-bold text-accent">{stats.pendingEnr}</p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-xs font-bold uppercase text-muted-foreground">Total Students</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-3xl font-bold">{stats.users}</p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-xs font-bold uppercase text-muted-foreground">Total Instructors</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-3xl font-bold">{instructors.length}</p>
+            </CardContent>
+          </Card>
         </div>
 
-        {/* Charts */}
-        {!loading && roleData.length > 0 && (
-          <div className="grid gap-6 md:grid-cols-2">
-            <Card>
-              <CardHeader><CardTitle className="text-lg">User Role Distribution</CardTitle></CardHeader>
-              <CardContent>
-                <ResponsiveContainer width="100%" height={200}>
-                  <PieChart>
-                    <Pie data={roleData} cx="50%" cy="50%" outerRadius={80} dataKey="value" label={({ name, value }) => `${name}: ${value}`}>
-                      {roleData.map((_, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
-                    </Pie>
-                    <Tooltip />
-                  </PieChart>
-                </ResponsiveContainer>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader><CardTitle className="text-lg">Courses by Status</CardTitle></CardHeader>
-              <CardContent>
-                <ResponsiveContainer width="100%" height={200}>
-                  <BarChart data={[
-                    { name: "Published", count: courses.filter(c => c.published).length },
-                    { name: "Draft", count: courses.filter(c => !c.published).length },
-                  ]}>
-                    <XAxis dataKey="name" tick={{ fontSize: 12 }} />
-                    <YAxis tick={{ fontSize: 12 }} />
-                    <Tooltip />
-                    <Bar dataKey="count" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
-                  </BarChart>
-                </ResponsiveContainer>
-              </CardContent>
-            </Card>
-          </div>
-        )}
-
-        <Tabs defaultValue="users">
+        <Tabs defaultValue="course-approvals" className="space-y-6">
           <TabsList className="bg-card/80">
-            <TabsTrigger value="users">User Management</TabsTrigger>
-            <TabsTrigger value="approvals" className="relative">
-              Approvals
-              {(pendingInstructors.length + pendingEnrollments.length) > 0 && (
-                <span className="ml-2 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[10px] text-primary-foreground font-bold">
-                  {pendingInstructors.length + pendingEnrollments.length}
-                </span>
-              )}
-            </TabsTrigger>
-            <TabsTrigger value="courses">Course Moderation</TabsTrigger>
+            <TabsTrigger value="course-approvals">Course Approvals ({stats.pendingCourses})</TabsTrigger>
+            <TabsTrigger value="enrollments">Enrollment Approvals ({stats.pendingEnr})</TabsTrigger>
+            <TabsTrigger value="instructors">Manage Instructors</TabsTrigger>
           </TabsList>
 
-          <TabsContent value="approvals" className="space-y-6">
-            <div className="grid gap-6 lg:grid-cols-2">
-              {/* Instructor Approvals */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-lg">Instructor Registrations</CardTitle>
-                  <CardDescription>Wait for admin verification to grant access.</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  {pendingInstructors.length === 0 ? (
-                    <p className="text-sm text-muted-foreground italic">No pending instructors.</p>
-                  ) : (
-                    pendingInstructors.map((inst) => (
-                      <div key={inst.id} className="flex items-center justify-between p-3 rounded-lg border border-border">
-                        <div>
-                          <p className="font-medium text-sm">{inst.display_name}</p>
-                          <p className="text-xs text-muted-foreground">{inst.institution}</p>
-                        </div>
-                        <div className="flex gap-2">
-                          <Button size="sm" variant="outline" className="h-8 text-xs border-emerald-500/50 text-emerald-600 hover:bg-emerald-50" onClick={() => approveInstructor(inst.id)}>Approve</Button>
-                          <Button size="sm" variant="ghost" className="h-8 text-xs text-destructive hover:bg-destructive/5" onClick={() => rejectInstructor(inst.id)}>Reject</Button>
-                        </div>
+          <TabsContent value="course-approvals">
+            <Card>
+              <CardHeader>
+                <CardTitle>Pending Course Accreditation</CardTitle>
+                <CardDescription>Verify course structure and content before making it live.</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {pendingCourses.length === 0 ? (
+                  <p className="text-sm text-muted-foreground italic text-center py-8">No courses awaiting approval.</p>
+                ) : (
+                  pendingCourses.map(c => (
+                    <div key={c.id} className="flex items-center justify-between p-4 rounded-xl border border-border bg-card/50">
+                      <div>
+                        <p className="font-bold text-foreground">{c.title}</p>
+                        <p className="text-xs text-muted-foreground">Instructor: {c.profiles?.display_name || "N/A"}</p>
                       </div>
-                    ))
-                  )}
-                </CardContent>
-              </Card>
-
-              {/* Enrollment Approvals */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-lg">Final Student Enrollments</CardTitle>
-                  <CardDescription>Approved by instructor, waiting for final admin sign-off.</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  {pendingEnrollments.length === 0 ? (
-                    <p className="text-sm text-muted-foreground italic">No pending final approvals.</p>
-                  ) : (
-                    pendingEnrollments.map((enr) => (
-                      <div key={enr.id} className="flex items-center justify-between p-3 rounded-lg border border-border">
-                        <div>
-                          <p className="font-medium text-sm">{(enr as any).profiles?.display_name}</p>
-                          <p className="text-xs text-muted-foreground">{(enr as any).courses?.title}</p>
-                        </div>
-                        <div className="flex gap-2">
-                          <Button size="sm" variant="outline" className="h-8 text-xs border-primary/50 text-primary hover:bg-primary/5" onClick={() => approveEnrollment(enr.id)}>Finalize</Button>
-                          <Button size="sm" variant="ghost" className="h-8 text-xs text-destructive hover:bg-destructive/5" onClick={() => rejectEnrollment(enr.id)}>Reject</Button>
-                        </div>
+                      <div className="flex gap-2">
+                        <Button size="sm" variant="outline" className="border-emerald-500 text-emerald-600 hover:bg-emerald-50" onClick={() => handleCourseAction(c.id, 'approved')}>
+                          <CheckCircle className="mr-2 h-4 w-4" /> Approve
+                        </Button>
+                        <Button size="sm" variant="ghost" className="text-destructive" onClick={() => handleCourseAction(c.id, 'rejected')}>
+                          <XCircle className="mr-2 h-4 w-4" /> Reject
+                        </Button>
                       </div>
-                    ))
-                  )}
-                </CardContent>
-              </Card>
-            </div>
+                    </div>
+                  ))
+                )}
+              </CardContent>
+            </Card>
           </TabsContent>
 
-          <TabsContent value="users" className="space-y-4">
-            <div className="relative max-w-sm">
-              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-              <Input placeholder="Search users..." value={userSearch} onChange={e => setUserSearch(e.target.value)} className="pl-10" />
-            </div>
-            <div className="rounded-2xl border border-border bg-card/80">
-              <div className="grid grid-cols-4 gap-4 border-b border-border bg-secondary/40 p-3 text-xs font-medium text-muted-foreground">
-                <span>Name</span>
-                <span>Institution</span>
-                <span>Role</span>
-                <span>Actions</span>
-              </div>
-              {loading ? (
-                <div className="p-4"><Skeleton className="h-8" /></div>
-              ) : filteredUsers.length === 0 ? (
-                <p className="p-4 text-sm text-muted-foreground">No users found.</p>
-              ) : (
-                filteredUsers.slice(0, 50).map(u => (
-                  <div key={u.id} className="grid grid-cols-4 items-center gap-4 border-b border-border/70 p-3 last:border-0">
-                    <div>
-                      <p className="text-sm font-medium text-foreground">{u.display_name || "N/A"}</p>
+          <TabsContent value="enrollments">
+            <Card>
+              <CardHeader>
+                <CardTitle>Tuition Verification</CardTitle>
+                <CardDescription>Confirm tuition payment before granting course access.</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {pendingEnrollments.length === 0 ? (
+                  <p className="text-sm text-muted-foreground italic text-center py-8">No pending registrations.</p>
+                ) : (
+                  pendingEnrollments.map(e => (
+                    <div key={e.id} className="flex items-center justify-between p-4 rounded-xl border border-border bg-card/50">
+                      <div>
+                        <p className="font-bold text-foreground">{e.profiles?.display_name || "Student"}</p>
+                        <p className="text-xs text-muted-foreground">Enrolling in: {e.courses?.title}</p>
+                      </div>
+                      <div className="flex gap-2">
+                        <Button size="sm" variant="outline" className="border-primary text-primary" onClick={() => handleEnrollAction(e.id, 'approved')}>
+                          Verify & Admit
+                        </Button>
+                        <Button size="sm" variant="ghost" className="text-destructive" onClick={() => handleEnrollAction(e.id, 'rejected')}>
+                          Reject
+                        </Button>
+                      </div>
                     </div>
-                    <p className="text-sm text-muted-foreground">{u.institution || "N/A"}</p>
-                    <Select value={u.role} onValueChange={(v) => changeUserRole(u.user_id, u.role_id, v)}>
-                      <SelectTrigger className="h-8 w-32">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="student">Student</SelectItem>
-                        <SelectItem value="instructor">Instructor</SelectItem>
-                        <SelectItem value="admin">Admin</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <div className="flex items-center gap-1">
-                      <Shield className="h-3 w-3 text-muted-foreground" />
-                      <span className="text-xs text-muted-foreground capitalize">{u.role}</span>
-                    </div>
-                  </div>
-                ))
-              )}
-            </div>
+                  ))
+                )}
+              </CardContent>
+            </Card>
           </TabsContent>
 
-          <TabsContent value="courses" className="space-y-4">
-            <div className="relative max-w-sm">
-              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-              <Input placeholder="Search courses..." value={courseSearch} onChange={e => setCourseSearch(e.target.value)} className="pl-10" />
-            </div>
-            <div className="rounded-2xl border border-border bg-card/80">
-              <div className="grid grid-cols-5 gap-4 border-b border-border bg-secondary/40 p-3 text-xs font-medium text-muted-foreground">
-                <span className="col-span-2">Title</span>
-                <span>Instructor</span>
-                <span>Status</span>
-                <span>Actions</span>
-              </div>
-              {loading ? (
-                <div className="p-4"><Skeleton className="h-8" /></div>
-              ) : filteredCourses.length === 0 ? (
-                <p className="p-4 text-sm text-muted-foreground">No courses found.</p>
-              ) : (
-                filteredCourses.slice(0, 50).map(c => (
-                  <div key={c.id} className="grid grid-cols-5 items-center gap-4 border-b border-border/70 p-3 last:border-0">
-                    <div className="col-span-2">
-                      <p className="text-sm font-medium text-foreground line-clamp-1">{c.title}</p>
-                      <p className="text-xs text-muted-foreground">{c.category || "General"}</p>
+          <TabsContent value="instructors">
+            <Card>
+              <CardHeader>
+                <CardTitle>Instructor Management</CardTitle>
+                <CardDescription>Assign teaching staff and monitor performance.</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  {instructors.map(i => (
+                    <div key={i.id} className="flex items-center justify-between p-3 rounded-lg border border-border">
+                      <div className="flex items-center gap-3">
+                        <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold">
+                          {i.display_name?.[0] || "?"}
+                        </div>
+                        <div>
+                          <p className="font-semibold text-sm">{i.display_name}</p>
+                          <p className="text-xs text-muted-foreground">{i.institution || "Faculty Member"}</p>
+                        </div>
+                      </div>
+                      <Button size="sm" variant="outline">Assign Courses</Button>
                     </div>
-                    <p className="text-sm text-muted-foreground">{(c as any).profiles?.display_name || "N/A"}</p>
-                    <span className={`inline-block w-fit rounded-full px-2 py-0.5 text-xs ${c.published ? "bg-accent/10 text-accent" : "bg-muted text-muted-foreground"}`}>
-                      {c.published ? "Published" : "Draft"}
-                    </span>
-                    <div className="flex gap-1">
-                      <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => toggleCoursePublish(c.id, c.published)}>
-                        {c.published ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
-                      </Button>
-                      <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => deleteCourse(c.id)}>
-                        <Trash2 className="h-3.5 w-3.5" />
-                      </Button>
-                    </div>
-                  </div>
-                ))
-              )}
-            </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
           </TabsContent>
         </Tabs>
       </div>
@@ -422,6 +224,3 @@ const AdminDashboard = () => {
 };
 
 export default AdminDashboard;
-
-
-

@@ -1,6 +1,6 @@
-# Global Institute
+# Global University Institute
 
-Enterprise LMS for modern education. Global Institute helps institutions design courses, assess learners, and certify outcomes with a clean, fast, and scalable frontend experience.
+Enterprise LMS for modern education. Global University Institute helps institutions design courses, assess learners, and certify outcomes with a clean, fast, and scalable frontend experience.
 
 **Highlights**
 - Role-based experiences for students, instructors, and administrators
