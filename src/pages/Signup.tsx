@@ -33,6 +33,8 @@ const stateOptions = [
 const Signup = () => {
   const [searchParams] = useSearchParams();
   const initialRole = searchParams.get("role") === "instructor" ? "instructor" : "student";
+  // Check if role is explicitly locked via URL (from onboarding)
+  const isRoleLocked = searchParams.get("role") !== null;
 
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -128,41 +130,48 @@ const Signup = () => {
             <span className="text-xl font-bold">Learnflow AI</span>
           </Link>
 
-          <h1 className="text-2xl font-bold text-foreground">Create your account</h1>
+          <h1 className="text-2xl font-bold text-foreground">
+            {isRoleLocked 
+              ? (selectedRole === "instructor" ? "Instructor Application" : "Create Learning Space") 
+              : "Create your account"
+            }
+          </h1>
           <p className="mt-2 text-sm text-muted-foreground">
             Already have an account?{" "}
-            <Link to="/login" className="text-primary hover:underline">Sign in</Link>
+            <Link to={`/login?role=${selectedRole}`} className="text-primary hover:underline">Sign in</Link>
           </p>
 
-          {/* Role selector */}
-          <div className="mt-6 grid grid-cols-2 gap-3">
-            <button
-              type="button"
-              onClick={() => setSelectedRole("student")}
-              className={`flex flex-col items-center rounded-xl border p-4 transition-all ${
-                selectedRole === "student"
-                  ? "border-primary bg-primary/5 shadow-sm"
-                  : "border-border hover:border-primary/30"
-              }`}
-            >
-              <BookOpen className={`h-5 w-5 ${selectedRole === "student" ? "text-primary" : "text-muted-foreground"}`} />
-              <span className="mt-1 text-sm font-medium">Student</span>
-              <span className="text-xs text-muted-foreground">I want to learn</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => setSelectedRole("instructor")}
-              className={`flex flex-col items-center rounded-xl border p-4 transition-all ${
-                selectedRole === "instructor"
-                  ? "border-accent bg-accent/5 shadow-sm"
-                  : "border-border hover:border-accent/30"
-              }`}
-            >
-              <Users className={`h-5 w-5 ${selectedRole === "instructor" ? "text-accent" : "text-muted-foreground"}`} />
-              <span className="mt-1 text-sm font-medium">Instructor</span>
-              <span className="text-xs text-muted-foreground">I want to teach</span>
-            </button>
-          </div>
+          {/* Role selector - only show if not coming from onboarding */}
+          {!isRoleLocked && (
+            <div className="mt-6 grid grid-cols-2 gap-3">
+              <button
+                type="button"
+                onClick={() => setSelectedRole("student")}
+                className={`flex flex-col items-center rounded-xl border p-4 transition-all ${
+                  selectedRole === "student"
+                    ? "border-primary bg-primary/5 shadow-sm"
+                    : "border-border hover:border-primary/30"
+                }`}
+              >
+                <BookOpen className={`h-5 w-5 ${selectedRole === "student" ? "text-primary" : "text-muted-foreground"}`} />
+                <span className="mt-1 text-sm font-medium">Student</span>
+                <span className="text-xs text-muted-foreground">I want to learn</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setSelectedRole("instructor")}
+                className={`flex flex-col items-center rounded-xl border p-4 transition-all ${
+                  selectedRole === "instructor"
+                    ? "border-accent bg-accent/5 shadow-sm"
+                    : "border-border hover:border-accent/30"
+                }`}
+              >
+                <Users className={`h-5 w-5 ${selectedRole === "instructor" ? "text-accent" : "text-muted-foreground"}`} />
+                <span className="mt-1 text-sm font-medium">Instructor</span>
+                <span className="text-xs text-muted-foreground">I want to teach</span>
+              </button>
+            </div>
+          )}
 
           <form onSubmit={handleSignup} className="mt-6 space-y-4">
             <div className="grid gap-4 sm:grid-cols-2">

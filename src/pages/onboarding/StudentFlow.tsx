@@ -18,7 +18,7 @@ const questions = [
     id: "style",
     question: "How do you prefer to learn?",
     icon: Brain,
-    options: ["Video-based", "Live classes", "Reading materials", "Practice-based"]
+    options: ["Video-based", "Live classes", "Reading materials", "Practice-based", "All of the above"]
   },
   {
     id: "level",
