@@ -1,39 +1,75 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import AdminSidebar from "@/components/dashboard/AdminSidebar";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Gavel, ShieldCheck, Plus, Loader2, AlertCircle } from "lucide-react";
+import { Gavel, ShieldCheck, Plus, Loader2, AlertCircle, Trash2 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-
-const initialControls = [
-  { id: "CMP-01", name: "FERPA Data Access", status: "Compliant", owner: "Security" },
-  { id: "CMP-02", name: "SOC2 Logging", status: "Compliant", owner: "Platform" },
-  { id: "CMP-03", name: "GDPR Retention", status: "Action needed", owner: "Legal" },
-];
-
-const badgeFor = (status: string) => {
-  if (status === "Compliant") return "bg-emerald-500/10 text-emerald-600";
-  return "bg-amber-500/10 text-amber-600";
-};
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 const AdminCompliance = () => {
   const { toast } = useToast();
-  const [controls] = useState(initialControls);
-  const [isAuditing, setIsAuditing] = useState(false);
+  const [controls, setControls] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(false);
+  const [adding, setAdding] = useState(false);
+  const [newControl, setNewControl] = useState({ title: "", status: "compliant" });
 
-  const handleStartAudit = async (e: React.FormEvent) => {
+  const fetchCompliance = async () => {
+    setLoading(true);
+    const { data, error } = await supabase
+      .from("compliance_records")
+      .select("*")
+      .order("created_at", { ascending: false });
+    
+    if (error) {
+      toast({ title: "Load failed", description: error.message, variant: "destructive" });
+    } else {
+      setControls(data || []);
+    }
+    setLoading(false);
+  };
+
+  useEffect(() => {
+    fetchCompliance();
+  }, []);
+
+  const handleAddControl = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsAuditing(true);
-    await new Promise(r => setTimeout(r, 2000));
-    setIsAuditing(false);
-    setOpen(false);
-    toast({ title: "Audit initialized", description: "Internal compliance scanners are now processing institutional logs." });
+    setAdding(true);
+    
+    const { error } = await supabase.from("compliance_records").insert({
+      title: newControl.title,
+      status: newControl.status
+    });
+
+    if (error) {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    } else {
+      toast({ title: "Control added", description: "Compliance registry updated." });
+      setOpen(false);
+      setNewControl({ title: "", status: "compliant" });
+      fetchCompliance();
+    }
+    setAdding(false);
+  };
+
+  const deleteControl = async (id: string) => {
+    if (!confirm("Remove this compliance record?")) return;
+    await supabase.from("compliance_records").delete().eq("id", id);
+    toast({ title: "Record removed" });
+    fetchCompliance();
+  };
+
+  const badgeFor = (status: string) => {
+    if (status === "compliant") return "bg-emerald-500/10 text-emerald-600";
+    if (status === "pending") return "bg-amber-500/10 text-amber-600";
+    return "bg-destructive/10 text-destructive";
   };
 
   return (
@@ -42,34 +78,46 @@ const AdminCompliance = () => {
         <section className="rounded-3xl border border-border/70 bg-card/90 p-6">
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary">Compliance</p>
-              <h1 className="mt-2 font-display text-3xl font-bold text-foreground">Policy adherence</h1>
+              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary">Governance</p>
+              <h1 className="mt-2 font-display text-3xl font-bold text-foreground">Compliance Center</h1>
               <p className="mt-2 text-sm text-muted-foreground">
-                Track regulatory controls, audits, and policy acknowledgements.
+                Manage regulatory controls, audit logs, and policy enforcement.
               </p>
             </div>
             <Dialog open={open} onOpenChange={setOpen}>
               <DialogTrigger asChild>
-                <Button className="bg-gradient-brand text-primary-foreground">
-                  <ShieldCheck className="mr-2 h-4 w-4" /> Start audit
+                <Button className="bg-gradient-brand text-primary-foreground shadow-lg shadow-primary/20">
+                  <ShieldCheck className="mr-2 h-4 w-4" /> New Control
                 </Button>
               </DialogTrigger>
               <DialogContent>
-                <DialogHeader><DialogTitle>Initialize Compliance Audit</DialogTitle></DialogHeader>
-                <form onSubmit={handleStartAudit} className="space-y-4 pt-4">
+                <DialogHeader><DialogTitle>Add Compliance Control</DialogTitle></DialogHeader>
+                <form onSubmit={handleAddControl} className="space-y-4 pt-4">
                   <div className="space-y-2">
-                    <Label htmlFor="type">Audit Type</Label>
-                    <Input id="type" placeholder="e.g. Annual FERPA Review" required />
+                    <Label>Control Name</Label>
+                    <Input 
+                      placeholder="e.g. GDPR Data Retention" 
+                      value={newControl.title}
+                      onChange={e => setNewControl({...newControl, title: e.target.value})}
+                      required 
+                    />
                   </div>
-                  <div className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-xs text-amber-800 flex gap-2">
-                    <AlertCircle className="h-4 w-4 shrink-0" />
-                    <span>This will freeze policy modifications for the duration of the audit.</span>
+                  <div className="space-y-2">
+                    <Label>Current Status</Label>
+                    <Select value={newControl.status} onValueChange={(v) => setNewControl({...newControl, status: v})}>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="compliant">Compliant</SelectItem>
+                        <SelectItem value="pending">Pending Review</SelectItem>
+                        <SelectItem value="non_compliant">Non-Compliant</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
                   <DialogFooter>
                     <Button type="button" variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
-                    <Button type="submit" disabled={isAuditing}>
-                      {isAuditing && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                      Start Scanner
+                    <Button type="submit" disabled={adding}>
+                      {adding && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                      Save Control
                     </Button>
                   </DialogFooter>
                 </form>
@@ -81,54 +129,69 @@ const AdminCompliance = () => {
         <div className="grid gap-4 md:grid-cols-3">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Controls</CardTitle>
+              <CardTitle className="text-sm font-medium text-muted-foreground">Total Controls</CardTitle>
               <Gavel className="h-4 w-4 text-primary" />
             </CardHeader>
             <CardContent>
-              <p className="text-2xl font-bold">42</p>
-              <p className="text-xs text-muted-foreground">Mapped controls</p>
+              <p className="text-2xl font-bold">{controls.length}</p>
+              <p className="text-xs text-muted-foreground">Active policies</p>
             </CardContent>
           </Card>
           <Card>
             <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Action needed</CardTitle>
-              <Badge className="bg-amber-500/10 text-amber-600" variant="secondary">3</Badge>
+              <CardTitle className="text-sm font-medium text-muted-foreground">Action Needed</CardTitle>
+              <Badge className="bg-amber-500/10 text-amber-600" variant="secondary">
+                {controls.filter(c => c.status !== 'compliant').length}
+              </Badge>
             </CardHeader>
             <CardContent>
-              <p className="text-2xl font-bold">3</p>
+              <p className="text-2xl font-bold">{controls.filter(c => c.status !== 'compliant').length}</p>
               <p className="text-xs text-muted-foreground">Open items</p>
             </CardContent>
           </Card>
           <Card>
             <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Last audit</CardTitle>
+              <CardTitle className="text-sm font-medium text-muted-foreground">Audit Status</CardTitle>
               <Badge className="bg-emerald-500/10 text-emerald-600" variant="secondary">Passed</Badge>
             </CardHeader>
             <CardContent>
-              <p className="text-2xl font-bold">Nov 2025</p>
-              <p className="text-xs text-muted-foreground">SOC2 Type II</p>
+              <p className="text-2xl font-bold">Safe</p>
+              <p className="text-xs text-muted-foreground">System integrity check</p>
             </CardContent>
           </Card>
         </div>
 
-        <Card className="p-4">
-          <CardHeader className="px-0 pt-0 flex flex-row items-center justify-between">
-            <CardTitle className="text-lg">Control checklist</CardTitle>
-            <Button size="sm" variant="ghost" className="text-primary text-xs gap-1"><Plus className="h-3 w-3" /> Add Control</Button>
+        <Card>
+          <CardHeader>
+            <CardTitle>Compliance Registry</CardTitle>
+            <CardDescription>Master list of tracked regulatory items.</CardDescription>
           </CardHeader>
-          <CardContent className="space-y-3 px-0 pb-0">
-            {controls.map((control) => (
-              <div key={control.id} className="flex flex-wrap items-center justify-between gap-4 rounded-lg border border-border p-3 hover:bg-accent/5 transition-colors">
-                <div>
-                  <p className="text-sm font-semibold text-foreground">{control.name}</p>
-                  <p className="text-xs text-muted-foreground">Owner: {control.owner}</p>
-                </div>
-                <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                  <Badge className={badgeFor(control.status)} variant="secondary">{control.status}</Badge>
-                  <Button size="sm" variant="outline" onClick={() => toast({ title: "Control Review", description: `Viewing evidence for ${control.name}` })}>Review</Button>
-                </div>
+          <CardContent>
+            {loading ? (
+              <div className="flex justify-center py-8"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>
+            ) : controls.length === 0 ? (
+              <div className="text-center py-8 text-muted-foreground border-2 border-dashed rounded-xl">No controls defined yet.</div>
+            ) : (
+              <div className="space-y-3">
+                {controls.map((control) => (
+                  <div key={control.id} className="flex flex-wrap items-center justify-between gap-4 rounded-lg border border-border p-4 hover:bg-accent/5 transition-all">
+                    <div className="flex items-center gap-3">
+                      <div className="h-2 w-2 rounded-full bg-primary" />
+                      <div>
+                        <p className="font-semibold text-foreground">{control.title}</p>
+                        <p className="text-xs text-muted-foreground">Last Audit: {new Date(control.last_audit).toLocaleDateString()}</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-4">
+                      <Badge className={badgeFor(control.status)} variant="secondary">{control.status.toUpperCase().replace('_', ' ')}</Badge>
+                      <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:bg-destructive/10" onClick={() => deleteControl(control.id)}>
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                ))}
               </div>
-            ))}
+            )}
           </CardContent>
         </Card>
       </div>
