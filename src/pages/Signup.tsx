@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { Link, useNavigate, useSearchParams, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -32,9 +32,11 @@ const stateOptions = [
 
 const Signup = () => {
   const [searchParams] = useSearchParams();
-  const initialRole = searchParams.get("role") === "instructor" ? "instructor" : "student";
-  // Check if role is explicitly locked via URL (from onboarding)
-  const isRoleLocked = searchParams.get("role") !== null;
+  const location = useLocation();
+  const onboardData = location.state || {};
+  
+  const initialRole = onboardData.role || (searchParams.get("role") === "instructor" ? "instructor" : "student");
+  const isRoleLocked = onboardData.role !== undefined || searchParams.get("role") !== null;
 
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -42,13 +44,19 @@ const Signup = () => {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [selectedRole, setSelectedRole] = useState<"student" | "instructor">(initialRole);
   const [institution, setInstitution] = useState("");
-  const [gradeLevel, setGradeLevel] = useState("");
-  const [subjectArea, setSubjectArea] = useState("");
+  const [gradeLevel, setGradeLevel] = useState(onboardData.level || "");
+  const [subjectArea, setSubjectArea] = useState(onboardData.subject || onboardData.goal || "");
   const [state, setState] = useState("");
   const [phone, setPhone] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
+
+  useEffect(() => {
+    if (onboardData.role) {
+      setSelectedRole(onboardData.role);
+    }
+  }, [onboardData.role]);
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -70,10 +78,17 @@ const Signup = () => {
           full_name: name,
           role: selectedRole,
           institution: institution || null,
-          grade_level: gradeLevel || null,
-          subject_areas: subjectArea ? [subjectArea] : null,
+          grade_level: gradeLevel || onboardData.level || null,
+          subject_areas: subjectArea ? [subjectArea] : (onboardData.subject ? [onboardData.subject] : null),
           state: state || null,
           phone: phone || null,
+          // Extra instructor/student specific data
+          learning_goal: onboardData.goal || null,
+          learning_style: onboardData.style || null,
+          years_experience: onboardData.experience || null,
+          teaching_format: onboardData.format || null,
+          linkedin_url: onboardData.linkedin || null,
+          bio: onboardData.bio || null
         },
         emailRedirectTo: window.location.origin,
       },
@@ -127,7 +142,7 @@ const Signup = () => {
             <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br from-primary to-accent">
               <GraduationCap className="h-5 w-5 text-primary-foreground" />
             </div>
-            <span className="text-xl font-bold">Learnflow AI</span>
+            <span className="text-xl font-bold">Global Institute</span>
           </Link>
 
           <h1 className="text-2xl font-bold text-foreground">

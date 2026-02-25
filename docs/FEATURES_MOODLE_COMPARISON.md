@@ -1,9 +1,9 @@
-# Learnflow AI vs Moodle - Feature Coverage
+# Global Institute vs Moodle - Feature Coverage
 
-This document maps Learnflow AI's current UI coverage against common Moodle LMS capabilities. It is intended as a product breadth checklist for parity and "exceed" goals.
+This document maps Global Institute's current UI coverage against common Moodle LMS capabilities. It is intended as a product breadth checklist for parity and "exceed" goals.
 
 **Legend**
-- `Done` Implemented UI/workflows in Learnflow AI
+- `Done` Implemented UI/workflows in Global Institute
 - `Planned` Not yet implemented
 - `N/A` Not applicable for current scope
 

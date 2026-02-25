@@ -93,7 +93,7 @@ const DashboardLayout = ({ children, allowedRoles, sidebar }: DashboardLayoutPro
                   <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                 </svg>
               </div>
-              <span className="font-display text-base font-bold text-foreground hidden sm:block">Learnflow AI</span>
+              <span className="font-display text-base font-bold text-foreground hidden sm:block">Global Institute</span>
             </Link>
             
             <div className="flex items-center gap-2 sm:gap-3">

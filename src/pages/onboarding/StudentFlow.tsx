@@ -54,10 +54,14 @@ const StudentFlow = () => {
   };
 
   const handleSignup = async () => {
-    // Redirect to signup page with pre-filled role and intent
-    // We'll pass the profile data via state or query params, but here we'll just go to signup
-    // In a real app, we might create the user here if we had auth providers integrated directly
-    navigate(`/signup?role=student&goal=${answers.goal}&style=${answers.style}&level=${answers.level}`);
+    navigate("/signup", { 
+      state: { 
+        role: "student",
+        goal: answers.goal,
+        style: answers.style,
+        level: answers.level
+      } 
+    });
   };
 
   const currentQ = questions[step];

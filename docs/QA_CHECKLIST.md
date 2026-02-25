@@ -1,4 +1,4 @@
-# Learnflow AI - QA Checklist
+# Global Institute - QA Checklist
 
 Use this checklist to validate functionality, routing, and UI integrity.
 

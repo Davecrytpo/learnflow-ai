@@ -82,6 +82,7 @@ const StudentCapstoneTracker = lazy(() => import("./pages/student/CapstoneTracke
 const StudentEmployerConnections = lazy(() => import("./pages/student/EmployerConnections"));
 const StudentAlumniNetwork = lazy(() => import("./pages/student/AlumniNetwork"));
 const AdminUsers = lazy(() => import("./pages/admin/Users"));
+const AdminLogin = lazy(() => import("./pages/admin/AdminLogin"));
 const AdminCourses = lazy(() => import("./pages/admin/Courses"));
 const AdminAnalytics = lazy(() => import("./pages/admin/Analytics"));
 const AdminSecurity = lazy(() => import("./pages/admin/Security"));
@@ -230,7 +231,8 @@ const App = () => (
                   <Route path="/instructor/question-bank" element={<InstructorQuestionBank />} />
                   <Route path="/instructor/scorm" element={<InstructorScormImport />} />
                   <Route path="/instructor/*" element={<InstructorDashboard />} />
-                  <Route path="/admin" element={<AdminDashboard />} />
+                  <Route path="/admin" element={<AdminLogin />} />
+                  <Route path="/admin/dashboard" element={<AdminDashboard />} />
                   <Route path="/admin/users" element={<AdminUsers />} />
                   <Route path="/admin/courses" element={<AdminCourses />} />
                   <Route path="/admin/analytics" element={<AdminAnalytics />} />

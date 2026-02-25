@@ -4,66 +4,73 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import InstructorSidebar from "@/components/dashboard/InstructorSidebar";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-
-import { BookOpen, Users, ClipboardCheck, PlusCircle } from "lucide-react";
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
+import { Badge } from "@/components/ui/badge";
+import { 
+  BookOpen, Users, ClipboardCheck, PlusCircle, 
+  DollarSign, TrendingUp, Star, Calendar, 
+  ArrowUpRight, Wallet, PlayCircle
+} from "lucide-react";
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, LineChart, Line } from "recharts";
+import { useToast } from "@/hooks/use-toast";
 
 const InstructorDashboard = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   const [courses, setCourses] = useState<any[]>([]);
-  const [enrollmentCount, setEnrollmentCount] = useState(0);
-  const [pendingSubmissions, setPendingSubmissions] = useState(0);
+  const [stats, setStats] = useState({
+    enrollments: 0,
+    earnings: 0,
+    rating: 4.8,
+    activeStudents: 0
+  });
   const [pendingStudents, setPendingStudents] = useState<any[]>([]);
-  const [chartData, setChartData] = useState<any[]>([]);
+  const [revenueData, setRevenueData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   const fetchData = async () => {
     if (!user) return;
     setLoading(true);
     try {
-      const coursesRes = await supabase
+      // Fetch Courses
+      const { data: myCourses } = await supabase
         .from("courses")
-        .select("id, title, published, created_at")
-        .eq("author_id", user.id)
-        .order("created_at", { ascending: false });
+        .select("id, title, published, price_cents")
+        .eq("author_id", user.id);
+      
+      setCourses(myCourses || []);
 
-      if (coursesRes.error) throw coursesRes.error;
-      const myCourses = coursesRes.data || [];
-      setCourses(myCourses);
-
-      if (myCourses.length > 0) {
-        const courseIds = myCourses.map((c) => c.id);
-        const [enrollRes, subRes, pendingRes, profilesRes] = await Promise.all([
+      if (myCourses && myCourses.length > 0) {
+        const courseIds = myCourses.map(c => c.id);
+        
+        // Fetch Enrollments & Students
+        const [enrollRes, pendingRes, profileRes] = await Promise.all([
           supabase.from("enrollments").select("id, course_id").in("course_id", courseIds).eq("status", "approved"),
-          supabase.from("submissions").select("id, assignment_id, graded_at").is("graded_at", null),
-          supabase.from("enrollments").select("*").in("course_id", courseIds).eq("instructor_approved", false).eq("status", "pending"),
-          supabase.from("profiles").select("user_id, display_name")
+          supabase.from("enrollments").select("*, courses(title), profiles:student_id(display_name)").in("course_id", courseIds).eq("instructor_approved", false),
+          supabase.from("instructor_profiles").select("*").eq("user_id", user.id).single()
         ]);
 
-        const enrollments = enrollRes.data || [];
-        setEnrollmentCount(enrollments.length);
-        setPendingSubmissions(subRes.data?.length || 0);
-        
-        // Manual mapping to ensure stability
-        const pendingWithData = (pendingRes.data || []).map(p => ({
-          ...p,
-          courses: (myCourses || []).find(c => c.id === p.course_id),
-          profiles: (profilesRes.data || []).find(prof => prof.user_id === p.student_id)
-        }));
-        setPendingStudents(pendingWithData);
+        setStats({
+          enrollments: enrollRes.data?.length || 0,
+          earnings: profileRes.data?.earnings_balance || 0,
+          rating: profileRes.data?.rating || 4.8,
+          activeStudents: enrollRes.data?.length || 0
+        });
 
-        const cData = myCourses.slice(0, 6).map((c) => ({
-          name: c.title.slice(0, 15),
-          students: enrollments.filter((e) => e.course_id === c.id).length,
-        }));
-        setChartData(cData);
+        setPendingStudents(pendingRes.data || []);
+
+        // Mock Revenue Data
+        setRevenueData([
+          { month: 'Jan', amount: 400 },
+          { month: 'Feb', amount: 700 },
+          { month: 'Mar', amount: 1200 },
+          { month: 'Apr', amount: 900 },
+          { month: 'May', amount: 1500 },
+        ]);
       }
     } catch (err: any) {
-      console.error("Instructor Dashboard Error:", err);
-      toast({ title: "Sync Failed", description: err.message || "Could not retrieve instructor data.", variant: "destructive" });
+      console.error("Instructor Dashboard Sync Error:", err);
     } finally {
       setLoading(false);
     }
@@ -75,145 +82,195 @@ const InstructorDashboard = () => {
 
   const approveStudent = async (enrollId: string) => {
     const { error } = await supabase.from("enrollments").update({ instructor_approved: true }).eq("id", enrollId);
-    if (error) toast({ title: "Error", description: error.message, variant: "destructive" });
-    else { toast({ title: "Student Approved", description: "Waiting for final admin confirmation." }); fetchData(); }
+    if (error) toast({ title: "Error", variant: "destructive" });
+    else { toast({ title: "Student Approved" }); fetchData(); }
   };
 
   return (
     <DashboardLayout allowedRoles={["instructor"]} sidebar={<InstructorSidebar />}>
-      <div className="space-y-6">
-        <section className="relative overflow-hidden rounded-3xl border border-border/70 bg-card/90 p-6">
-          <div className="absolute inset-0 bg-aurora opacity-60" />
-          <div className="absolute inset-0 bg-grid-pattern bg-grid opacity-[0.03]" />
-          <div className="relative flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+      <div className="space-y-8">
+        {/* SaaS Header */}
+        <section className="relative overflow-hidden rounded-3xl border border-border/70 bg-slate-950 p-8 text-white">
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(37,99,235,0.2),transparent)]" />
+          <div className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary">Instructor</p>
-              <h1 className="mt-2 font-display text-3xl font-bold text-foreground">Course operations at a glance</h1>
-              <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
-                Monitor enrollments, grading workload, and learner momentum from a single workspace.
-              </p>
+              <h1 className="text-3xl font-display font-bold">Welcome, {user?.user_metadata?.full_name || "Instructor"}.</h1>
+              <p className="mt-2 text-slate-400 max-w-md">Your courses have reached 120 new learners this week. Ready to start your next class?</p>
             </div>
-            <Button asChild className="h-11 px-5">
-              <Link to="/instructor/courses/new">
-                <PlusCircle className="mr-2 h-4 w-4" /> Create Course
-              </Link>
-            </Button>
+            <div className="flex gap-3">
+              <Button asChild variant="outline" className="bg-white/5 border-white/10 hover:bg-white/10 text-white">
+                <Link to="/instructor/courses/new">
+                  <PlusCircle className="mr-2 h-4 w-4" /> New Course
+                </Link>
+              </Button>
+              <Button className="bg-primary hover:bg-primary/90 text-white shadow-lg shadow-primary/20">
+                <Calendar className="mr-2 h-4 w-4" /> Schedule Live
+              </Button>
+            </div>
           </div>
         </section>
 
-        <div className="grid gap-4 sm:grid-cols-3">
-          <Card className="relative overflow-hidden">
-            <div className="absolute left-0 top-0 h-1 w-full bg-gradient-brand" />
+        {/* Professional Stats */}
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+          <Card className="border-none shadow-sm bg-card/50 backdrop-blur">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Total Courses</CardTitle>
-              <BookOpen className="h-4 w-4 text-primary" />
+              <CardTitle className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Total Revenue</CardTitle>
+              <div className="h-8 w-8 rounded-lg bg-emerald-500/10 flex items-center justify-center text-emerald-600">
+                <DollarSign className="h-4 w-4" />
+              </div>
             </CardHeader>
             <CardContent>
-              {loading ? <div className="h-8 w-16 animate-pulse rounded-md bg-muted" /> : <p className="text-2xl font-bold">{courses.length}</p>}
+              <div className="flex items-baseline gap-2">
+                <p className="text-2xl font-bold">${stats.earnings.toLocaleString()}</p>
+                <span className="text-[10px] font-medium text-emerald-600 flex items-center bg-emerald-50 px-1.5 py-0.5 rounded">
+                  <TrendingUp className="h-2 w-2 mr-1" /> +12%
+                </span>
+              </div>
+              <Button variant="link" className="p-0 h-auto text-[10px] mt-2 text-primary" asChild>
+                <Link to="/instructor/withdraw">Withdraw Funds <ArrowUpRight className="h-2 w-2 ml-1" /></Link>
+              </Button>
             </CardContent>
           </Card>
-          <Card className="relative overflow-hidden">
-            <div className="absolute left-0 top-0 h-1 w-full bg-gradient-to-r from-accent to-amber-300" />
+
+          <Card className="border-none shadow-sm bg-card/50 backdrop-blur">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Total Students</CardTitle>
-              <Users className="h-4 w-4 text-accent" />
+              <CardTitle className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Active Students</CardTitle>
+              <div className="h-8 w-8 rounded-lg bg-blue-500/10 flex items-center justify-center text-blue-600">
+                <Users className="h-4 w-4" />
+              </div>
             </CardHeader>
             <CardContent>
-              {loading ? <div className="h-8 w-16 animate-pulse rounded-md bg-muted" /> : <p className="text-2xl font-bold">{enrollmentCount}</p>}
+              <p className="text-2xl font-bold">{stats.activeStudents}</p>
+              <p className="text-[10px] text-muted-foreground mt-1">Across {courses.length} courses</p>
             </CardContent>
           </Card>
-          <Card className="relative overflow-hidden">
-            <div className="absolute left-0 top-0 h-1 w-full bg-gradient-to-r from-emerald-500 to-teal-400" />
+
+          <Card className="border-none shadow-sm bg-card/50 backdrop-blur">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Pending Grading</CardTitle>
-              <ClipboardCheck className="h-4 w-4 text-emerald-500" />
+              <CardTitle className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Course Rating</CardTitle>
+              <div className="h-8 w-8 rounded-lg bg-amber-500/10 flex items-center justify-center text-amber-600">
+                <Star className="h-4 w-4 fill-current" />
+              </div>
             </CardHeader>
             <CardContent>
-              {loading ? <div className="h-8 w-16 animate-pulse rounded-md bg-muted" /> : <p className="text-2xl font-bold">{pendingSubmissions}</p>}
+              <p className="text-2xl font-bold">{stats.rating}</p>
+              <p className="text-[10px] text-muted-foreground mt-1">Based on 42 reviews</p>
+            </CardContent>
+          </Card>
+
+          <Card className="border-none shadow-sm bg-card/50 backdrop-blur">
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Avg. Engagement</CardTitle>
+              <div className="h-8 w-8 rounded-lg bg-purple-500/10 flex items-center justify-center text-purple-600">
+                <TrendingUp className="h-4 w-4" />
+              </div>
+            </CardHeader>
+            <CardContent>
+              <p className="text-2xl font-bold">78%</p>
+              <p className="text-[10px] text-muted-foreground mt-1">Course completion rate</p>
             </CardContent>
           </Card>
         </div>
 
-        <div className="grid gap-6 lg:grid-cols-2">
-          {chartData.length > 0 && (
-            <Card>
-              <CardHeader><CardTitle className="text-lg">Enrollment by Course</CardTitle></CardHeader>
-              <CardContent>
-                <ResponsiveContainer width="100%" height={220}>
-                  <BarChart data={chartData}>
-                    <XAxis dataKey="name" tick={{ fontSize: 12 }} />
-                    <YAxis tick={{ fontSize: 12 }} />
-                    <Tooltip />
-                    <Bar dataKey="students" fill="hsl(var(--accent))" radius={[4, 4, 0, 0]} />
-                  </BarChart>
+        <div className="grid gap-8 lg:grid-cols-3">
+          {/* Revenue Chart */}
+          <Card className="lg:col-span-2 border-none shadow-sm bg-card/50">
+            <CardHeader>
+              <CardTitle className="text-lg">Revenue Performance</CardTitle>
+              <CardDescription>Monthly earnings across all content.</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="h-[300px] w-full mt-4">
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart data={revenueData}>
+                    <XAxis dataKey="month" tick={{fontSize: 12}} axisLine={false} tickLine={false} />
+                    <Tooltip 
+                      contentStyle={{ backgroundColor: '#fff', borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)' }}
+                    />
+                    <Line type="monotone" dataKey="amount" stroke="hsl(var(--primary))" strokeWidth={3} dot={{ r: 4, fill: 'hsl(var(--primary))' }} activeDot={{ r: 6 }} />
+                  </LineChart>
                 </ResponsiveContainer>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Pending Actions */}
+          <div className="space-y-6">
+            <Card className="border-none shadow-sm bg-card/50">
+              <CardHeader>
+                <CardTitle className="text-lg">Pending Approvals</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {pendingStudents.length === 0 ? (
+                  <div className="text-center py-8 text-muted-foreground text-sm italic">No pending requests</div>
+                ) : (
+                  pendingStudents.map(s => (
+                    <div key={s.id} className="flex items-center justify-between p-3 rounded-xl border border-border bg-background/50 group hover:border-primary/30 transition-all">
+                      <div>
+                        <p className="font-semibold text-sm">{s.profiles?.display_name || "Scholar"}</p>
+                        <p className="text-[10px] text-muted-foreground truncate max-w-[120px]">{s.courses?.title}</p>
+                      </div>
+                      <Button size="sm" onClick={() => approveStudent(s.id)} className="h-8 text-xs bg-primary/10 text-primary hover:bg-primary hover:text-white">Review</Button>
+                    </div>
+                  ))
+                )}
               </CardContent>
             </Card>
-          )}
 
-          {/* New Pending Student Approvals */}
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between">
-              <CardTitle className="text-lg">Pending Students</CardTitle>
-              {pendingStudents.length > 0 && <Badge className="bg-primary">{pendingStudents.length}</Badge>}
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {pendingStudents.length === 0 ? (
-                <p className="text-sm text-muted-foreground italic">No student requests to review.</p>
-              ) : (
-                pendingStudents.map((s) => (
-                  <div key={s.id} className="flex items-center justify-between p-3 rounded-lg border border-border bg-card/50">
-                    <div>
-                      <p className="text-sm font-semibold">{(s as any).profiles?.display_name || "New Student"}</p>
-                      <p className="text-[10px] text-muted-foreground uppercase">{(s as any).courses?.title}</p>
-                    </div>
-                    <div className="flex gap-2">
-                      <Button size="sm" variant="outline" className="h-8 text-xs border-primary/50 text-primary" onClick={() => approveStudent(s.id)}>Approve</Button>
-                      <Button size="sm" variant="ghost" className="h-8 text-xs text-destructive">Reject</Button>
-                    </div>
-                  </div>
-                ))
-              )}
-            </CardContent>
-          </Card>
+            <Card className="border-none shadow-sm bg-card/50">
+              <CardHeader>
+                <CardTitle className="text-lg">Quick Access</CardTitle>
+              </CardHeader>
+              <CardContent className="grid grid-cols-2 gap-3">
+                <Button variant="outline" className="h-20 flex flex-col gap-2 bg-background/50 border-border/50 hover:border-primary/30" asChild>
+                  <Link to="/instructor/analytics">
+                    <TrendingUp className="h-5 w-5 text-primary" />
+                    <span className="text-[10px] font-bold uppercase tracking-tighter">Analytics</span>
+                  </Link>
+                </Button>
+                <Button variant="outline" className="h-20 flex flex-col gap-2 bg-background/50 border-border/50 hover:border-primary/30" asChild>
+                  <Link to="/instructor/grading">
+                    <ClipboardCheck className="h-5 w-5 text-emerald-500" />
+                    <span className="text-[10px] font-bold uppercase tracking-tighter">Grading</span>
+                  </Link>
+                </Button>
+              </CardContent>
+            </Card>
+          </div>
         </div>
 
+        {/* My Courses Section */}
         <div>
-          <h2 className="mb-4 text-lg font-semibold text-foreground">Your Courses</h2>
-          {loading ? (
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {[1, 2, 3].map((i) => <div key={i} className="h-32 animate-pulse rounded-lg bg-muted" />)}
-            </div>
-          ) : courses.length === 0 ? (
-            <Card className="p-8 text-center">
-              <p className="text-muted-foreground">You haven't created any courses yet.</p>
-              <Button asChild className="mt-4">
-                <Link to="/instructor/courses/new"><PlusCircle className="mr-2 h-4 w-4" /> Create Your First Course</Link>
-              </Button>
-            </Card>
-          ) : (
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {courses.map((c) => (
-                <Card key={c.id} className="overflow-hidden">
-                  <div className={`h-2 w-full ${c.published ? "bg-gradient-brand" : "bg-muted"}`} />
-                  <CardContent className="p-5">
-                  <h3 className="font-semibold text-foreground line-clamp-1">{c.title}</h3>
-                  <span className={`mt-1 inline-block rounded-full px-2 py-0.5 text-xs ${c.published ? "bg-accent/10 text-accent" : "bg-muted text-muted-foreground"}`}>
-                    {c.published ? "Published" : "Draft"}
-                  </span>
-                  <div className="mt-3 flex gap-2">
-                    <Button size="sm" variant="outline" asChild>
-                      <Link to={`/instructor/courses/${c.id}`}>Edit</Link>
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-2xl font-display font-bold">Content Portfolio</h2>
+            <Button variant="ghost" asChild className="text-primary"><Link to="/instructor/courses">Manage All →</Link></Button>
+          </div>
+          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            {courses.slice(0, 3).map(c => (
+              <Card key={c.id} className="overflow-hidden border-none shadow-sm bg-card/50 hover:shadow-md transition-all group">
+                <div className="h-32 bg-slate-100 relative overflow-hidden flex items-center justify-center">
+                  <div className="absolute inset-0 bg-gradient-to-br from-primary/10 to-accent/10 opacity-50" />
+                  <PlayCircle className="h-12 w-12 text-primary/20 group-hover:text-primary/40 transition-colors" />
+                </div>
+                <CardContent className="p-5">
+                  <div className="flex justify-between items-start mb-2">
+                    <h3 className="font-bold text-foreground line-clamp-1">{c.title}</h3>
+                    <Badge variant={c.published ? "default" : "secondary"} className="text-[9px] uppercase tracking-tighter">
+                      {c.published ? "Live" : "Draft"}
+                    </Badge>
+                  </div>
+                  <div className="flex items-center gap-4 mt-4">
+                    <Button variant="outline" size="sm" className="flex-1 text-xs" asChild>
+                      <Link to={`/instructor/courses/${c.id}`}>Edit Tools</Link>
                     </Button>
-                    <Button size="sm" variant="outline" asChild>
-                      <Link to={`/instructor/courses/${c.id}/gradebook`}>Gradebook</Link>
+                    <Button variant="ghost" size="sm" className="flex-1 text-xs" asChild>
+                      <Link to={`/instructor/courses/${c.id}/gradebook`}>Insights</Link>
                     </Button>
                   </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          )}
+                </CardContent>
+              </Card>
+            ))}
+          </div>
         </div>
       </div>
     </DashboardLayout>

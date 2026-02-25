@@ -3,7 +3,7 @@ import { NavLink } from "@/components/NavLink";
 import { Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarHeader } from "@/components/ui/sidebar";
 
 const items = [
-  { title: "Overview", url: "/admin", icon: LayoutDashboard },
+  { title: "Overview", url: "/admin/dashboard", icon: LayoutDashboard },
   { title: "Users", url: "/admin/users", icon: Users },
   { title: "Courses", url: "/admin/courses", icon: BookOpen },
   { title: "Analytics", url: "/admin/analytics", icon: BarChart3 },

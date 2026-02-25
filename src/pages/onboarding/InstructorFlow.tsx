@@ -23,9 +23,16 @@ const InstructorFlow = () => {
   const handleNext = () => setStep(step + 1);
 
   const handleSubmit = () => {
-    // Navigate to signup with instructor role and pre-filled data
-    // In a real app, we'd store this in a temporary state or pass via extensive query params
-    navigate(`/signup?role=instructor&subject=${formData.subject}`);
+    navigate("/signup", {
+      state: {
+        role: "instructor",
+        subject: formData.subject,
+        experience: formData.experience,
+        format: formData.format,
+        bio: formData.bio,
+        linkedin: formData.linkedin
+      }
+    });
   };
 
   return (
