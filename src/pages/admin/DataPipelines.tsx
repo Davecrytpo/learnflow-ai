@@ -1,93 +1,155 @@
+import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import AdminSidebar from "@/components/dashboard/AdminSidebar";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Network, Play } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Network, Plus, Loader2, Trash2, Database, Play, CheckCircle } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogTrigger } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
 
-const pipelines = [
-  { id: "DP-41", name: "Learner Event Stream", status: "Healthy", lastRun: "5 min ago" },
-  { id: "DP-38", name: "Assessment Aggregation", status: "Healthy", lastRun: "23 min ago" },
-  { id: "DP-34", name: "Revenue Attribution", status: "Degraded", lastRun: "2h ago" },
-];
+const DataPipelines = () => {
+  const { toast } = useToast();
+  const [pipelines, setPipelines] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [newPipeline, setNewPipeline] = useState({ name: "", source: "", destination: "" });
 
-const badgeFor = (status: string) => {
-  if (status === "Healthy") return "bg-emerald-500/10 text-emerald-600";
-  return "bg-amber-500/10 text-amber-600";
-};
+  const fetchPipelines = async () => {
+    setLoading(true);
+    const { data } = await supabase
+      .from("data_pipelines")
+      .select("*")
+      .order("created_at", { ascending: false });
+    setPipelines(data || []);
+    setLoading(false);
+  };
 
-const AdminDataPipelines = () => (
-  <DashboardLayout allowedRoles={["admin"]} sidebar={<AdminSidebar />}>
-    <div className="space-y-6">
-      <section className="rounded-3xl border border-border/70 bg-card/90 p-6">
-        <div className="flex flex-wrap items-center justify-between gap-4">
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary">Data Pipelines</p>
-            <h1 className="mt-2 font-display text-3xl font-bold text-foreground">Analytics pipeline health</h1>
-            <p className="mt-2 text-sm text-muted-foreground">
-              Monitor ingestion, transformation, and delivery SLAs.
-            </p>
+  useEffect(() => {
+    fetchPipelines();
+  }, []);
+
+  const handleCreate = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSaving(true);
+    const { error } = await supabase.from("data_pipelines").insert({
+      ...newPipeline,
+      status: 'active'
+    });
+    if (error) {
+      toast({ title: "Operation failed", description: error.message, variant: "destructive" });
+    } else {
+      toast({ title: "Pipeline Activated", description: "Data flow has been initialized." });
+      setIsModalOpen(false);
+      setNewPipeline({ name: "", source: "", destination: "" });
+      fetchPipelines();
+    }
+    setSaving(false);
+  };
+
+  const deletePipeline = async (id: string) => {
+    await supabase.from("data_pipelines").delete().eq("id", id);
+    toast({ title: "Pipeline removed" });
+    fetchPipelines();
+  };
+
+  return (
+    <DashboardLayout allowedRoles={["admin"]} sidebar={<AdminSidebar />}>
+      <div className="space-y-6">
+        <section className="relative overflow-hidden rounded-3xl border border-border/70 bg-card/90 p-6">
+          <div className="absolute inset-0 bg-aurora opacity-60" />
+          <div className="relative flex flex-wrap items-center justify-between gap-4">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary">System Integration</p>
+              <h1 className="mt-2 font-display text-3xl font-bold text-foreground">Data Pipelines</h1>
+              <p className="mt-2 text-sm text-muted-foreground">Automate academic and operational data flows across institutional systems.</p>
+            </div>
+            <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+              <DialogTrigger asChild>
+                <Button className="bg-primary text-white shadow-lg shadow-primary/20">
+                  <Plus className="mr-2 h-4 w-4" /> New Pipeline
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader><DialogTitle>Configure Data Pipeline</DialogTitle></DialogHeader>
+                <form onSubmit={handleCreate} className="space-y-4 pt-4">
+                  <div className="space-y-2">
+                    <Label>Pipeline Name</Label>
+                    <Input placeholder="e.g. Student SIS Sync" value={newPipeline.name} onChange={e => setNewPipeline({...newPipeline, name: e.target.value})} required />
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label>Source</Label>
+                      <Input placeholder="Origin system" value={newPipeline.source} onChange={e => setNewPipeline({...newPipeline, source: e.target.value})} required />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Destination</Label>
+                      <Input placeholder="Target system" value={newPipeline.destination} onChange={e => setNewPipeline({...newPipeline, destination: e.target.value})} required />
+                    </div>
+                  </div>
+                  <DialogFooter>
+                    <Button variant="outline" type="button" onClick={() => setIsModalOpen(false)}>Cancel</Button>
+                    <Button type="submit" disabled={saving}>
+                      {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                      Initialize
+                    </Button>
+                  </DialogFooter>
+                </form>
+              </DialogContent>
+            </Dialog>
           </div>
-          <Button className="bg-gradient-brand text-primary-foreground">
-            <Play className="mr-2 h-4 w-4" /> Trigger pipeline
-          </Button>
-        </div>
-      </section>
+        </section>
 
-      <div className="grid gap-4 md:grid-cols-3">
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Active pipelines</CardTitle>
-            <Network className="h-4 w-4 text-primary" />
+          <CardHeader>
+            <CardTitle>Active Bridges</CardTitle>
+            <CardDescription>Managed data synchronization pathways.</CardDescription>
           </CardHeader>
           <CardContent>
-            <p className="text-2xl font-bold">9</p>
-            <p className="text-xs text-muted-foreground">All regions</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">SLAs met</CardTitle>
-            <Badge className="bg-emerald-500/10 text-emerald-600" variant="secondary">98.6%</Badge>
-          </CardHeader>
-          <CardContent>
-            <p className="text-2xl font-bold">98.6%</p>
-            <p className="text-xs text-muted-foreground">Last 7 days</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Alerts</CardTitle>
-            <Badge className="bg-amber-500/10 text-amber-600" variant="secondary">2</Badge>
-          </CardHeader>
-          <CardContent>
-            <p className="text-2xl font-bold">2</p>
-            <p className="text-xs text-muted-foreground">Needs attention</p>
+            {loading ? (
+              <div className="flex justify-center py-12"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>
+            ) : pipelines.length === 0 ? (
+              <div className="text-center py-12 border-2 border-dashed rounded-2xl text-muted-foreground">No pipelines configured.</div>
+            ) : (
+              <div className="space-y-3">
+                {pipelines.map((p) => (
+                  <div key={p.id} className="flex items-center justify-between p-4 rounded-xl border border-border bg-card/50 hover:bg-accent/5 transition-all">
+                    <div className="flex items-center gap-4">
+                      <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
+                        <Network className="h-5 w-5" />
+                      </div>
+                      <div>
+                        <p className="font-semibold text-sm text-foreground">{p.name}</p>
+                        <p className="text-xs text-muted-foreground">{p.source} → {p.destination}</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-4">
+                      <div className="hidden sm:block text-right mr-4">
+                        <Badge variant="outline" className="text-[10px] uppercase flex items-center gap-1">
+                          <CheckCircle className="h-2 w-2 text-emerald-500" /> {p.status}
+                        </Badge>
+                        <p className="text-[10px] text-muted-foreground mt-1">Healthy</p>
+                      </div>
+                      <Button variant="ghost" size="icon" className="h-8 w-8 text-primary">
+                        <Play className="h-4 w-4" />
+                      </Button>
+                      <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:bg-destructive/10" onClick={() => deletePipeline(p.id)}>
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>
+    </DashboardLayout>
+  );
+};
 
-      <Card className="p-4">
-        <CardHeader className="px-0 pt-0">
-          <CardTitle className="text-lg">Pipeline registry</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-3 px-0 pb-0">
-          {pipelines.map((pipe) => (
-            <div key={pipe.id} className="flex flex-wrap items-center justify-between gap-4 rounded-lg border border-border p-3">
-              <div>
-                <p className="text-sm font-semibold text-foreground">{pipe.name}</p>
-                <p className="text-xs text-muted-foreground">Last run {pipe.lastRun}</p>
-              </div>
-              <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                <Badge className={badgeFor(pipe.status)} variant="secondary">{pipe.status}</Badge>
-                <Button size="sm" variant="outline">View</Button>
-              </div>
-            </div>
-          ))}
-        </CardContent>
-      </Card>
-    </div>
-  </DashboardLayout>
-);
-
-export default AdminDataPipelines;
+export default DataPipelines;

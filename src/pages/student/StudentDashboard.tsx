@@ -86,7 +86,9 @@ const StudentDashboard = () => {
           <div className="absolute inset-0 bg-aurora opacity-40" />
           <div className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
             <div>
-              <h1 className="text-3xl font-display font-bold text-foreground">Welcome back, Scholar.</h1>
+              <h1 className="text-3xl font-display font-bold text-foreground">
+                Welcome back, {user?.user_metadata?.full_name?.split(' ')[0] || "Scholar"}.
+              </h1>
               <p className="mt-2 text-muted-foreground">You're on a 3-day learning streak! Keep it up.</p>
             </div>
             <Button className="bg-gradient-brand text-primary-foreground shadow-lg shadow-primary/20">

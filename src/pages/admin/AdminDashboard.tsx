@@ -17,7 +17,10 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogTrigger } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 
+import { useAuthContext } from "@/contexts/AuthContext";
+
 const AdminDashboard = () => {
+  const { user } = useAuthContext();
   const { toast } = useToast();
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState({ users: 0, courses: 0, enrollments: 0, pendingCourses: 0, pendingEnr: 0 });
@@ -134,7 +137,9 @@ const AdminDashboard = () => {
           <div className="absolute inset-0 bg-aurora opacity-60" />
           <div className="relative">
             <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary">University Administration</p>
-            <h1 className="mt-2 font-display text-3xl font-bold text-foreground text-primary">Global University Institute</h1>
+            <h1 className="mt-2 font-display text-3xl font-bold text-foreground text-primary">
+              Welcome back, {user?.user_metadata?.full_name || "Administrator"}
+            </h1>
             <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
               Institutional command center for faculty management, course accreditation, and student admissions.
             </p>

@@ -12,7 +12,7 @@ const Footer = () => (
                 <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
             </div>
-            <span className="font-display text-lg font-bold tracking-tight text-foreground">Learnflow AI</span>
+            <span className="font-display text-lg font-bold tracking-tight text-foreground">Global University Institute</span>
           </Link>
           <p className="mt-4 max-w-xs text-sm leading-relaxed text-muted-foreground">
             The enterprise-grade LMS built for modern education. Free for every student, every instructor, every institution.
