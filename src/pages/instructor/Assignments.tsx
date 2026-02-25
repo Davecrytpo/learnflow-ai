@@ -1,104 +1,218 @@
+import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import InstructorSidebar from "@/components/dashboard/InstructorSidebar";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { Calendar, FileCheck2, PlusCircle } from "lucide-react";
+import { Calendar, FileCheck2, PlusCircle, Search, Loader2, Trash2, Edit } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogTrigger } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
-const assignments = [
-  { id: "A-771", title: "Capstone Proposal", course: "Product Strategy", due: "Mar 05, 2026", submissions: 18, status: "Open" },
-  { id: "A-769", title: "Activation Funnel Audit", course: "Growth Analytics", due: "Mar 12, 2026", submissions: 9, status: "Scheduled" },
-  { id: "A-760", title: "Discovery Interview Debrief", course: "UX Research", due: "Feb 22, 2026", submissions: 26, status: "Grading" },
-];
+const InstructorAssignments = () => {
+  const { user } = useAuth();
+  const { toast } = useToast();
+  const [loading, setLoading] = useState(true);
+  const [courses, setCourses] = useState<any[]>([]);
+  const [assignments, setAssignments] = useState<any[]>([]);
+  const [search, setSearch] = useState("");
+  
+  // New assignment form state
+  const [open, setOpen] = useState(false);
+  const [newAsgn, setNewAsgn] = useState({ title: "", course_id: "", due_date: "", max_score: "100" });
+  const [saving, setSaving] = useState(false);
 
-const badgeFor = (status: string) => {
-  if (status === "Open") return "bg-emerald-500/10 text-emerald-600";
-  if (status === "Scheduled") return "bg-amber-500/10 text-amber-600";
-  return "bg-primary/10 text-primary";
-};
+  const fetchData = async () => {
+    if (!user) return;
+    setLoading(true);
+    try {
+      const { data: myCourses } = await supabase.from("courses").select("id, title").eq("author_id", user.id);
+      setCourses(myCourses || []);
 
-const InstructorAssignments = () => (
-  <DashboardLayout allowedRoles={["instructor"]} sidebar={<InstructorSidebar />}>
-    <div className="space-y-6">
-      <section className="rounded-3xl border border-border/70 bg-card/90 p-6">
-        <div className="flex flex-wrap items-center justify-between gap-4">
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary">Assignments</p>
-            <h1 className="mt-2 font-display text-3xl font-bold text-foreground">Create and assess coursework</h1>
-            <p className="mt-2 text-sm text-muted-foreground">
-              Organize assignment workflows, rubrics, and submission tracking.
-            </p>
+      if (myCourses && myCourses.length > 0) {
+        const cIds = myCourses.map(c => c.id);
+        const { data: asgns, error } = await supabase
+          .from("assignments")
+          .select("*, courses:course_id(title)")
+          .in("course_id", cIds)
+          .order("created_at", { ascending: false });
+        
+        if (error) throw error;
+        setAssignments(asgns || []);
+      }
+    } catch (err: any) {
+      toast({ title: "Load failed", description: err.message, variant: "destructive" });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchData();
+  }, [user]);
+
+  const handleCreate = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newAsgn.title || !newAsgn.course_id) return;
+    setSaving(true);
+    try {
+      const { error } = await supabase.from("assignments").insert({
+        title: newAsgn.title,
+        course_id: newAsgn.course_id,
+        due_date: newAsgn.due_date || null,
+        max_score: parseInt(newAsgn.max_score)
+      });
+      if (error) throw error;
+      toast({ title: "Assignment created" });
+      setOpen(false);
+      setNewAsgn({ title: "", course_id: "", due_date: "", max_score: "100" });
+      fetchData();
+    } catch (err: any) {
+      toast({ title: "Creation failed", description: err.message, variant: "destructive" });
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const deleteAssignment = async (id: string) => {
+    if (!confirm("Delete this assignment?")) return;
+    const { error } = await supabase.from("assignments").delete().eq("id", id);
+    if (error) toast({ title: "Error", description: error.message, variant: "destructive" });
+    else { toast({ title: "Assignment deleted" }); fetchData(); }
+  };
+
+  const filtered = assignments.filter(a => 
+    a.title.toLowerCase().includes(search.toLowerCase()) || 
+    a.courses?.title?.toLowerCase().includes(search.toLowerCase())
+  );
+
+  return (
+    <DashboardLayout allowedRoles={["instructor"]} sidebar={<InstructorSidebar />}>
+      <div className="space-y-6">
+        <section className="relative overflow-hidden rounded-3xl border border-border/70 bg-card/90 p-6">
+          <div className="absolute inset-0 bg-aurora opacity-60" />
+          <div className="absolute inset-0 bg-grid-pattern bg-grid opacity-[0.03]" />
+          <div className="relative flex flex-wrap items-center justify-between gap-4">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary">Faculty Tools</p>
+              <h1 className="mt-2 font-display text-3xl font-bold text-foreground">Coursework Management</h1>
+              <p className="mt-2 text-sm text-muted-foreground">Manage and track student submissions across your active courses.</p>
+            </div>
+            
+            <Dialog open={open} onOpenChange={setOpen}>
+              <DialogTrigger asChild>
+                <Button className="bg-gradient-brand text-primary-foreground shadow-lg shadow-primary/20">
+                  <PlusCircle className="mr-2 h-4 w-4" /> New Assignment
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader><DialogTitle>Create New Assignment</DialogTitle></DialogHeader>
+                <form onSubmit={handleCreate} className="space-y-4 pt-4">
+                  <div className="space-y-2">
+                    <Label>Target Course</Label>
+                    <Select value={newAsgn.course_id} onValueChange={(v) => setNewAsgn({...newAsgn, course_id: v})}>
+                      <SelectTrigger><SelectValue placeholder="Select course" /></SelectTrigger>
+                      <SelectContent>
+                        {courses.map(c => <SelectItem key={c.id} value={c.id}>{c.title}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Title</Label>
+                    <Input placeholder="Assignment Title" value={newAsgn.title} onChange={e => setNewAsgn({...newAsgn, title: e.target.value})} required />
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label>Due Date (Optional)</Label>
+                      <Input type="date" value={newAsgn.due_date} onChange={e => setNewAsgn({...newAsgn, due_date: e.target.value})} />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Max Points</Label>
+                      <Input type="number" value={newAsgn.max_score} onChange={e => setNewAsgn({...newAsgn, max_score: e.target.value})} />
+                    </div>
+                  </div>
+                  <DialogFooter>
+                    <Button variant="outline" type="button" onClick={() => setOpen(false)}>Cancel</Button>
+                    <Button type="submit" disabled={saving}>
+                      {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                      Create Assignment
+                    </Button>
+                  </DialogFooter>
+                </form>
+              </DialogContent>
+            </Dialog>
           </div>
-          <Button className="bg-gradient-brand text-primary-foreground">
-            <PlusCircle className="mr-2 h-4 w-4" /> New assignment
-          </Button>
-        </div>
-      </section>
+        </section>
 
-      <div className="grid gap-4 md:grid-cols-3">
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Active</CardTitle>
-            <FileCheck2 className="h-4 w-4 text-primary" />
+          <CardHeader>
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div>
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <FileCheck2 className="h-5 w-5 text-primary" /> Assignment Tracker
+                </CardTitle>
+                <CardDescription>Monitor {assignments.length} assignments.</CardDescription>
+              </div>
+              <div className="relative w-full sm:w-64">
+                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                <Input placeholder="Filter list..." value={search} onChange={e => setSearch(e.target.value)} className="pl-10" />
+              </div>
+            </div>
           </CardHeader>
           <CardContent>
-            <p className="text-2xl font-bold">7</p>
-            <p className="text-xs text-muted-foreground">Open for submissions</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Needs grading</CardTitle>
-            <Badge className="bg-amber-500/10 text-amber-600" variant="secondary">12</Badge>
-          </CardHeader>
-          <CardContent>
-            <p className="text-2xl font-bold">12</p>
-            <p className="text-xs text-muted-foreground">Awaiting feedback</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Published</CardTitle>
-            <Badge className="bg-slate-500/10 text-slate-600" variant="secondary">24</Badge>
-          </CardHeader>
-          <CardContent>
-            <p className="text-2xl font-bold">24</p>
-            <p className="text-xs text-muted-foreground">Across all courses</p>
+            {loading ? (
+              <div className="flex justify-center py-12"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>
+            ) : filtered.length === 0 ? (
+              <div className="text-center py-12 border-2 border-dashed rounded-xl text-muted-foreground">
+                No assignments found.
+              </div>
+            ) : (
+              <div className="rounded-xl border border-border overflow-hidden">
+                <table className="w-full text-sm">
+                  <thead className="bg-secondary/40 text-muted-foreground border-b border-border">
+                    <tr>
+                      <th className="text-left p-4">Assignment</th>
+                      <th className="text-left p-4 hidden md:table-cell">Course</th>
+                      <th className="text-left p-4">Due Date</th>
+                      <th className="text-right p-4">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-border/60">
+                    {filtered.map(a => (
+                      <tr key={a.id} className="hover:bg-accent/5 transition-colors">
+                        <td className="p-4 font-medium text-foreground">{a.title}</td>
+                        <td className="p-4 hidden md:table-cell text-muted-foreground">{a.courses?.title}</td>
+                        <td className="p-4">
+                          <span className="flex items-center gap-2 text-muted-foreground">
+                            <Calendar className="h-3.5 w-3.5" />
+                            {a.due_date ? new Date(a.due_date).toLocaleDateString() : "No deadline"}
+                          </span>
+                        </td>
+                        <td className="p-4 text-right">
+                          <div className="flex items-center justify-end gap-1">
+                            <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-primary/10">
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                            <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:bg-destructive/10" onClick={() => deleteAssignment(a.id)}>
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>
-
-      <Card className="p-4">
-        <CardHeader className="px-0 pt-0">
-          <CardTitle className="text-lg">Assignment tracker</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-3 px-0 pb-0">
-          <div className="flex flex-wrap items-center gap-3">
-            <Input placeholder="Search assignments" className="max-w-xs" />
-            <Button variant="outline">Filter</Button>
-            <Button variant="ghost">Export</Button>
-          </div>
-          <div className="space-y-3">
-            {assignments.map((item) => (
-              <div key={item.id} className="flex flex-wrap items-center justify-between gap-4 rounded-lg border border-border p-3">
-                <div>
-                  <p className="text-sm font-semibold text-foreground">{item.title}</p>
-                  <p className="text-xs text-muted-foreground">{item.course}</p>
-                </div>
-                <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                  <span className="flex items-center gap-2"><Calendar className="h-3.5 w-3.5" /> {item.due}</span>
-                  <span>{item.submissions} submissions</span>
-                  <Badge className={badgeFor(item.status)} variant="secondary">{item.status}</Badge>
-                  <Button size="sm" variant="outline">Open</Button>
-                </div>
-              </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
-    </div>
-  </DashboardLayout>
-);
+    </DashboardLayout>
+  );
+};
 
 export default InstructorAssignments;

@@ -1,101 +1,174 @@
+import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import AdminSidebar from "@/components/dashboard/AdminSidebar";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { Building2, PlusCircle } from "lucide-react";
+import { Building2, PlusCircle, Search, Loader2, Trash2 } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
-const tenants = [
-  { id: "T-101", name: "Northwind University", plan: "Enterprise", status: "Active", seats: 1250 },
-  { id: "T-098", name: "Cedar Ridge Academy", plan: "Pro", status: "Active", seats: 320 },
-  { id: "T-091", name: "Waveform Labs", plan: "Growth", status: "Pending", seats: 80 },
-];
+const AdminTenants = () => {
+  const { toast } = useToast();
+  const [tenants, setTenants] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState("");
+  const [adding, setAdding] = useState(false);
+  const [newTenant, setNewTenant] = useState({ name: "", slug: "" });
 
-const badgeFor = (status: string) => {
-  if (status === "Active") return "bg-emerald-500/10 text-emerald-600";
-  return "bg-amber-500/10 text-amber-600";
-};
+  const fetchTenants = async () => {
+    setLoading(true);
+    const { data } = await supabase
+      .from("tenants")
+      .select("*")
+      .order("name", { ascending: true });
+    setTenants(data || []);
+    setLoading(false);
+  };
 
-const AdminTenants = () => (
-  <DashboardLayout allowedRoles={["admin"]} sidebar={<AdminSidebar />}>
-    <div className="space-y-6">
-      <section className="rounded-3xl border border-border/70 bg-card/90 p-6">
-        <div className="flex flex-wrap items-center justify-between gap-4">
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary">Tenants</p>
-            <h1 className="mt-2 font-display text-3xl font-bold text-foreground">Multi-tenant administration</h1>
-            <p className="mt-2 text-sm text-muted-foreground">
-              Manage organizations, seat limits, and tenancy provisioning.
-            </p>
+  useEffect(() => {
+    fetchTenants();
+  }, []);
+
+  const handleAdd = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newTenant.name || !newTenant.slug) return;
+    setAdding(true);
+    
+    const { error } = await supabase.from("tenants").insert({
+      name: newTenant.name,
+      slug: newTenant.slug.toLowerCase().replace(/\s+/g, '-'),
+      plan: "growth",
+      status: "active",
+      seats: 100
+    });
+
+    if (error) {
+      toast({ title: "Failed to create tenant", description: error.message, variant: "destructive" });
+    } else {
+      toast({ title: "Tenant created", description: `${newTenant.name} is now live.` });
+      setNewTenant({ name: "", slug: "" });
+      fetchTenants();
+    }
+    setAdding(false);
+  };
+
+  const deleteTenant = async (id: string) => {
+    if (!confirm("Are you sure? All data for this tenant will be inaccessible.")) return;
+    await supabase.from("tenants").delete().eq("id", id);
+    toast({ title: "Tenant removed" });
+    fetchTenants();
+  };
+
+  const filtered = tenants.filter(t => 
+    t.name.toLowerCase().includes(search.toLowerCase()) || 
+    t.slug.toLowerCase().includes(search.toLowerCase())
+  );
+
+  return (
+    <DashboardLayout allowedRoles={["admin"]} sidebar={<AdminSidebar />}>
+      <div className="space-y-6">
+        <section className="relative overflow-hidden rounded-3xl border border-border/70 bg-card/90 p-6">
+          <div className="absolute inset-0 bg-aurora opacity-60" />
+          <div className="absolute inset-0 bg-grid-pattern bg-grid opacity-[0.03]" />
+          <div className="relative">
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary">Multi-Tenancy</p>
+            <h1 className="mt-2 font-display text-3xl font-bold text-foreground">Organization Registry</h1>
+            <p className="mt-2 text-sm text-muted-foreground">Provision and manage isolated enterprise learning environments.</p>
           </div>
-          <Button className="bg-gradient-brand text-primary-foreground">
-            <PlusCircle className="mr-2 h-4 w-4" /> New tenant
-          </Button>
-        </div>
-      </section>
+        </section>
 
-      <div className="grid gap-4 md:grid-cols-3">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Active tenants</CardTitle>
-            <Building2 className="h-4 w-4 text-primary" />
-          </CardHeader>
-          <CardContent>
-            <p className="text-2xl font-bold">14</p>
-            <p className="text-xs text-muted-foreground">Across regions</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Total seats</CardTitle>
-            <Badge className="bg-primary/10 text-primary" variant="secondary">6,850</Badge>
-          </CardHeader>
-          <CardContent>
-            <p className="text-2xl font-bold">6,850</p>
-            <p className="text-xs text-muted-foreground">Provisioned</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Pending</CardTitle>
-            <Badge className="bg-amber-500/10 text-amber-600" variant="secondary">2</Badge>
-          </CardHeader>
-          <CardContent>
-            <p className="text-2xl font-bold">2</p>
-            <p className="text-xs text-muted-foreground">Awaiting setup</p>
-          </CardContent>
-        </Card>
-      </div>
-
-      <Card className="p-4">
-        <CardHeader className="px-0 pt-0">
-          <CardTitle className="text-lg">Tenant directory</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-3 px-0 pb-0">
-          <div className="flex flex-wrap items-center gap-3">
-            <Input placeholder="Search tenants" className="max-w-xs" />
-            <Button variant="outline">Filter</Button>
-            <Button variant="ghost">Export</Button>
-          </div>
-          <div className="space-y-3">
-            {tenants.map((tenant) => (
-              <div key={tenant.id} className="flex flex-wrap items-center justify-between gap-4 rounded-lg border border-border p-3">
-                <div>
-                  <p className="text-sm font-semibold text-foreground">{tenant.name}</p>
-                  <p className="text-xs text-muted-foreground">{tenant.plan} plan · {tenant.seats} seats</p>
+        <div className="grid gap-6 md:grid-cols-3">
+          <Card className="h-fit">
+            <CardHeader>
+              <CardTitle className="text-lg">New Organization</CardTitle>
+              <CardDescription>Setup a new isolated tenant.</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <form onSubmit={handleAdd} className="space-y-4">
+                <div className="space-y-2">
+                  <Input 
+                    placeholder="Org Name" 
+                    value={newTenant.name} 
+                    onChange={e => setNewTenant({...newTenant, name: e.target.value})} 
+                  />
+                  <Input 
+                    placeholder="Subdomain / Slug" 
+                    value={newTenant.slug} 
+                    onChange={e => setNewTenant({...newTenant, slug: e.target.value})} 
+                  />
                 </div>
-                <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                  <Badge className={badgeFor(tenant.status)} variant="secondary">{tenant.status}</Badge>
-                  <Button size="sm" variant="outline">Manage</Button>
+                <Button className="w-full" type="submit" disabled={adding || !newTenant.name}>
+                  {adding && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                  Provision Tenant
+                </Button>
+              </form>
+            </CardContent>
+          </Card>
+
+          <Card className="md:col-span-2">
+            <CardHeader>
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div>
+                  <CardTitle className="text-lg">Active Tenants</CardTitle>
+                  <CardDescription>{tenants.length} organizations provisioned.</CardDescription>
+                </div>
+                <div className="relative w-full sm:w-64">
+                  <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                  <Input 
+                    placeholder="Search directory..." 
+                    value={search} 
+                    onChange={e => setSearch(e.target.value)} 
+                    className="pl-10"
+                  />
                 </div>
               </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
-    </div>
-  </DashboardLayout>
-);
+            </CardHeader>
+            <CardContent>
+              {loading ? (
+                <div className="flex justify-center py-8"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>
+              ) : filtered.length === 0 ? (
+                <div className="text-center py-12 border-2 border-dashed rounded-xl text-muted-foreground">
+                  No tenants found.
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  {filtered.map(t => (
+                    <div key={t.id} className="flex items-center justify-between p-4 rounded-xl border border-border bg-card/50 hover:bg-accent/5 transition-all group">
+                      <div className="flex items-center gap-4">
+                        <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
+                          <Building2 className="h-5 w-5" />
+                        </div>
+                        <div>
+                          <p className="font-semibold text-sm">{t.name}</p>
+                          <p className="text-xs text-muted-foreground font-mono">{t.slug}.learnflow.ai</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-4">
+                        <div className="hidden sm:block text-right">
+                          <Badge variant="outline" className="text-[10px] uppercase">{t.plan}</Badge>
+                          <p className="text-[10px] text-muted-foreground mt-1">{t.seats} seats</p>
+                        </div>
+                        <Button 
+                          variant="ghost" 
+                          size="icon" 
+                          className="h-8 w-8 text-destructive opacity-0 group-hover:opacity-100 transition-opacity"
+                          onClick={() => deleteTenant(t.id)}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    </DashboardLayout>
+  );
+};
 
 export default AdminTenants;
