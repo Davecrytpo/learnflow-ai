@@ -27,56 +27,57 @@ const AdminDashboard = () => {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const [profilesRes, coursesRes, enrollRes, certRes, rolesRes, pendingInstRes] = await Promise.all([
-        supabase.from("profiles").select("id, user_id, display_name, email:user_id, institution, created_at, status"),
-        supabase.from("courses").select("id, title, published, category, created_at, author_id, profiles:author_id(display_name)"),
-        supabase.from("enrollments").select("id"),
-        supabase.from("certificates").select("id"),
-        supabase.from("user_roles").select("id, user_id, role"),
-        supabase.from("profiles").select("*").eq("status", "pending"),
+      // Fetch core platform entities
+      const [profilesRes, coursesRes, enrollRes, certRes, rolesRes] = await Promise.all([
+        supabase.from("profiles").select("*").order('created_at', { ascending: false }),
+        supabase.from("courses").select("*").order('created_at', { ascending: false }),
+        supabase.from("enrollments").select("*"),
+        supabase.from("certificates").select("*"),
+        supabase.from("user_roles").select("*"),
       ]);
+
+      if (profilesRes.error) throw profilesRes.error;
+      if (coursesRes.error) throw coursesRes.error;
 
       const allProfiles = profilesRes.data || [];
       const allRoles = rolesRes.data || [];
       const allCourses = coursesRes.data || [];
+      const allEnrollments = enrollRes.data || [];
 
-      // Fetch pending enrollments with individual table selects to avoid join ambiguity
-      const { data: rawEnrollments, error: enrollErr } = await supabase
-        .from("enrollments")
-        .select("*")
-        .eq("status", "pending")
-        .eq("instructor_approved", true);
-
-      if (enrollErr) throw enrollErr;
-
-      // Manually map foreign data to avoid inner-join complexity crashes
-      const pendingWithData = (rawEnrollments || []).map(enr => ({
-        ...enr,
-        courses: (allCourses || []).find(c => c.id === enr.course_id) || { title: "Deleted Course" },
-        profiles: (allProfiles || []).find(p => p.user_id === enr.student_id) || { display_name: "Unknown Student" }
-      }));
-
+      // Update basic platform stats
       setStats({
         users: allProfiles.length,
         courses: allCourses.length,
-        enrollments: enrollRes.data?.length || 0,
+        enrollments: allEnrollments.length,
         certificates: certRes.data?.length || 0,
       });
 
-      setPendingInstructors(pendingInstRes.data || []);
-      setPendingEnrollments(pendingWithData);
+      // Filter pending requests
+      setPendingInstructors(allProfiles.filter(p => p.status === "pending"));
+      
+      const pendingEnr = allEnrollments
+        .filter(enr => enr.status === "pending" && enr.instructor_approved === true)
+        .map(enr => ({
+          ...enr,
+          courses: allCourses.find(c => c.id === enr.course_id) || { title: "Deleted Course" },
+          profiles: allProfiles.find(p => p.user_id === enr.student_id) || { display_name: "Unknown Student" }
+        }));
+      setPendingEnrollments(pendingEnr);
 
+      // Map users with their roles for the management table
       const usersWithRoles = allProfiles.map(p => ({
         ...p,
-        role: allRoles.find(r => r.user_id === p.user_id)?.role || "none",
+        role: allRoles.find(r => r.user_id === p.user_id)?.role || "student",
         role_id: allRoles.find(r => r.user_id === p.user_id)?.id,
       }));
       setUsers(usersWithRoles);
       setCourses(allCourses);
 
-      const studentCount = allRoles.filter(r => r.role === "student").length;
+      // Prepare chart data
+      const studentCount = allRoles.filter(r => r.role === "student").length || allProfiles.length;
       const instructorCount = allRoles.filter(r => r.role === "instructor").length;
       const adminCount = allRoles.filter(r => r.role === "admin").length;
+      
       setRoleData([
         { name: "Students", value: studentCount },
         { name: "Instructors", value: instructorCount },
@@ -84,7 +85,11 @@ const AdminDashboard = () => {
       ]);
     } catch (err: any) {
       console.error("Dashboard Fetch Error:", err);
-      toast({ title: "System Error", description: err.message || "Failed to sync platform data.", variant: "destructive" });
+      toast({ 
+        title: "Platform Sync Error", 
+        description: "Some real-time metrics might be unavailable.", 
+        variant: "destructive" 
+      });
     } finally {
       setLoading(false);
     }
@@ -96,36 +101,83 @@ const AdminDashboard = () => {
 
   const approveInstructor = async (profileId: string) => {
     const { error } = await supabase.from("profiles").update({ status: "approved" }).eq("id", profileId);
-    if (error) toast({ title: "Error", description: error.message, variant: "destructive" });
-    else { toast({ title: "Instructor Approved" }); fetchData(); }
+    if (error) {
+      toast({ title: "Approval Failed", description: error.message, variant: "destructive" });
+    } else {
+      toast({ title: "Instructor Verified", description: "The instructor can now create and publish courses." });
+      fetchData();
+    }
+  };
+
+  const rejectInstructor = async (profileId: string) => {
+    const { error } = await supabase.from("profiles").update({ status: "rejected" }).eq("id", profileId);
+    if (error) {
+      toast({ title: "Action Failed", description: error.message, variant: "destructive" });
+    } else {
+      toast({ title: "Request Rejected", description: "The instructor registration has been declined." });
+      fetchData();
+    }
   };
 
   const approveEnrollment = async (enrollId: string) => {
-    const { error } = await supabase.from("enrollments").update({ status: "approved", admin_approved: true }).eq("id", enrollId);
-    if (error) toast({ title: "Error", description: error.message, variant: "destructive" });
-    else { toast({ title: "Enrollment Finalized" }); fetchData(); }
+    const { error } = await supabase.from("enrollments").update({ 
+      status: "approved", 
+      admin_approved: true 
+    }).eq("id", enrollId);
+    
+    if (error) {
+      toast({ title: "Finalization Failed", description: error.message, variant: "destructive" });
+    } else {
+      toast({ title: "Enrollment Finalized", description: "The student now has full access to the course." });
+      fetchData();
+    }
+  };
+
+  const rejectEnrollment = async (enrollId: string) => {
+    const { error } = await supabase.from("enrollments").update({ status: "rejected" }).eq("id", enrollId);
+    if (error) {
+      toast({ title: "Rejection Failed", description: error.message, variant: "destructive" });
+    } else {
+      toast({ title: "Enrollment Rejected" });
+      fetchData();
+    }
   };
 
   const changeUserRole = async (userId: string, currentRoleId: string | undefined, newRole: string) => {
-    if (currentRoleId) {
-      await supabase.from("user_roles").update({ role: newRole as any }).eq("id", currentRoleId);
-    } else {
-      await supabase.from("user_roles").insert({ user_id: userId, role: newRole as any });
+    try {
+      if (currentRoleId) {
+        await supabase.from("user_roles").update({ role: newRole as any }).eq("id", currentRoleId);
+      } else {
+        await supabase.from("user_roles").insert({ user_id: userId, role: newRole as any });
+      }
+      toast({ title: "Permissions Updated", description: `User role changed to ${newRole}.` });
+      fetchData();
+    } catch (err: any) {
+      toast({ title: "Update Failed", description: err.message, variant: "destructive" });
     }
-    setUsers(users.map(u => u.user_id === userId ? { ...u, role: newRole } : u));
-    toast({ title: "Role updated" });
   };
 
   const toggleCoursePublish = async (courseId: string, current: boolean) => {
-    await supabase.from("courses").update({ published: !current }).eq("id", courseId);
-    setCourses(courses.map(c => c.id === courseId ? { ...c, published: !current } : c));
-    toast({ title: current ? "Course unpublished" : "Course published" });
+    const { error } = await supabase.from("courses").update({ published: !current }).eq("id", courseId);
+    if (error) {
+      toast({ title: "Action Failed", variant: "destructive" });
+    } else {
+      toast({ title: current ? "Course Hidden" : "Course Published" });
+      fetchData();
+    }
   };
 
   const deleteCourse = async (courseId: string) => {
-    await supabase.from("courses").delete().eq("id", courseId);
-    setCourses(courses.filter(c => c.id !== courseId));
-    toast({ title: "Course deleted" });
+    const confirmDelete = window.confirm("Are you sure you want to delete this course? This action cannot be undone.");
+    if (!confirmDelete) return;
+
+    const { error } = await supabase.from("courses").delete().eq("id", courseId);
+    if (error) {
+      toast({ title: "Delete Failed", description: error.message, variant: "destructive" });
+    } else {
+      toast({ title: "Course Removed" });
+      fetchData();
+    }
   };
 
   const COLORS = ["hsl(168, 60%, 33%)", "hsl(22, 86%, 55%)", "hsl(168, 62%, 45%)"];
@@ -244,7 +296,7 @@ const AdminDashboard = () => {
                         </div>
                         <div className="flex gap-2">
                           <Button size="sm" variant="outline" className="h-8 text-xs border-emerald-500/50 text-emerald-600 hover:bg-emerald-50" onClick={() => approveInstructor(inst.id)}>Approve</Button>
-                          <Button size="sm" variant="ghost" className="h-8 text-xs text-destructive hover:bg-destructive/5">Reject</Button>
+                          <Button size="sm" variant="ghost" className="h-8 text-xs text-destructive hover:bg-destructive/5" onClick={() => rejectInstructor(inst.id)}>Reject</Button>
                         </div>
                       </div>
                     ))
@@ -270,7 +322,7 @@ const AdminDashboard = () => {
                         </div>
                         <div className="flex gap-2">
                           <Button size="sm" variant="outline" className="h-8 text-xs border-primary/50 text-primary hover:bg-primary/5" onClick={() => approveEnrollment(enr.id)}>Finalize</Button>
-                          <Button size="sm" variant="ghost" className="h-8 text-xs text-destructive">Reject</Button>
+                          <Button size="sm" variant="ghost" className="h-8 text-xs text-destructive hover:bg-destructive/5" onClick={() => rejectEnrollment(enr.id)}>Reject</Button>
                         </div>
                       </div>
                     ))
