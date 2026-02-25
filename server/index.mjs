@@ -21,31 +21,42 @@ const supabase = supabaseUrl && supabaseServiceKey
   ? createClient(supabaseUrl, supabaseServiceKey, { auth: { persistSession: false } })
   : null;
 
-const BREVO_API_KEY = process.env.BREVO_API_KEY;
+const SENDGRID_API_KEY = process.env.SENDGRID_API_KEY;
+const SENDGRID_SENDER_EMAIL = process.env.SENDGRID_SENDER_EMAIL || "noreply@globaluniversityinstitute.com";
 
 const sendEmail = async ({ to, subject, htmlContent }) => {
-  if (!BREVO_API_KEY) {
-    console.error("BREVO_API_KEY is not set. Skipping email.");
+  if (!SENDGRID_API_KEY) {
+    console.error("SENDGRID_API_KEY is not set. Skipping email.");
     return;
   }
   try {
-    const response = await fetch("https://api.brevo.com/v3/smtp/email", {
+    const response = await fetch("https://api.sendgrid.com/v3/mail/send", {
       method: "POST",
       headers: {
-        "accept": "application/json",
-        "api-key": BREVO_API_KEY,
-        "content-type": "application/json"
+        "Authorization": `Bearer ${SENDGRID_API_KEY}`,
+        "Content-Type": "application/json"
       },
       body: JSON.stringify({
-        sender: { name: "Learnflow AI", email: "notifications@learnflowai.com" },
-        to: [{ email: to }],
+        personalizations: [{
+          to: [{ email: to }]
+        }],
+        from: { email: SENDGRID_SENDER_EMAIL, name: "Learnflow AI" },
         subject,
-        htmlContent
+        content: [{
+          type: "text/html",
+          value: htmlContent
+        }]
       })
     });
-    return await response.json();
+    if (!response.ok) {
+      const errorBody = await response.json();
+      console.error("SendGrid Error Response:", JSON.stringify(errorBody, null, 2));
+      return { error: errorBody };
+    }
+    return { success: true };
   } catch (error) {
-    console.error("Brevo Email Error:", error);
+    console.error("SendGrid Email Error:", error);
+    return { error: error.message };
   }
 };
 

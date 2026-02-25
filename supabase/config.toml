@@ -5,4 +5,16 @@ site_url = "http://localhost:8080"
 additional_redirect_urls = []
 
 [auth.email]
+enable_signup = true
+double_confirm_changes = true
+enable_confirmations = true
+
+[auth.external.smtp]
+enabled = true
+host = "smtp.sendgrid.net"
+port = 587
+user = "apikey"
+# The password will be the API key provided
+pass = "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"
 sender_name = "Learnflow AI"
+admin_email = "noreply@globaluniversityinstitute.com"

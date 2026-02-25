@@ -64,7 +64,15 @@ const Signup = () => {
       email,
       password,
       options: {
-        data: { full_name: name },
+        data: { 
+          full_name: name,
+          role: selectedRole,
+          institution: institution || null,
+          grade_level: gradeLevel || null,
+          subject_areas: subjectArea ? [subjectArea] : null,
+          state: state || null,
+          phone: phone || null,
+        },
         emailRedirectTo: window.location.origin,
       },
     });
@@ -75,19 +83,9 @@ const Signup = () => {
       return;
     }
 
+    // With email confirmation, authData.session might be null
     if (authData.user && authData.session) {
-      // Assign role
-      await supabase.from("user_roles").insert({ user_id: authData.user.id, role: selectedRole });
-
-      // Update profile with education fields
-      await supabase.from("profiles").update({
-        institution: institution || null,
-        grade_level: gradeLevel || null,
-        subject_areas: subjectArea ? [subjectArea] : null,
-        state: state || null,
-        phone: phone || null,
-      }).eq("user_id", authData.user.id);
-
+      // Role and profile are now handled by the database trigger
       setLoading(false);
       navigate("/dashboard");
     } else {
