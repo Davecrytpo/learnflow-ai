@@ -36,7 +36,7 @@ const AdminTenants = () => {
     if (!newTenant.name || !newTenant.slug) return;
     setAdding(true);
     
-    const { error } = await supabase.from("tenants").insert({
+    const { error } = await (supabase.from as any)("tenants").insert({
       name: newTenant.name,
       slug: newTenant.slug.toLowerCase().replace(/\s+/g, '-'),
       plan: "growth",
