@@ -19,8 +19,8 @@ const AdminTenants = () => {
 
   const fetchTenants = async () => {
     setLoading(true);
-    const { data } = await supabase
-      .from("tenants")
+    const { data } = await (supabase
+      .from as any)("tenants")
       .select("*")
       .order("name", { ascending: true });
     setTenants(data || []);
