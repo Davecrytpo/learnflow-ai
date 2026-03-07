@@ -36,7 +36,7 @@ const DataExports = () => {
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
     setSaving(true);
-    const { error } = await supabase.from("data_exports").insert({
+    const { error } = await (supabase.from as any)("data_exports").insert({
       name: newExport.name,
       format: newExport.format,
       status: 'completed'
