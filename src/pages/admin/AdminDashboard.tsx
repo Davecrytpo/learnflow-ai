@@ -47,8 +47,8 @@ const AdminDashboard = () => {
       const allCourses = coursesRes.data || [];
       const allEnrollments = enrollRes.data || [];
       
-      setPendingCourses(allCourses.filter(c => c.status === 'pending'));
-      setPendingEnrollments(allEnrollments.filter(e => e.status === 'pending'));
+      setPendingCourses(allCourses.filter((c: any) => c.published === false));
+      setPendingEnrollments(allEnrollments.filter((e: any) => !e.completed_at));
       
       const instructorIds = (rolesRes.data || []).map(r => r.user_id);
       setInstructors((usersRes.data || []).filter(u => instructorIds.includes(u.user_id)));
