@@ -68,9 +68,10 @@ const InstructorRegister = () => {
         options: {
           data: { 
             full_name: `${formData.firstName} ${formData.lastName}`,
-            role: 'instructor',
+            // role: 'instructor', // Omitted: Role will be assigned by Admin after approval
             department: formData.department,
-            specialization: formData.specialization
+            specialization: formData.specialization,
+            is_faculty_applicant: true // Flag for admin filtering
           },
           emailRedirectTo: window.location.origin,
         },
@@ -79,19 +80,15 @@ const InstructorRegister = () => {
       if (authError) throw authError;
 
       if (authData.user) {
-        // Optional: Create a profile entry immediately with more details if needed, 
-        // but the trigger handle_new_user handles basic profile creation.
-        // We might want to update the profile with the bio.
-        
         await supabase.from("profiles").update({
           bio: formData.bio
         }).eq("user_id", authData.user.id);
 
         toast({ 
-          title: "Application Submitted", 
-          description: "Your faculty account has been created. Please verify your email to access the dashboard." 
+          title: "Application Received", 
+          description: "Your faculty application is being reviewed by the Academic Board. You will be notified via email upon approval." 
         });
-        navigate("/login?role=instructor");
+        navigate("/");
       }
     } catch (error: any) {
       toast({ title: "Registration failed", description: error.message, variant: "destructive" });

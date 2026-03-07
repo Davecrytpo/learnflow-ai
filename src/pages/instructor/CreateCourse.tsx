@@ -86,7 +86,7 @@ const CreateCourse = () => {
 
     const slug = form.title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") + "-" + Math.random().toString(36).substring(2, 7);
 
-    const { data, error } = await (supabase.from("courses") as any).insert({
+    const { data, error } = await supabase.from("courses").insert({
       title: form.title, 
       description: form.description, 
       summary: form.summary,
@@ -104,7 +104,12 @@ const CreateCourse = () => {
 
     setLoading(false);
     if (error) {
-      toast({ title: "Error", description: error.message, variant: "destructive" });
+      console.error("Course creation error detail:", error);
+      toast({ 
+        title: "Course Creation Failed", 
+        description: error.message || "Something went wrong. Please check if all required fields are met and database columns exist.", 
+        variant: "destructive" 
+      });
     } else {
       toast({ title: "Course created!", description: "Now add modules, lessons, and assessments." });
       navigate(`/instructor/courses/${data.id}`);

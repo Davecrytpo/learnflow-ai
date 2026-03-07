@@ -241,12 +241,28 @@ const AdminDashboard = () => {
                         <Button 
                           size="sm" 
                           className="bg-primary text-white font-bold h-10 px-6 rounded-xl shadow-lg shadow-primary/10"
-                          onClick={() => {
-                            // Update bio to mock approval in this demo
-                            supabase.from("profiles").update({ bio: "Institutional Faculty" }).eq("user_id", i.user_id).then(() => {
-                              toast({ title: "Faculty Approved", description: `${i.display_name} is now an active instructor.` });
+                          onClick={async () => {
+                            try {
+                              // 1. Assign role in user_roles table
+                              const { error: roleError } = await supabase
+                                .from("user_roles")
+                                .insert({ user_id: i.user_id, role: 'instructor' });
+                              
+                              if (roleError && roleError.code !== '23505') throw roleError; // 23505 is unique constraint (already has role)
+
+                              // 2. Update bio/status to mark as approved
+                              const { error: profileError } = await supabase
+                                .from("profiles")
+                                .update({ bio: "Institutional Faculty (Approved)" })
+                                .eq("user_id", i.user_id);
+                              
+                              if (profileError) throw profileError;
+
+                              toast({ title: "Faculty Approved", description: `${i.display_name} has been granted teaching credentials.` });
                               fetchData();
-                            });
+                            } catch (err: any) {
+                              toast({ title: "Approval Failed", description: err.message, variant: "destructive" });
+                            }
                           }}
                         >
                           Approve Faculty
