@@ -47,7 +47,7 @@ const AdminAccreditation = () => {
     e.preventDefault();
     setSaving(true);
     
-    const { error } = await supabase.from("accreditations").insert({
+    const { error } = await (supabase.from as any)("accreditations").insert({
       agency: newAccreditation.agency,
       status: newAccreditation.status,
       renewal_date: newAccreditation.renewal_date || null
