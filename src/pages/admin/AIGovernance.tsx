@@ -17,8 +17,8 @@ const AIGovernance = () => {
 
   const fetchLogs = async () => {
     setLoading(true);
-    const { data, error } = await supabase
-      .from("ai_governance_logs")
+    const { data, error } = await (supabase
+      .from as any)("ai_governance_logs")
       .select("*")
       .order("created_at", { ascending: false });
     
