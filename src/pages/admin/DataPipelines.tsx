@@ -36,7 +36,7 @@ const DataPipelines = () => {
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
     setSaving(true);
-    const { error } = await supabase.from("data_pipelines").insert({
+    const { error } = await (supabase.from as any)("data_pipelines").insert({
       ...newPipeline,
       status: 'active'
     });
