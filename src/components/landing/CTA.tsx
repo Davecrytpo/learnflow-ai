@@ -38,17 +38,17 @@ const CTA = () => (
           </div>
 
           <div className="mt-10 flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
-            <Button size="lg" className="h-14 gap-2 bg-background px-10 text-base font-semibold text-foreground hover:bg-background/90 shadow-xl" asChild>
+            <Button size="lg" className="h-14 gap-2 bg-white px-10 text-base font-bold text-slate-900 hover:bg-slate-100 shadow-xl rounded-2xl" asChild>
               <Link to="/signup">
                 <BookOpen className="h-4 w-4" />
-                Join as Student
+                Enroll as Student
                 <ArrowRight className="h-4 w-4" />
               </Link>
             </Button>
-            <Button size="lg" variant="outline" className="h-14 gap-2 border-primary-foreground/25 px-10 text-base font-medium text-primary-foreground hover:bg-primary-foreground/10" asChild>
-              <Link to="/signup?role=instructor">
+            <Button size="lg" variant="outline" className="h-14 gap-2 border-white/25 px-10 text-base font-bold text-white hover:bg-white/10 rounded-2xl backdrop-blur-sm" asChild>
+              <Link to="/instructor/register">
                 <Users className="h-4 w-4" />
-                Register as Instructor
+                Join our Faculty
               </Link>
             </Button>
           </div>

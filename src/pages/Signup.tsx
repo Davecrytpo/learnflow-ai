@@ -3,11 +3,12 @@ import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { GraduationCap, Loader2, ArrowRight } from "lucide-react";
+import { GraduationCap, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import Navbar from "@/components/landing/Navbar";
 import Footer from "@/components/landing/Footer";
+import { motion } from "framer-motion";
 
 const Signup = () => {
   const [name, setName] = useState("");
@@ -36,7 +37,7 @@ const Signup = () => {
       options: {
         data: { 
           full_name: name,
-          role: 'student'
+          role: 'student' // Strictly Student
         },
         emailRedirectTo: window.location.origin,
       },
@@ -59,19 +60,27 @@ const Signup = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
+    <div className="min-h-screen bg-slate-50 flex flex-col font-sans">
       <Navbar />
-      <main className="flex-1 flex items-center justify-center py-20 px-6">
-        <div className="w-full max-w-md space-y-8">
-          <div className="text-center">
-            <div className="h-16 w-16 bg-primary/10 rounded-2xl flex items-center justify-center mx-auto mb-6 text-primary">
-              <GraduationCap className="h-10 w-10" />
+      <main className="flex-1 flex items-center justify-center py-20 px-4">
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="w-full max-w-md space-y-8"
+        >
+          <div className="text-center space-y-2">
+            <div className="h-16 w-16 bg-gradient-brand rounded-2xl flex items-center justify-center mx-auto mb-6 text-white shadow-lg shadow-primary/20">
+              <GraduationCap className="h-9 w-9" />
             </div>
-            <h1 className="text-3xl font-display font-bold">Student Registration</h1>
-            <p className="text-muted-foreground mt-2">Create your account to join our global academic community.</p>
+            <h1 className="text-3xl font-display font-bold text-slate-900">
+              Student Registration
+            </h1>
+            <p className="text-slate-500 max-w-sm mx-auto">
+              Join our global community of learners. Access thousands of courses and start your journey today.
+            </p>
           </div>
 
-          <div className="bg-card border border-border p-8 rounded-3xl shadow-xl">
+          <div className="bg-white border border-slate-200 p-8 rounded-3xl shadow-sm">
             <form onSubmit={handleSignup} className="space-y-5">
               <div className="space-y-2">
                 <Label htmlFor="name">Full Name</Label>
@@ -81,19 +90,19 @@ const Signup = () => {
                   value={name} 
                   onChange={(e) => setName(e.target.value)} 
                   required 
-                  className="h-12 rounded-xl"
+                  className="h-12 rounded-xl border-slate-200 bg-slate-50 focus:bg-white transition-colors"
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="email">University Email</Label>
+                <Label htmlFor="email">Email Address</Label>
                 <Input 
                   id="email" 
                   type="email" 
-                  placeholder="student@globaluniversity.edu" 
+                  placeholder="student@example.com" 
                   value={email} 
                   onChange={(e) => setEmail(e.target.value)} 
                   required 
-                  className="h-12 rounded-xl"
+                  className="h-12 rounded-xl border-slate-200 bg-slate-50 focus:bg-white transition-colors"
                 />
               </div>
               <div className="grid grid-cols-2 gap-4">
@@ -105,7 +114,7 @@ const Signup = () => {
                     value={password} 
                     onChange={(e) => setPassword(e.target.value)} 
                     required 
-                    className="h-12 rounded-xl"
+                    className="h-12 rounded-xl border-slate-200 bg-slate-50 focus:bg-white transition-colors"
                   />
                 </div>
                 <div className="space-y-2">
@@ -116,30 +125,36 @@ const Signup = () => {
                     value={confirmPassword} 
                     onChange={(e) => setConfirmPassword(e.target.value)} 
                     required 
-                    className="h-12 rounded-xl"
+                    className="h-12 rounded-xl border-slate-200 bg-slate-50 focus:bg-white transition-colors"
                   />
                 </div>
               </div>
 
-              <Button type="submit" className="w-full h-12 rounded-xl bg-primary text-white font-bold" disabled={loading}>
-                {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                Create Student Account
-              </Button>
+              <div className="pt-2">
+                <Button 
+                  type="submit" 
+                  className="w-full h-12 rounded-xl bg-gradient-brand text-white font-bold text-lg shadow-lg shadow-primary/20 hover:opacity-90 transition-opacity" 
+                  disabled={loading}
+                >
+                  {loading && <Loader2 className="mr-2 h-5 w-5 animate-spin" />}
+                  Create Student Account
+                </Button>
+              </div>
             </form>
 
-            <div className="mt-6 text-center text-sm">
-              <span className="text-muted-foreground">Already have an account? </span>
+            <div className="mt-8 text-center text-sm">
+              <span className="text-slate-500">Already have an account? </span>
               <Link to="/login" className="text-primary font-bold hover:underline">Log in</Link>
             </div>
           </div>
 
           <div className="text-center">
-            <p className="text-xs text-muted-foreground">
+            <p className="text-xs text-slate-400">
               By registering, you agree to the Global University Institute <br />
-              <Link to="/about" className="underline">Terms of Service</Link> and <Link to="/about" className="underline">Privacy Policy</Link>.
+              <Link to="/about" className="underline hover:text-slate-600">Terms of Service</Link> and <Link to="/about" className="underline hover:text-slate-600">Privacy Policy</Link>.
             </p>
           </div>
-        </div>
+        </motion.div>
       </main>
       <Footer />
     </div>

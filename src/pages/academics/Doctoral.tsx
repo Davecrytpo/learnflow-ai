@@ -33,9 +33,14 @@ const Doctoral = () => {
                 </li>
               ))}
             </ul>
-            <Button size="lg" className="bg-gradient-brand text-primary-foreground" asChild>
-              <Link to="/admissions/apply">Apply for PhD</Link>
-            </Button>
+            <div className="flex flex-wrap gap-4">
+              <Button size="lg" className="bg-gradient-brand text-primary-foreground" asChild>
+                <Link to="/admissions/apply">Apply for PhD</Link>
+              </Button>
+              <Button size="lg" variant="outline" asChild>
+                <Link to="/academics/catalog?level=Doctoral">Browse Courses</Link>
+              </Button>
+            </div>
           </div>
           <div className="relative">
             <div className="absolute inset-0 bg-primary/20 rounded-3xl rotate-3" />

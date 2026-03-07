@@ -7,11 +7,11 @@ const AdmissionsCTA = () => (
   <section className="relative py-32 overflow-hidden">
     <div className="absolute inset-0">
       <img
-        src="/images/graduation.jpg"
-        alt="Graduation ceremony"
+        src="/images/campus-life.jpg"
+        alt="Campus life"
         className="h-full w-full object-cover"
       />
-      <div className="absolute inset-0 bg-gradient-to-r from-primary/90 via-primary/80 to-primary/70" />
+      <div className="absolute inset-0 bg-gradient-to-r from-slate-900/90 via-slate-900/80 to-primary/40" />
     </div>
 
     <div className="container relative z-10 mx-auto px-6">

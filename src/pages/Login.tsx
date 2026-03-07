@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -7,11 +7,10 @@ import { Loader2, Eye, EyeOff, ArrowRight, GraduationCap } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { motion } from "framer-motion";
+import Navbar from "@/components/landing/Navbar";
+import Footer from "@/components/landing/Footer";
 
 const Login = () => {
-  const [searchParams] = useSearchParams();
-  const initialRole = searchParams.get("role") === "instructor" ? "instructor" : "student";
-  const [selectedRole, setSelectedRole] = useState<"student" | "instructor">(initialRole);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPass, setShowPass] = useState(false);
@@ -22,138 +21,141 @@ const Login = () => {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
-    setLoading(false);
-    if (error) {
+    
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+      if (error) throw error;
+
+      if (data.user) {
+        // Redirect to student dashboard
+        navigate("/dashboard");
+      }
+    } catch (error: any) {
       toast({ title: "Login failed", description: error.message, variant: "destructive" });
-    } else {
-      navigate("/dashboard");
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <div className="flex min-h-screen bg-background">
-      <div className="relative hidden w-1/2 overflow-hidden lg:flex lg:items-center lg:justify-center">
-        <div className="absolute inset-0 bg-gradient-brand" />
-        <div className="absolute inset-0 bg-grid-pattern bg-grid opacity-10" />
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(255,255,255,0.12),transparent_60%)]" />
-        <motion.div
-          initial={{ opacity: 0, x: -30 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.6 }}
-          className="relative max-w-md px-10 text-primary-foreground"
-        >
-          <div className="mb-8 flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary-foreground/20">
-              <svg className="h-6 w-6 text-primary-foreground" viewBox="0 0 24 24" fill="none">
-                <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
-            </div>
-            <span className="font-display text-xl font-bold">Global University Institute</span>
-          </div>
-          <h2 className="font-display text-4xl font-bold leading-tight">
-            {selectedRole === "instructor" ? "Welcome back, instructor" : "Welcome back to your learning journey"}
-          </h2>
-          <p className="mt-4 text-lg text-primary-foreground/70">
-            {selectedRole === "instructor"
-              ? "Sign in to manage courses, assessments, and your teaching workflow."
-              : "Sign in to access your courses, track your progress, and continue earning certificates."}
-          </p>
-          <div className="mt-10 space-y-3">
-            {(selectedRole === "instructor"
-              ? ["Build course curriculum", "Grade assessments faster", "Track learner progress"]
-              : ["Access 2,800+ courses", "Track your progress in real-time", "Download your certificates"]
-            ).map((item) => (
-              <div key={item} className="flex items-center gap-3 text-sm text-primary-foreground/80">
-                <div className="flex h-5 w-5 items-center justify-center rounded-full bg-primary-foreground/20">
-                  <ArrowRight className="h-3 w-3" />
+    <div className="min-h-screen bg-slate-50 flex flex-col font-sans">
+      <Navbar />
+      <main className="flex-1 flex items-center justify-center py-20 px-4">
+        <div className="flex w-full max-w-5xl bg-white rounded-[2.5rem] shadow-2xl overflow-hidden border border-slate-100">
+          
+          {/* Left Side: Student Branding */}
+          <div className="hidden lg:flex w-1/2 bg-slate-900 p-12 flex-col justify-between text-white relative">
+            <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-transparent opacity-50" />
+            <div className="relative z-10">
+              <div className="flex items-center gap-3 mb-12">
+                <div className="h-10 w-10 rounded-xl bg-primary flex items-center justify-center shadow-lg shadow-primary/20">
+                  <GraduationCap className="h-6 w-6 text-white" />
                 </div>
-                {item}
+                <span className="font-display text-xl font-bold tracking-tight">Student Portal</span>
               </div>
-            ))}
-          </div>
-        </motion.div>
-      </div>
-
-      <div className="flex w-full items-center justify-center px-6 lg:w-1/2">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-          className="w-full max-w-md"
-        >
-          <div className="mb-8 flex items-center gap-3 lg:hidden">
-            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-brand">
-              <GraduationCap className="h-5 w-5 text-primary-foreground" />
+              
+              <h2 className="text-4xl font-display font-bold leading-tight mb-6">
+                Advance Your <br />
+                <span className="text-primary">Academic Career</span>
+              </h2>
+              <p className="text-slate-400 text-lg leading-relaxed max-w-xs">
+                Access your global classroom, track academic credits, and collaborate with peers worldwide.
+              </p>
             </div>
-            <span className="text-xl font-bold">Learnflow AI</span>
+
+            <div className="relative z-10 space-y-4">
+              {[
+                "2,800+ Professional Courses",
+                "Recognized Institutional Credits",
+                "Global Alumni Network"
+              ].map((text, i) => (
+                <div key={i} className="flex items-center gap-3 text-sm font-medium text-slate-300">
+                  <div className="h-5 w-5 rounded-full bg-primary/20 flex items-center justify-center text-primary">
+                    <CheckCircle className="h-3 w-3" />
+                  </div>
+                  {text}
+                </div>
+              ))}
+            </div>
           </div>
 
-          <h1 className="text-2xl font-bold text-foreground">Sign in</h1>
-          <p className="mt-2 text-sm text-muted-foreground">
-            New to Learnflow AI?{" "}
-            <Link to={`/signup?role=${selectedRole}`} className="text-primary hover:underline">Create an account</Link>
-          </p>
-
-          <div className="mt-6 grid grid-cols-2 gap-3">
-            <button
-              type="button"
-              onClick={() => setSelectedRole("student")}
-              className={`flex flex-col items-center rounded-xl border p-4 transition-all ${
-                selectedRole === "student"
-                  ? "border-primary bg-primary/5 shadow-sm"
-                  : "border-border hover:border-primary/30"
-              }`}
+          {/* Right Side: Form */}
+          <div className="w-full lg:w-1/2 p-8 md:p-16">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="w-full max-w-sm mx-auto"
             >
-              <span className="text-sm font-medium">Student</span>
-              <span className="text-xs text-muted-foreground">I want to learn</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => setSelectedRole("instructor")}
-              className={`flex flex-col items-center rounded-xl border p-4 transition-all ${
-                selectedRole === "instructor"
-                  ? "border-accent bg-accent/5 shadow-sm"
-                  : "border-border hover:border-accent/30"
-              }`}
-            >
-              <span className="text-sm font-medium">Instructor</span>
-              <span className="text-xs text-muted-foreground">I want to teach</span>
-            </button>
+              <h1 className="text-3xl font-display font-bold text-slate-900 mb-2 text-primary">Sign In</h1>
+              <p className="text-slate-500 mb-10">Welcome back to Global University Institute.</p>
+
+              <form onSubmit={handleLogin} className="space-y-6">
+                <div className="space-y-2">
+                  <Label htmlFor="email" className="font-bold ml-1">Student Email</Label>
+                  <Input 
+                    id="email" 
+                    type="email" 
+                    placeholder="student@example.com"
+                    value={email} 
+                    onChange={(e) => setEmail(e.target.value)} 
+                    required 
+                    className="h-12 bg-slate-50 border-slate-100 rounded-xl focus:bg-white transition-all" 
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between px-1">
+                    <Label htmlFor="password" title="Password" className="font-bold">Security Key</Label>
+                    <a href="#" className="text-xs text-primary font-bold hover:underline">Forgot?</a>
+                  </div>
+                  <div className="relative">
+                    <Input 
+                      id="password" 
+                      type={showPass ? "text" : "password"} 
+                      placeholder="••••••••" 
+                      value={password} 
+                      onChange={(e) => setPassword(e.target.value)} 
+                      required 
+                      className="h-12 bg-slate-50 border-slate-100 rounded-xl pr-12 focus:bg-white transition-all" 
+                    />
+                    <button 
+                      type="button" 
+                      className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600" 
+                      onClick={() => setShowPass(!showPass)}
+                    >
+                      {showPass ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </button>
+                  </div>
+                </div>
+
+                <Button 
+                  type="submit" 
+                  className="h-14 w-full bg-slate-900 text-white font-bold text-lg rounded-2xl shadow-xl shadow-slate-200 hover:bg-slate-800 transition-all active:scale-95" 
+                  disabled={loading}
+                >
+                  {loading ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : "Access Portal"}
+                </Button>
+              </form>
+
+              <div className="mt-10 text-center">
+                <p className="text-sm text-slate-500">
+                  Not a student? <Link to="/signup" className="text-primary font-bold hover:underline">Register today</Link>
+                </p>
+              </div>
+            </motion.div>
           </div>
-
-          <form onSubmit={handleLogin} className="mt-6 space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="email" className="text-sm font-medium text-foreground">Email</Label>
-              <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required className="h-12 bg-card border-border" />
-            </div>
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <Label htmlFor="password" className="text-sm font-medium text-foreground">Password</Label>
-                <a href="#" className="text-xs text-primary hover:underline">Forgot password?</a>
-              </div>
-              <div className="relative">
-                <Input id="password" type={showPass ? "text" : "password"} placeholder="********" value={password} onChange={(e) => setPassword(e.target.value)} required className="h-12 bg-card border-border pr-10 focus:border-primary" />
-                <button type="button" className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground" onClick={() => setShowPass(!showPass)}>
-                  {showPass ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                </button>
-              </div>
-            </div>
-            <Button type="submit" className="h-12 w-full bg-gradient-brand text-base font-semibold text-primary-foreground shadow-lg shadow-primary/20 hover:opacity-90" disabled={loading}>
-              {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-              Sign in to Learnflow AI
-            </Button>
-          </form>
-
-          <p className="mt-8 text-center text-xs text-muted-foreground">
-            By signing in, you agree to our{" "}
-            <a href="#" className="hover:text-foreground underline">Terms of Service</a> and{" "}
-            <a href="#" className="hover:text-foreground underline">Privacy Policy</a>.
-          </p>
-        </motion.div>
-      </div>
+        </div>
+      </main>
+      <Footer />
     </div>
   );
 };
+
+// Internal CheckCircle for branding
+const CheckCircle = ({ className }: { className?: string }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+    <polyline points="20 6 9 17 4 12" />
+  </svg>
+);
 
 export default Login;

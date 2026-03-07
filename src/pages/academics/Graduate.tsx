@@ -39,7 +39,7 @@ const Graduate = () => {
                 <CardContent>
                   <p className="text-muted-foreground mb-6">{s.description}</p>
                   <Button variant="link" className="text-primary" asChild>
-                    <Link to="/academics/catalog">Explore Programs</Link>
+                    <Link to="/academics/catalog?level=Graduate">Explore Programs</Link>
                   </Button>
                 </CardContent>
               </Card>

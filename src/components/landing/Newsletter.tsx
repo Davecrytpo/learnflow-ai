@@ -3,7 +3,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Mail } from "lucide-react";
+import { Loader2, Mail, Newspaper } from "lucide-react";
+import { motion } from "framer-motion";
 
 const Newsletter = () => {
   const [email, setEmail] = useState("");
@@ -13,49 +14,72 @@ const Newsletter = () => {
   const handleSubscribe = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    const { error } = await (supabase.from as any)("newsletter_subs").insert({ email });
-    setLoading(false);
-    if (error) {
-      if (error.code === "23505") {
-        toast({ title: "Already subscribed", description: "This email is already on our list." });
-      } else {
-        toast({ title: "Error", description: error.message, variant: "destructive" });
-      }
-    } else {
-      toast({ title: "Subscribed!", description: "You've successfully joined our community updates." });
+    // Use a try-catch for better resilience
+    try {
+      const { error } = await (supabase.from as any)("newsletter_subs").insert({ email });
+      if (error) throw error;
+      toast({ title: "Subscription Confirmed", description: "You have successfully joined the GUI Institutional Gazette." });
       setEmail("");
+    } catch (error: any) {
+      if (error.code === "23505") {
+        toast({ title: "Already Registered", description: "This institutional email is already on our distribution list." });
+      } else {
+        toast({ title: "Subscription Error", description: error.message, variant: "destructive" });
+      }
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <section className="border-t border-border bg-secondary/30 py-24">
-      <div className="container mx-auto px-4 text-center">
-        <div className="mx-auto max-w-2xl">
-          <div className="mb-6 inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/10 text-primary">
-            <Mail className="h-6 w-6" />
+    <section className="py-24 bg-white relative overflow-hidden">
+      <div className="absolute inset-0 bg-slate-50/50" />
+      <div className="container relative z-10 mx-auto px-4 lg:px-8">
+        <motion.div 
+          initial={{ opacity: 0, scale: 0.98 }}
+          whileInView={{ opacity: 1, scale: 1 }}
+          viewport={{ once: true }}
+          className="bg-slate-900 rounded-[3rem] p-10 md:p-20 text-white shadow-2xl relative overflow-hidden"
+        >
+          {/* Decorative Elements */}
+          <div className="absolute top-0 right-0 w-1/3 h-full bg-primary/10 blur-[120px] rounded-full" />
+          <div className="absolute bottom-0 left-0 w-1/4 h-full bg-primary/5 blur-[100px] rounded-full" />
+          
+          <div className="max-w-3xl mx-auto text-center relative z-10">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 text-primary-foreground text-xs font-bold uppercase tracking-widest mb-8">
+               <Newspaper className="h-3.5 w-3.5" /> Institutional Gazette
+            </div>
+            <h2 className="text-4xl md:text-5xl font-display font-bold mb-6">Stay Informed on Global Discoveries</h2>
+            <p className="text-slate-400 text-lg md:text-xl leading-relaxed mb-12 font-medium">
+              Join 120,000+ subscribers who receive our weekly briefing on academic research, institutional milestones, and global events.
+            </p>
+            
+            <form onSubmit={handleSubscribe} className="flex flex-col sm:flex-row gap-4 max-w-xl mx-auto">
+              <div className="flex-1 relative">
+                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 h-5 w-5" />
+                <Input
+                  type="email"
+                  placeholder="Institutional or Personal Email"
+                  className="h-14 pl-12 pr-6 rounded-2xl bg-white/5 border-white/10 text-white placeholder:text-slate-500 focus:bg-white/10 focus:border-primary transition-all text-lg font-medium"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                />
+              </div>
+              <Button 
+                type="submit" 
+                className="h-14 px-8 rounded-2xl bg-primary text-white font-bold text-lg hover:bg-primary/90 shadow-lg shadow-primary/20 transition-all active:scale-95" 
+                disabled={loading}
+              >
+                {loading ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : "Subscribe Now"}
+              </Button>
+            </form>
+            
+            <p className="mt-8 text-xs text-slate-500 font-bold uppercase tracking-widest">
+              Secured by institutional data protocols • Unsubscribe at any time
+            </p>
           </div>
-          <h2 className="font-display text-3xl font-bold text-foreground sm:text-4xl">Stay in the loop</h2>
-          <p className="mt-4 text-muted-foreground">
-            Get latest academic news, course updates, and platform features delivered directly to your inbox.
-          </p>
-          <form onSubmit={handleSubscribe} className="mt-10 flex flex-col items-center gap-3 sm:flex-row">
-            <Input
-              type="email"
-              placeholder="Enter your email"
-              className="h-12 bg-background"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-            />
-            <Button type="submit" size="lg" className="h-12 w-full bg-gradient-brand sm:w-auto" disabled={loading}>
-              {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Subscribe
-            </Button>
-          </form>
-          <p className="mt-4 text-xs text-muted-foreground">
-            We respect your privacy. Unsubscribe at any time.
-          </p>
-        </div>
+        </motion.div>
       </div>
     </section>
   );

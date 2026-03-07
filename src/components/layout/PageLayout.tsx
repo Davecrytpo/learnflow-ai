@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 
 interface PageLayoutProps {
   title: string;
+  subtitle?: string;
   description?: string;
   children: ReactNode;
   backgroundImage?: string;
@@ -13,39 +14,45 @@ interface PageLayoutProps {
 
 const PageLayout = ({ 
   title, 
+  subtitle,
   description, 
   children, 
-  backgroundImage = "https://images.unsplash.com/photo-1523240795612-9a054b0db644?auto=format&fit=crop&q=80&w=2000",
+  backgroundImage = "/images/campus-library.jpg",
   showHero = true
 }: PageLayoutProps) => {
   return (
-    <div className="min-h-screen bg-background flex flex-col">
+    <div className="min-h-screen bg-slate-50 flex flex-col font-sans">
       <Navbar />
       
       {showHero && (
-        <section className="relative pt-32 pb-20 overflow-hidden bg-slate-900 text-white">
+        <section className="relative pt-40 pb-24 overflow-hidden bg-slate-950 text-white">
           <div className="absolute inset-0 z-0">
             <img 
               src={backgroundImage} 
               alt={title} 
-              className="w-full h-full object-cover opacity-20"
+              className="w-full h-full object-cover opacity-30"
             />
-            <div className="absolute inset-0 bg-gradient-to-b from-slate-900/80 via-slate-900/60 to-background" />
+            <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/40 to-transparent" />
           </div>
           
-          <div className="container relative z-10 mx-auto px-4">
+          <div className="container relative z-10 mx-auto px-4 lg:px-8">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5 }}
+              transition={{ duration: 0.6 }}
               className="max-w-4xl"
             >
-              <h1 className="text-4xl md:text-5xl lg:text-6xl font-display font-bold mb-6 tracking-tight">
+              {subtitle && (
+                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/20 text-primary-foreground text-xs font-bold uppercase tracking-wider mb-6">
+                   {subtitle}
+                </div>
+              )}
+              <h1 className="text-4xl md:text-6xl lg:text-7xl font-display font-bold mb-6 tracking-tight leading-[1.1]">
                 {title}
               </h1>
-              {description && (
-                <p className="text-lg md:text-xl text-slate-300 max-w-2xl leading-relaxed">
-                  {description}
+              {(description || subtitle) && (
+                <p className="text-xl md:text-2xl text-slate-300 max-w-2xl leading-relaxed font-medium">
+                  {description || subtitle}
                 </p>
               )}
             </motion.div>
@@ -53,7 +60,7 @@ const PageLayout = ({
         </section>
       )}
 
-      <main className="flex-grow">
+      <main className="flex-grow relative z-10">
         {children}
       </main>
 

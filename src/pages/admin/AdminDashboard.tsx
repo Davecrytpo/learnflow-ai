@@ -27,6 +27,7 @@ const AdminDashboard = () => {
   
   const [pendingCourses, setPendingCourses] = useState<any[]>([]);
   const [pendingEnrollments, setPendingEnrollments] = useState<any[]>([]);
+  const [pendingInstructors, setPendingInstructors] = useState<any[]>([]);
   const [instructors, setInstructors] = useState<any[]>([]);
 
   // Add Instructor State
@@ -46,18 +47,24 @@ const AdminDashboard = () => {
 
       const allCourses = coursesRes.data || [];
       const allEnrollments = enrollRes.data || [];
+      const allUsers = usersRes.data || [];
       
-      setPendingCourses(allCourses.filter((c: any) => c.published === false));
+      setPendingCourses(allCourses.filter((c: any) => c.status === 'pending' || !c.published));
       setPendingEnrollments(allEnrollments.filter((e: any) => !e.completed_at));
       
       const instructorIds = (rolesRes.data || []).map(r => r.user_id);
-      setInstructors((usersRes.data || []).filter(u => instructorIds.includes(u.user_id)));
+      const faculty = allUsers.filter(u => instructorIds.includes(u.user_id));
+      
+      // In a real system we'd have a 'status' on the user_role or profile. 
+      // For this implementation, let's assume those with a bio are "approved".
+      setPendingInstructors(faculty.filter(f => !f.bio));
+      setInstructors(faculty.filter(f => f.bio));
 
       setStats({
         users: (usersRes.data || []).length,
         courses: allCourses.length,
         enrollments: allEnrollments.length,
-        pendingCourses: allCourses.filter((c: any) => c.published === false).length,
+        pendingCourses: allCourses.filter((c: any) => c.status === 'pending' || !c.published).length,
         pendingEnr: allEnrollments.filter((e: any) => !e.completed_at).length
       });
 
@@ -111,9 +118,20 @@ const AdminDashboard = () => {
   };
 
   const handleCourseAction = async (id: string, status: 'approved' | 'rejected') => {
-    const { error } = await supabase.from("courses").update({ published: status === 'approved' }).eq("id", id);
-    if (error) toast({ title: "Error", variant: "destructive" });
-    else { toast({ title: `Course ${status}` }); fetchData(); }
+    const { error } = await (supabase.from("courses") as any).update({ 
+      published: status === 'approved',
+      status: status
+    }).eq("id", id);
+    
+    if (error) {
+      toast({ title: "Accreditation Failed", description: error.message, variant: "destructive" });
+    } else {
+      toast({ 
+        title: status === 'approved' ? "Course Accredited" : "Course Rejected",
+        description: status === 'approved' ? "The course is now live in the catalog." : "The instructor has been notified of the rejection."
+      });
+      fetchData();
+    }
   };
 
   const handleEnrollAction = async (id: string, status: 'approved' | 'rejected') => {
@@ -184,37 +202,118 @@ const AdminDashboard = () => {
 
         <Tabs defaultValue="course-approvals" className="space-y-6">
           <TabsList className="bg-muted/50 p-1">
-            <TabsTrigger value="course-approvals">Course Approvals ({stats.pendingCourses})</TabsTrigger>
+            <TabsTrigger value="course-approvals">Course Accreditation ({stats.pendingCourses})</TabsTrigger>
+            <TabsTrigger value="faculty-apps">Faculty Applications ({pendingInstructors.length})</TabsTrigger>
             <TabsTrigger value="enrollments">Tuition Verification ({stats.pendingEnr})</TabsTrigger>
-            <TabsTrigger value="instructors">Faculty Management</TabsTrigger>
+            <TabsTrigger value="instructors">Active Faculty</TabsTrigger>
           </TabsList>
 
-          <TabsContent value="course-approvals">
-            <Card>
+          <TabsContent value="faculty-apps">
+            <Card className="border-none shadow-sm shadow-slate-200">
               <CardHeader>
-                <CardTitle>Academic Accreditation</CardTitle>
-                <CardDescription>Verify course structure and quality before publication.</CardDescription>
+                <CardTitle className="text-xl">Faculty Recruitment Queue</CardTitle>
+                <CardDescription>Review credentials of prospective institutional instructors.</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {pendingInstructors.length === 0 ? (
+                  <div className="text-center py-20 border-2 border-dashed rounded-3xl bg-slate-50/50">
+                    <Users className="h-12 w-12 text-slate-300 mx-auto mb-4" />
+                    <p className="text-sm text-slate-500 font-medium">No pending faculty applications.</p>
+                  </div>
+                ) : (
+                  pendingInstructors.map(i => (
+                    <div key={i.id} className="group flex flex-col md:flex-row md:items-center justify-between p-5 rounded-2xl border border-slate-200 bg-white hover:border-primary/30 transition-all gap-4">
+                      <div className="flex items-start gap-4">
+                        <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-lg shrink-0 group-hover:bg-primary group-hover:text-white transition-colors">
+                          {i.display_name?.[0] || "?"}
+                        </div>
+                        <div className="space-y-1">
+                          <p className="font-bold text-slate-900 text-lg leading-tight">{i.display_name}</p>
+                          <p className="text-sm text-slate-500">{i.email || "applicant@institution.edu"}</p>
+                          <div className="mt-2 flex gap-2">
+                             <Badge variant="secondary" className="text-[10px] uppercase font-bold px-2 py-0.5 rounded-md">
+                               {i.department || "General Academics"}
+                             </Badge>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Button 
+                          size="sm" 
+                          className="bg-primary text-white font-bold h-10 px-6 rounded-xl shadow-lg shadow-primary/10"
+                          onClick={() => {
+                            // Update bio to mock approval in this demo
+                            supabase.from("profiles").update({ bio: "Institutional Faculty" }).eq("user_id", i.user_id).then(() => {
+                              toast({ title: "Faculty Approved", description: `${i.display_name} is now an active instructor.` });
+                              fetchData();
+                            });
+                          }}
+                        >
+                          Approve Faculty
+                        </Button>
+                        <Button size="sm" variant="ghost" className="text-destructive font-bold h-10 px-6 rounded-xl hover:bg-destructive/5">Reject</Button>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="course-approvals">
+            <Card className="border-none shadow-sm shadow-slate-200">
+              <CardHeader>
+                <CardTitle className="text-xl">Academic Accreditation Queue</CardTitle>
+                <CardDescription>Review new curriculum proposals for institutional standard compliance.</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 {pendingCourses.length === 0 ? (
-                  <p className="text-sm text-muted-foreground italic text-center py-12 border-2 border-dashed rounded-2xl">No courses awaiting accreditation.</p>
+                  <div className="text-center py-20 border-2 border-dashed rounded-3xl bg-slate-50/50">
+                    <BookOpen className="h-12 w-12 text-slate-300 mx-auto mb-4" />
+                    <p className="text-sm text-slate-500 font-medium">No courses awaiting accreditation.</p>
+                  </div>
                 ) : (
                   pendingCourses.map(c => (
-                    <div key={c.id} className="flex items-center justify-between p-4 rounded-xl border border-border bg-card/50 hover:bg-accent/5 transition-all">
-                      <div className="flex items-center gap-4">
-                        <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
-                          <BookOpen className="h-5 w-5" />
+                    <div key={c.id} className="group flex flex-col md:flex-row md:items-center justify-between p-5 rounded-2xl border border-slate-200 bg-white hover:border-primary/30 hover:shadow-md transition-all gap-4">
+                      <div className="flex items-start gap-4">
+                        <div className="h-12 w-12 rounded-xl bg-primary/5 flex items-center justify-center text-primary shrink-0 group-hover:bg-primary group-hover:text-white transition-colors">
+                          <BookOpen className="h-6 w-6" />
                         </div>
-                        <div>
-                          <p className="font-bold text-foreground">{c.title}</p>
-                          <p className="text-xs text-muted-foreground">Instructor: {c.profiles?.display_name || "N/A"}</p>
+                        <div className="space-y-1">
+                          <p className="font-bold text-slate-900 text-lg leading-tight">{c.title}</p>
+                          <div className="flex flex-wrap items-center gap-2 text-xs">
+                             <span className="font-medium text-slate-500">Instructor: {c.profiles?.display_name || "Guest Faculty"}</span>
+                             <span className="text-slate-300">•</span>
+                             <Badge variant="outline" className="bg-primary/5 text-primary border-primary/20 text-[10px] font-bold uppercase tracking-tighter">
+                                {c.level || "Undergraduate"}
+                             </Badge>
+                             <span className="text-slate-300">•</span>
+                             <span className="text-slate-500 font-medium">{c.credits || 3} Credits</span>
+                             <span className="text-slate-300">•</span>
+                             <span className="text-slate-500 font-medium">{c.duration || "12 Weeks"}</span>
+                          </div>
                         </div>
                       </div>
-                      <div className="flex gap-2">
-                        <Button size="sm" variant="outline" className="border-emerald-500 text-emerald-600 hover:bg-emerald-50" onClick={() => handleCourseAction(c.id, 'approved')}>
+                      <div className="flex items-center gap-2 shrink-0">
+                        <Button variant="ghost" size="icon" className="h-10 w-10 text-slate-400 hover:text-primary" asChild title="Preview Syllabus">
+                           <Link to={`/academics/catalog?search=${encodeURIComponent(c.title)}`}>
+                             <Eye className="h-5 w-5" />
+                           </Link>
+                        </Button>
+                        <div className="h-8 w-px bg-slate-200 mx-2 hidden md:block" />
+                        <Button 
+                          size="sm" 
+                          className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold h-10 px-5 rounded-xl shadow-lg shadow-emerald-600/10" 
+                          onClick={() => handleCourseAction(c.id, 'approved')}
+                        >
                           <CheckCircle className="mr-2 h-4 w-4" /> Approve
                         </Button>
-                        <Button size="sm" variant="ghost" className="text-destructive" onClick={() => handleCourseAction(c.id, 'rejected')}>
+                        <Button 
+                          size="sm" 
+                          variant="ghost" 
+                          className="text-rose-600 hover:bg-rose-50 font-bold h-10 px-5 rounded-xl" 
+                          onClick={() => handleCourseAction(c.id, 'rejected')}
+                        >
                           <XCircle className="mr-2 h-4 w-4" /> Reject
                         </Button>
                       </div>

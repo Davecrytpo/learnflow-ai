@@ -2,12 +2,12 @@ import { Link } from "react-router-dom";
 import { GraduationCap, BookOpen, Microscope, MapPin, Calendar, Users } from "lucide-react";
 
 const links = [
-  { label: "How to Apply", href: "/signup", icon: GraduationCap, desc: "Admissions & Requirements" },
-  { label: "Programs", href: "/courses", icon: BookOpen, desc: "Undergraduate & Graduate" },
-  { label: "Research", href: "/about", icon: Microscope, desc: "Labs & Publications" },
-  { label: "Campus Visit", href: "/about", icon: MapPin, desc: "Tours & Open Days" },
-  { label: "Events", href: "/news", icon: Calendar, desc: "Upcoming Activities" },
-  { label: "Student Life", href: "/about", icon: Users, desc: "Clubs & Organizations" },
+  { label: "How to Apply", href: "/admissions/apply", icon: GraduationCap, desc: "Admissions & Requirements" },
+  { label: "Programs", href: "/academics/catalog", icon: BookOpen, desc: "Undergraduate & Graduate" },
+  { label: "Research", href: "/research/centers", icon: Microscope, desc: "Labs & Publications" },
+  { label: "Campus Visit", href: "/admissions/visit", icon: MapPin, desc: "Tours & Open Days" },
+  { label: "Events", href: "/campus/events", icon: Calendar, desc: "Upcoming Activities" },
+  { label: "Student Life", href: "/campus/student-life", icon: Users, desc: "Clubs & Organizations" },
 ];
 
 const QuickLinks = () => (

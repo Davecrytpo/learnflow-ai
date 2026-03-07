@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Menu, X, Search, BookOpen, GraduationCap, ArrowRight, Loader2, ChevronDown } from "lucide-react";
+import { Menu, X, Search, BookOpen, GraduationCap, ArrowRight, Loader2, ChevronDown, FileText } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { Input } from "@/components/ui/input";
@@ -48,6 +48,18 @@ const campus = [
   { title: "Discover Campus", href: "/campus/discover", description: "Explore our beautiful grounds and facilities." },
 ];
 
+const staticPages = [
+  ...academics,
+  ...research,
+  ...admissions,
+  ...campus,
+  { title: "Faculty Recruitment", href: "/instructor/register", description: "Join our teaching staff" },
+  { title: "Giving", href: "/giving", description: "Support the university" },
+  { title: "Contact Us", href: "/contact", description: "Get in touch" },
+  { title: "Login", href: "/login", description: "Access your portal" },
+  { title: "Apply Now", href: "/signup", description: "Start your student application" },
+];
+
 const Navbar = () => {
   const navigate = useNavigate();
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -82,13 +94,23 @@ const Navbar = () => {
       }
 
       setIsSearching(true);
-      const { data } = await supabase
+      
+      // 1. Search Static Pages
+      const pageResults = staticPages.filter(page => 
+        page.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        page.description.toLowerCase().includes(searchQuery.toLowerCase())
+      ).map(p => ({ ...p, type: 'page' })).slice(0, 3);
+
+      // 2. Search Courses
+      const { data: courseData } = await supabase
         .from("courses")
         .select("id, title, category, slug")
         .ilike("title", `%${searchQuery}%`)
-        .limit(5);
+        .limit(3);
       
-      setSuggestions(data || []);
+      const courseResults = (courseData || []).map((c: any) => ({ ...c, type: 'course' }));
+
+      setSuggestions([...pageResults, ...courseResults]);
       setIsSearching(false);
       setShowSuggestions(true);
     };
@@ -100,7 +122,7 @@ const Navbar = () => {
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (searchQuery.trim()) {
-      navigate(`/courses?search=${encodeURIComponent(searchQuery)}`);
+      navigate(`/academics/catalog?search=${encodeURIComponent(searchQuery)}`);
       setShowSuggestions(false);
     }
   };
@@ -118,14 +140,14 @@ const Navbar = () => {
       <div className={`hidden lg:block transition-all duration-300 overflow-hidden ${scrolled ? "h-0 opacity-0" : "h-10 opacity-100 border-b border-white/10"}`}>
         <div className="container mx-auto flex h-full items-center justify-between px-6 text-[11px] font-semibold tracking-wide">
           <div className="flex items-center gap-6">
-            <span className="text-white/60 hover:text-white transition-colors cursor-pointer">Students</span>
-            <span className="text-white/60 hover:text-white transition-colors cursor-pointer">Faculty & Staff</span>
+            <Link to="/login" className="text-white/60 hover:text-white transition-colors cursor-pointer">Student Portal</Link>
+            <Link to="/instructor/login" className="text-white/60 hover:text-white transition-colors cursor-pointer">Faculty Portal</Link>
             <span className="text-white/60 hover:text-white transition-colors cursor-pointer">Alumni</span>
             <span className="text-white/60 hover:text-white transition-colors cursor-pointer">Parents</span>
           </div>
           <div className="flex items-center gap-6">
             <Link to="/campus/events" className="text-white/60 hover:text-white transition-colors">Events</Link>
-            <Link to="/careers" className="text-white/60 hover:text-white transition-colors">Careers</Link>
+            <Link to="/instructor/register" className="text-white/60 hover:text-white transition-colors font-bold text-primary-foreground/90">Teach at GUI</Link>
             <Link to="/giving" className="text-white/60 hover:text-white transition-colors">Give</Link>
             <Link to="/contact" className="text-white/60 hover:text-white transition-colors">Contact</Link>
           </div>
@@ -284,21 +306,23 @@ const Navbar = () => {
                     <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground px-2">Suggestions</p>
                   </div>
                   <div className="max-h-64 overflow-auto">
-                    {suggestions.map((s) => (
+                    {suggestions.map((s, i) => (
                       <button
-                        key={s.id}
+                        key={`${s.type}-${s.id || s.title}-${i}`}
                         onClick={() => {
-                          navigate(`/course/${s.id}`);
+                          navigate(s.type === 'course' ? `/course/${s.id}` : s.href);
                           setShowSuggestions(false);
                         }}
-                        className="flex w-full items-center gap-3 px-4 py-3 text-left hover:bg-secondary/50 transition-colors"
+                        className="flex w-full items-center gap-3 px-4 py-3 text-left hover:bg-secondary/50 transition-colors border-b border-border/40 last:border-0"
                       >
-                        <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
-                          <BookOpen className="h-4 w-4" />
+                        <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary shrink-0">
+                          {s.type === 'course' ? <BookOpen className="h-4 w-4" /> : <FileText className="h-4 w-4" />}
                         </div>
                         <div className="min-w-0 flex-1">
                           <p className="text-sm font-bold truncate text-foreground">{s.title}</p>
-                          <p className="text-[10px] text-muted-foreground uppercase tracking-widest">{s.category}</p>
+                          <p className="text-[10px] text-muted-foreground uppercase tracking-widest truncate">
+                            {s.type === 'course' ? (s.category || "Course") : "Page"}
+                          </p>
                         </div>
                       </button>
                     ))}
@@ -352,6 +376,12 @@ const Navbar = () => {
                   className="pl-10 h-12 rounded-xl"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                       navigate(`/academics/catalog?search=${encodeURIComponent(searchQuery)}`);
+                       setMobileOpen(false);
+                    }
+                  }}
                 />
               </div>
               

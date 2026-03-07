@@ -67,7 +67,7 @@ const Undergraduate = () => {
               </div>
               <div className="mt-8">
                 <Button variant="outline" asChild>
-                  <Link to="/academics/catalog">View All Programs <ArrowRight className="ml-2 h-4 w-4" /></Link>
+                  <Link to="/academics/catalog?level=Undergraduate">View All Programs <ArrowRight className="ml-2 h-4 w-4" /></Link>
                 </Button>
               </div>
             </section>

@@ -39,7 +39,7 @@ const OnlineLearning = () => {
           <div className="relative z-10">
             <h2 className="text-3xl md:text-4xl font-display font-bold mb-6">Ready to start learning?</h2>
             <Button size="lg" className="bg-white text-slate-900 hover:bg-slate-100 font-bold" asChild>
-              <Link to="/academics/catalog">Browse Online Courses</Link>
+              <Link to="/academics/catalog?level=Online">Browse Online Courses</Link>
             </Button>
           </div>
         </div>

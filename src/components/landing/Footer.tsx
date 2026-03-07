@@ -46,12 +46,12 @@ const Footer = () => (
           <p className="text-xs font-bold uppercase tracking-[0.15em] text-background/70">Academics</p>
           <ul className="mt-4 space-y-3">
             {[
-              ["Undergraduate", "/courses"],
-              ["Graduate", "/courses"],
-              ["Doctoral", "/courses"],
-              ["Online Programs", "/courses"],
-              ["Course Catalog", "/courses"],
-              ["Academic Calendar", "/news"],
+              ["Undergraduate", "/academics/undergraduate"],
+              ["Graduate", "/academics/graduate"],
+              ["Doctoral", "/academics/doctoral"],
+              ["Online Programs", "/academics/online"],
+              ["Course Catalog", "/academics/catalog"],
+              ["Academic Calendar", "/academics/calendar"],
             ].map(([label, href]) => (
               <li key={label}>
                 <Link to={href} className="text-sm text-background/40 transition-colors hover:text-background">{label}</Link>
@@ -65,11 +65,11 @@ const Footer = () => (
           <p className="text-xs font-bold uppercase tracking-[0.15em] text-background/70">Research</p>
           <ul className="mt-4 space-y-3">
             {[
-              ["Research Centers", "/about"],
-              ["Publications", "/about"],
-              ["Labs & Facilities", "/about"],
-              ["Grants & Funding", "/about"],
-              ["Research Ethics", "/about"],
+              ["Research Centers", "/research/centers"],
+              ["Publications", "/research/publications"],
+              ["Labs & Facilities", "/research/labs"],
+              ["Grants & Funding", "/research/grants"],
+              ["Library Services", "/about"],
             ].map(([label, href]) => (
               <li key={label}>
                 <Link to={href} className="text-sm text-background/40 transition-colors hover:text-background">{label}</Link>
@@ -83,12 +83,12 @@ const Footer = () => (
           <p className="text-xs font-bold uppercase tracking-[0.15em] text-background/70">Campus</p>
           <ul className="mt-4 space-y-3">
             {[
-              ["Student Life", "/about"],
-              ["Housing", "/about"],
-              ["Athletics", "/about"],
-              ["Health Services", "/about"],
+              ["Student Life", "/campus/student-life"],
+              ["Housing", "/campus/housing"],
+              ["Athletics", "/campus/athletics"],
+              ["Health Services", "/campus/health"],
               ["Safety & Security", "/about"],
-              ["Campus Map", "/about"],
+              ["Discover Campus", "/campus/discover"],
             ].map(([label, href]) => (
               <li key={label}>
                 <Link to={href} className="text-sm text-background/40 transition-colors hover:text-background">{label}</Link>
@@ -103,11 +103,11 @@ const Footer = () => (
           <ul className="mt-4 space-y-3">
             {[
               ["Apply Now", "/signup"],
-              ["Portal Login", "/login"],
-              ["News & Events", "/news"],
-              ["Alumni Network", "/about"],
-              ["Contact Us", "/about"],
-              ["Careers at GUI", "/about"],
+              ["Student Portal", "/login"],
+              ["Faculty Portal", "/instructor/login"],
+              ["Admin Login", "/admin/login"],
+              ["Contact Us", "/contact"],
+              ["Careers at GUI", "/instructor/register"],
             ].map(([label, href]) => (
               <li key={label}>
                 <Link to={href} className="text-sm text-background/40 transition-colors hover:text-background">{label}</Link>

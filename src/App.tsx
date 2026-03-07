@@ -135,6 +135,8 @@ const EditCourse = lazy(() => import("./pages/instructor/EditCourse"));
 const Grading = lazy(() => import("./pages/instructor/Grading"));
 const Gradebook = lazy(() => import("./pages/instructor/Gradebook"));
 const Attendance = lazy(() => import("./pages/instructor/Attendance"));
+const InstructorRegister = lazy(() => import("./pages/instructor/InstructorRegister"));
+const InstructorLogin = lazy(() => import("./pages/instructor/InstructorLogin"));
 const AdminDashboard = lazy(() => import("./pages/admin/AdminDashboard"));
 
 // Academics
@@ -228,7 +230,10 @@ const App = () => (
                   <Route path="/instructor-portal" element={<InstructorPortal />} />
                   <Route path="/admin-portal" element={<AdminPortal />} />
                   <Route path="/login" element={<Login />} />
+                  <Route path="/instructor/login" element={<InstructorLogin />} />
                   <Route path="/signup" element={<Signup />} />
+                  <Route path="/instructor/register" element={<InstructorRegister />} />
+                  <Route path="/admin/login" element={<AdminLogin />} />
                   <Route path="/onboarding" element={<Onboarding />} />
                   <Route path="/dashboard" element={<Dashboard />} />
                   <Route path="/dashboard/student" element={<StudentDashboard />} />
