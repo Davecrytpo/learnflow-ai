@@ -17,8 +17,8 @@ const AdminCommerce = () => {
 
   const fetchOrders = async () => {
     setLoading(true);
-    const { data, error } = await supabase
-      .from("marketplace_orders")
+    const { data, error } = await (supabase
+      .from as any)("marketplace_orders")
       .select(`
         *,
         profiles:buyer_id (display_name),
