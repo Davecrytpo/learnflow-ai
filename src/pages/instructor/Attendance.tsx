@@ -61,7 +61,7 @@ const Attendance = () => {
     const fetchAttendance = async () => {
       const [enrollRes, recordRes] = await Promise.all([
         supabase.from("enrollments").select("student_id, profiles(display_name, avatar_url)").eq("course_id", selectedCourse),
-        supabase.from("attendance_records").select("student_id, status").eq("session_id", selectedSession)
+        (supabase.from as any)("attendance_records").select("student_id, status").eq("session_id", selectedSession)
       ]);
       setStudents(enrollRes.data || []);
       const map: Record<string, string> = {};
