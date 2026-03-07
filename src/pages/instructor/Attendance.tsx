@@ -45,7 +45,7 @@ const Attendance = () => {
   useEffect(() => {
     if (!selectedCourse) return;
     const fetchSessions = async () => {
-      const { data } = await supabase.from("attendance_sessions").select("*").eq("course_id", selectedCourse).order("date", { ascending: false });
+      const { data } = await (supabase.from as any)("attendance_sessions").select("*").eq("course_id", selectedCourse).order("date", { ascending: false });
       setSessions(data || []);
       if (data && data.length > 0) setSelectedSession(data[0].id);
       else setSelectedSession("");
