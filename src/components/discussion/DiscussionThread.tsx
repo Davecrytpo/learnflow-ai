@@ -27,8 +27,8 @@ const DiscussionThread = ({ discussion }: DiscussionThreadProps) => {
 
   const fetchReplies = async () => {
     setLoading(true);
-    const { data, error } = await supabase
-      .from("discussion_replies")
+    const { data, error } = await (supabase
+      .from as any)("discussion_replies")
       .select("*, profiles(display_name, avatar_url)")
       .eq("discussion_id", discussion.id)
       .order("created_at", { ascending: true });
