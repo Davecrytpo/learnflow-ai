@@ -41,7 +41,7 @@ const DirectorySync = () => {
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
     setSaving(true);
-    const { error } = await supabase.from("directory_syncs").insert({
+    const { error } = await (supabase.from as any)("directory_syncs").insert({
       source: newSync.source,
       users_synced: parseInt(newSync.users_synced),
       status: 'synced'
