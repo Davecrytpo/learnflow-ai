@@ -111,7 +111,7 @@ const AdminDashboard = () => {
   };
 
   const handleCourseAction = async (id: string, status: 'approved' | 'rejected') => {
-    const { error } = await supabase.from("courses").update({ status }).eq("id", id);
+    const { error } = await supabase.from("courses").update({ published: status === 'approved' }).eq("id", id);
     if (error) toast({ title: "Error", variant: "destructive" });
     else { toast({ title: `Course ${status}` }); fetchData(); }
   };
