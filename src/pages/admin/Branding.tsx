@@ -31,7 +31,7 @@ const AdminBranding = () => {
         .single();
       
       if (data) {
-        setTheme({ ...theme, ...data.value });
+        setTheme({ ...theme, ...(data as any).value });
       }
       setLoading(false);
     };
