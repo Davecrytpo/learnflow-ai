@@ -21,8 +21,8 @@ const DataPipelines = () => {
 
   const fetchPipelines = async () => {
     setLoading(true);
-    const { data } = await supabase
-      .from("data_pipelines")
+    const { data } = await (supabase
+      .from as any)("data_pipelines")
       .select("*")
       .order("created_at", { ascending: false });
     setPipelines(data || []);
