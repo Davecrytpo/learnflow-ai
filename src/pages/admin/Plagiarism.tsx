@@ -17,8 +17,8 @@ const Plagiarism = () => {
 
   const fetchCases = async () => {
     setLoading(true);
-    const { data } = await supabase
-      .from("plagiarism_cases")
+    const { data } = await (supabase
+      .from as any)("plagiarism_cases")
       .select(`
         *,
         profiles:student_id (display_name)
