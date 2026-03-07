@@ -42,8 +42,8 @@ const CourseCategories = () => {
     setAdding(true);
     const slug = newCategory.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)+/g, "");
     
-    const { error } = await supabase
-      .from("course_categories")
+    const { error } = await (supabase
+      .from as any)("course_categories")
       .insert({ name: newCategory, slug });
 
     if (error) {
