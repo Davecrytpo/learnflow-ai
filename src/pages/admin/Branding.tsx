@@ -24,8 +24,8 @@ const AdminBranding = () => {
   useEffect(() => {
     const fetchTheme = async () => {
       setLoading(true);
-      const { data } = await supabase
-        .from("system_settings")
+      const { data } = await (supabase
+        .from as any)("system_settings")
         .select("value")
         .eq("key", "appearance_config")
         .single();
