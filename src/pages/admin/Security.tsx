@@ -24,8 +24,8 @@ const AdminSecurity = () => {
   useEffect(() => {
     const fetchSettings = async () => {
       setLoading(true);
-      const { data, error } = await supabase
-        .from("system_settings")
+      const { data, error } = await (supabase
+        .from as any)("system_settings")
         .select("value")
         .eq("key", "security_config")
         .single();
