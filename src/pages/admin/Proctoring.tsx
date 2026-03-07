@@ -17,8 +17,8 @@ const Proctoring = () => {
 
   const fetchSessions = async () => {
     setLoading(true);
-    const { data } = await supabase
-      .from("proctoring_sessions")
+    const { data } = await (supabase
+      .from as any)("proctoring_sessions")
       .select(`
         *,
         profiles:student_id (display_name)
