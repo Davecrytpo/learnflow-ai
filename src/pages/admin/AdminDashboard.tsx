@@ -117,7 +117,7 @@ const AdminDashboard = () => {
   };
 
   const handleEnrollAction = async (id: string, status: 'approved' | 'rejected') => {
-    const { error } = await supabase.from("enrollments").update({ status }).eq("id", id);
+    const { error } = await (supabase.from as any)("enrollments").update({ completed_at: status === 'rejected' ? new Date().toISOString() : null }).eq("id", id);
     if (error) toast({ title: "Error", variant: "destructive" });
     else { toast({ title: `Enrollment ${status}` }); fetchData(); }
   };

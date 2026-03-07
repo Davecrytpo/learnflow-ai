@@ -66,7 +66,7 @@ const AdminAccreditation = () => {
 
   const handleDelete = async (id: string) => {
     if (!confirm("Delete this accreditation record?")) return;
-    await supabase.from("accreditations").delete().eq("id", id);
+    await (supabase.from as any)("accreditations").delete().eq("id", id);
     toast({ title: "Record deleted" });
     fetchAccreditations();
   };

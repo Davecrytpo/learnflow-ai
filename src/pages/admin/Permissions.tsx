@@ -57,7 +57,7 @@ const AdminPermissions = () => {
 
   const handleDelete = async (id: string) => {
     if (!confirm("Delete this role?")) return;
-    await supabase.from("permissions_roles").delete().eq("id", id);
+    await (supabase.from as any)("permissions_roles").delete().eq("id", id);
     toast({ title: "Role deleted" });
     fetchRoles();
   };

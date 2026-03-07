@@ -34,11 +34,10 @@ const CourseCatalog = () => {
     const fetch = async () => {
       setLoading(true);
       try {
-        const { data, error } = await supabase
-          .from("courses")
+        const { data, error } = await (supabase
+          .from("courses") as any)
           .select("id, title, slug, summary, cover_image_url, category, author_id, profiles:author_id(display_name)")
           .eq("published", true)
-          .eq("status", "approved")
           .order("created_at", { ascending: false });
         if (error) throw error;
         setCourses(data || []);

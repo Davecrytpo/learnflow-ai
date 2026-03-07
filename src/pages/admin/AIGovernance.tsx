@@ -36,7 +36,7 @@ const AIGovernance = () => {
 
   const clearLogs = async () => {
     if (!confirm("Clear all governance logs? This is irreversible.")) return;
-    await supabase.from("ai_governance_logs").delete().neq("id", "00000000-0000-0000-0000-000000000000");
+    await (supabase.from as any)("ai_governance_logs").delete().neq("id", "00000000-0000-0000-0000-000000000000");
     toast({ title: "Logs cleared" });
     fetchLogs();
   };

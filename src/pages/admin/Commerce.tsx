@@ -40,7 +40,7 @@ const AdminCommerce = () => {
 
   const refundOrder = async (id: string) => {
     if (!confirm("Issue a full refund for this order?")) return;
-    await supabase.from("marketplace_orders").update({ status: 'refunded' }).eq("id", id);
+    await (supabase.from as any)("marketplace_orders").update({ status: 'refunded' }).eq("id", id);
     toast({ title: "Order Refunded", description: "The transaction has been reversed." });
     fetchOrders();
   };

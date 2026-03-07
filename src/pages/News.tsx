@@ -17,8 +17,8 @@ const NewsPage = () => {
     const fetchNews = async () => {
       setLoading(true);
       try {
-        const { data, error } = await supabase
-          .from("news")
+        const { data, error } = await (supabase
+          .from as any)("news")
           .select("*")
           .order("created_at", { ascending: false });
         if (error) throw error;

@@ -48,8 +48,8 @@ const DiscussionBoard = ({ courseId }: DiscussionBoardProps) => {
 
   const createDiscussion = async () => {
     if (!user) return;
-    const { data, error } = await supabase
-      .from("discussions")
+    const { data, error } = await (supabase
+      .from as any)("discussions")
       .insert({
         course_id: courseId,
         user_id: user.id,
