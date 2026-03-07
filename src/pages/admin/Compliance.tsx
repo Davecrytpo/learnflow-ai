@@ -22,8 +22,8 @@ const AdminCompliance = () => {
 
   const fetchCompliance = async () => {
     setLoading(true);
-    const { data, error } = await supabase
-      .from("compliance_records")
+    const { data, error } = await (supabase
+      .from as any)("compliance_records")
       .select("*")
       .order("created_at", { ascending: false });
     
