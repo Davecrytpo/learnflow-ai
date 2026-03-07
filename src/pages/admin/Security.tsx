@@ -43,8 +43,8 @@ const AdminSecurity = () => {
 
   const handleSave = async () => {
     setSaving(true);
-    const { error } = await supabase
-      .from("system_settings")
+    const { error } = await (supabase
+      .from as any)("system_settings")
       .upsert({ 
         key: "security_config", 
         value: settings,
