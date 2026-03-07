@@ -91,7 +91,7 @@ const Attendance = () => {
 
   const markAttendance = async (studentId: string, status: string) => {
     setAttendanceMap(prev => ({ ...prev, [studentId]: status }));
-    await supabase.from("attendance_records").upsert({
+    await (supabase.from as any)("attendance_records").upsert({
       session_id: selectedSession,
       student_id: studentId,
       status
