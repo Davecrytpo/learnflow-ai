@@ -1,20 +1,50 @@
 import { useState, useEffect, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Menu, X, Search, BookOpen, GraduationCap, ArrowRight, Loader2 } from "lucide-react";
+import { Menu, X, Search, ChevronDown } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
-import { Input } from "@/components/ui/input";
+
+const navLinks = [
+  {
+    label: "Academics",
+    children: [
+      { label: "Undergraduate Programs", href: "/courses" },
+      { label: "Graduate Programs", href: "/courses" },
+      { label: "Doctoral Programs", href: "/courses" },
+      { label: "Online Learning", href: "/courses" },
+      { label: "Course Catalog", href: "/courses" },
+    ],
+  },
+  {
+    label: "Research",
+    children: [
+      { label: "Research Centers", href: "/about" },
+      { label: "Publications", href: "/about" },
+      { label: "Labs & Facilities", href: "/about" },
+      { label: "Grants & Funding", href: "/about" },
+    ],
+  },
+  {
+    label: "Admissions",
+    children: [
+      { label: "How to Apply", href: "/signup" },
+      { label: "Tuition & Aid", href: "/about" },
+      { label: "Visit Campus", href: "/about" },
+      { label: "Contact Admissions", href: "/about" },
+    ],
+  },
+  { label: "Campus Life", href: "/about" },
+  { label: "News & Events", href: "/news" },
+  { label: "About", href: "/about" },
+];
 
 const Navbar = () => {
   const navigate = useNavigate();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [suggestions, setSuggestions] = useState<any[]>([]);
-  const [isSearching, setIsSearching] = useState(false);
-  const [showSuggestions, setShowSuggestions] = useState(false);
-  const searchRef = useRef<HTMLDivElement>(null);
+  const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
+  const timeoutRef = useRef<NodeJS.Timeout>();
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 20);
@@ -22,182 +52,182 @@ const Navbar = () => {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
-        setShowSuggestions(false);
-      }
-    };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
+  const handleMouseEnter = (label: string) => {
+    clearTimeout(timeoutRef.current);
+    setActiveDropdown(label);
+  };
 
-  useEffect(() => {
-    const fetchSuggestions = async () => {
-      if (searchQuery.length < 2) {
-        setSuggestions([]);
-        return;
-      }
-
-      setIsSearching(true);
-      const { data } = await supabase
-        .from("courses")
-        .select("id, title, category, slug")
-        .ilike("title", `%${searchQuery}%`)
-        .limit(5);
-      
-      setSuggestions(data || []);
-      setIsSearching(false);
-      setShowSuggestions(true);
-    };
-
-    const timer = setTimeout(fetchSuggestions, 300);
-    return () => clearTimeout(timer);
-  }, [searchQuery]);
-
-  const handleSearchSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (searchQuery.trim()) {
-      navigate(`/courses?search=${encodeURIComponent(searchQuery)}`);
-      setShowSuggestions(false);
-    }
+  const handleMouseLeave = () => {
+    timeoutRef.current = setTimeout(() => setActiveDropdown(null), 200);
   };
 
   return (
-    <header className={`fixed top-0 z-50 w-full transition-all duration-300 ${scrolled ? "bg-background/90 backdrop-blur-xl border-b border-border/60" : "bg-transparent"}`}>
-      <a
-        href="#main-content"
-        className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 rounded-md bg-background px-4 py-2 text-sm font-semibold text-foreground shadow-lg"
-      >
-        Skip to content
-      </a>
-      <nav className="container mx-auto flex h-16 items-center justify-between px-4">
-        <div className="flex items-center gap-8">
-          <Link to="/" className="flex items-center gap-3 group">
-            <div className="relative flex h-9 w-9 items-center justify-center">
-              <div className="absolute inset-0 rounded-lg bg-gradient-brand opacity-90" />
-              <div className="absolute inset-0 rounded-lg bg-gradient-brand opacity-0 blur-md transition-opacity group-hover:opacity-60" />
-              <svg className="relative h-5 w-5 text-primary-foreground" viewBox="0 0 24 24" fill="none">
-                <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
-            </div>
-            <span className="font-display text-xl font-bold tracking-tight text-foreground hidden sm:block">Global University Institute</span>
-          </Link>
-
-          {/* Functional Search Bar */}
-          <div className="relative hidden lg:block" ref={searchRef}>
-            <form onSubmit={handleSearchSubmit} className="relative w-64 xl:w-80">
-              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-              <Input
-                type="text"
-                placeholder="Search courses, paths..."
-                className="h-10 pl-10 bg-secondary/50 border-transparent focus:bg-background focus:border-primary transition-all"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                onFocus={() => setShowSuggestions(suggestions.length > 0)}
-              />
-              {isSearching && (
-                <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                  <Loader2 className="h-3 w-3 animate-spin text-muted-foreground" />
-                </div>
-              )}
-            </form>
-
-            <AnimatePresence>
-              {showSuggestions && (
-                <motion.div
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: 10 }}
-                  className="absolute left-0 right-0 mt-2 rounded-xl border border-border bg-background shadow-2xl overflow-hidden"
-                >
-                  <div className="p-2 border-b border-border bg-secondary/20">
-                    <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground px-2">Suggestions</p>
-                  </div>
-                  <div className="max-h-64 overflow-auto">
-                    {suggestions.map((s) => (
-                      <button
-                        key={s.id}
-                        onClick={() => {
-                          navigate(`/course/${s.id}`);
-                          setShowSuggestions(false);
-                        }}
-                        className="flex w-full items-center gap-3 px-4 py-3 text-left hover:bg-secondary/50 transition-colors"
-                      >
-                        <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
-                          <BookOpen className="h-4 w-4" />
-                        </div>
-                        <div className="min-w-0 flex-1">
-                          <p className="text-sm font-medium truncate text-foreground">{s.title}</p>
-                          <p className="text-[10px] text-muted-foreground uppercase">{s.category}</p>
-                        </div>
-                      </button>
-                    ))}
-                    {suggestions.length === 0 && !isSearching && (
-                      <div className="p-4 text-center text-sm text-muted-foreground">
-                        No matches found.
-                      </div>
-                    )}
-                  </div>
-                  <button
-                    onClick={handleSearchSubmit}
-                    className="flex w-full items-center justify-between px-4 py-3 text-xs font-bold text-primary bg-primary/5 hover:bg-primary/10"
-                  >
-                    <span>View all results</span>
-                    <ArrowRight className="h-3 w-3" />
-                  </button>
-                </motion.div>
-              )}
-            </AnimatePresence>
+    <header className={`fixed top-0 z-50 w-full transition-all duration-500 ${
+      scrolled 
+        ? "bg-background/95 backdrop-blur-xl border-b border-border/60 shadow-sm" 
+        : "bg-transparent"
+    }`}>
+      {/* Top utility bar */}
+      <div className={`hidden lg:block transition-all duration-300 ${scrolled ? "h-0 overflow-hidden opacity-0" : "h-auto opacity-100"}`}>
+        <div className="container mx-auto flex items-center justify-between px-6 py-2 text-[11px]">
+          <div className="flex items-center gap-6">
+            <span className={`${scrolled ? "text-muted-foreground" : "text-white/60"}`}>Students</span>
+            <span className={`${scrolled ? "text-muted-foreground" : "text-white/60"}`}>Faculty & Staff</span>
+            <span className={`${scrolled ? "text-muted-foreground" : "text-white/60"}`}>Alumni</span>
+            <span className={`${scrolled ? "text-muted-foreground" : "text-white/60"}`}>Parents</span>
+          </div>
+          <div className="flex items-center gap-6">
+            <Link to="/news" className={`${scrolled ? "text-muted-foreground hover:text-foreground" : "text-white/60 hover:text-white"} transition-colors`}>Events</Link>
+            <Link to="/about" className={`${scrolled ? "text-muted-foreground hover:text-foreground" : "text-white/60 hover:text-white"} transition-colors`}>Careers</Link>
+            <Link to="/about" className={`${scrolled ? "text-muted-foreground hover:text-foreground" : "text-white/60 hover:text-white"} transition-colors`}>Give</Link>
           </div>
         </div>
+      </div>
 
-        <div className="hidden items-center gap-8 md:flex">
-          <Link to="/student" className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground">Student</Link>
-          <Link to="/instructor-portal" className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground">Instructor</Link>
-          <Link to="/academy" className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground">Academy</Link>
-          <Link to="/news" className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground">News</Link>
-          <div className="h-4 w-px bg-border" />
-          <Button variant="ghost" className="text-muted-foreground hover:text-foreground" asChild>
-            <Link to="/login">Sign in</Link>
+      {/* Main nav */}
+      <nav className="container mx-auto flex h-16 items-center justify-between px-6 lg:h-[72px]">
+        <Link to="/" className="flex items-center gap-3 group">
+          <div className="relative flex h-10 w-10 items-center justify-center">
+            <div className="absolute inset-0 rounded-lg bg-primary" />
+            <svg className="relative h-5 w-5 text-primary-foreground" viewBox="0 0 24 24" fill="none">
+              <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          </div>
+          <div className="hidden sm:block">
+            <span className={`font-display text-lg font-bold tracking-tight ${scrolled ? "text-foreground" : "text-white"}`}>
+              Global University
+            </span>
+            <span className={`block text-[9px] uppercase tracking-[0.15em] ${scrolled ? "text-muted-foreground" : "text-white/60"}`}>
+              Institute
+            </span>
+          </div>
+        </Link>
+
+        {/* Desktop navigation */}
+        <div className="hidden items-center gap-1 lg:flex">
+          {navLinks.map((link) => (
+            <div
+              key={link.label}
+              className="relative"
+              onMouseEnter={() => link.children && handleMouseEnter(link.label)}
+              onMouseLeave={handleMouseLeave}
+            >
+              {link.children ? (
+                <button className={`flex items-center gap-1 px-4 py-2 text-sm font-medium transition-colors ${
+                  scrolled ? "text-foreground/80 hover:text-foreground" : "text-white/80 hover:text-white"
+                }`}>
+                  {link.label}
+                  <ChevronDown className="h-3 w-3" />
+                </button>
+              ) : (
+                <Link
+                  to={link.href!}
+                  className={`px-4 py-2 text-sm font-medium transition-colors ${
+                    scrolled ? "text-foreground/80 hover:text-foreground" : "text-white/80 hover:text-white"
+                  }`}
+                >
+                  {link.label}
+                </Link>
+              )}
+
+              <AnimatePresence>
+                {link.children && activeDropdown === link.label && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: 8 }}
+                    transition={{ duration: 0.15 }}
+                    className="absolute left-0 top-full mt-1 w-56 rounded-xl border border-border bg-card p-2 shadow-xl"
+                  >
+                    {link.children.map((child) => (
+                      <Link
+                        key={child.label}
+                        to={child.href}
+                        className="block rounded-lg px-4 py-2.5 text-sm text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors"
+                        onClick={() => setActiveDropdown(null)}
+                      >
+                        {child.label}
+                      </Link>
+                    ))}
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+          ))}
+        </div>
+
+        {/* Right actions */}
+        <div className="hidden items-center gap-3 lg:flex">
+          <button className={`flex h-10 w-10 items-center justify-center rounded-full transition-colors ${
+            scrolled ? "text-foreground hover:bg-secondary" : "text-white hover:bg-white/10"
+          }`}>
+            <Search className="h-5 w-5" />
+          </button>
+          <Button
+            variant="ghost"
+            className={`text-sm ${scrolled ? "text-foreground" : "text-white hover:bg-white/10 hover:text-white"}`}
+            onClick={() => navigate("/login")}
+          >
+            Portal Login
           </Button>
-          <Button className="bg-gradient-brand font-semibold text-primary-foreground shadow-lg shadow-primary/20 hover:opacity-90" asChild>
-            <Link to="/signup">Start Free</Link>
+          <Button
+            className="bg-primary text-primary-foreground font-semibold shadow-lg hover:opacity-90"
+            onClick={() => navigate("/signup")}
+          >
+            Apply Now
           </Button>
         </div>
 
-        <button className="md:hidden text-foreground" onClick={() => setMobileOpen(!mobileOpen)} aria-label="Toggle navigation menu">
+        {/* Mobile toggle */}
+        <button
+          className={`lg:hidden ${scrolled ? "text-foreground" : "text-white"}`}
+          onClick={() => setMobileOpen(!mobileOpen)}
+          aria-label="Toggle navigation menu"
+        >
           {mobileOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
         </button>
       </nav>
 
+      {/* Mobile menu */}
       <AnimatePresence>
         {mobileOpen && (
           <motion.div
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
-            className="border-t border-border bg-background/95 backdrop-blur-xl px-4 pb-6 pt-4 md:hidden"
+            className="border-t border-border bg-background/98 backdrop-blur-xl px-6 pb-8 pt-4 lg:hidden"
           >
-            <div className="flex flex-col gap-4">
-              <div className="relative mb-2">
-                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                <Input
-                  type="text"
-                  placeholder="Search courses..."
-                  className="pl-10"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                />
-              </div>
-              <Link to="/student" className="text-sm font-medium text-muted-foreground" onClick={() => setMobileOpen(false)}>Student</Link>
-              <Link to="/instructor-portal" className="text-sm font-medium text-muted-foreground" onClick={() => setMobileOpen(false)}>Instructor</Link>
-              <Link to="/academy" className="text-sm font-medium text-muted-foreground" onClick={() => setMobileOpen(false)}>Academy</Link>
-              <Link to="/news" className="text-sm font-medium text-muted-foreground" onClick={() => setMobileOpen(false)}>News</Link>
-              <Link to="/webinars" className="text-sm font-medium text-muted-foreground" onClick={() => setMobileOpen(false)}>Webinars</Link>
-              <div className="flex flex-col gap-2 pt-2 border-t border-border">
-                <Button variant="outline" asChild><Link to="/login">Sign in</Link></Button>
-                <Button className="bg-gradient-brand text-primary-foreground" asChild><Link to="/signup">Start Free</Link></Button>
+            <div className="flex flex-col gap-1">
+              {navLinks.map((link) => (
+                <div key={link.label}>
+                  {link.children ? (
+                    <>
+                      <p className="px-2 py-2 text-xs font-bold uppercase tracking-wider text-muted-foreground">{link.label}</p>
+                      {link.children.map((child) => (
+                        <Link
+                          key={child.label}
+                          to={child.href}
+                          className="block rounded-lg px-4 py-2 text-sm text-foreground hover:bg-secondary"
+                          onClick={() => setMobileOpen(false)}
+                        >
+                          {child.label}
+                        </Link>
+                      ))}
+                    </>
+                  ) : (
+                    <Link
+                      to={link.href!}
+                      className="block rounded-lg px-2 py-2.5 text-sm font-medium text-foreground hover:bg-secondary"
+                      onClick={() => setMobileOpen(false)}
+                    >
+                      {link.label}
+                    </Link>
+                  )}
+                </div>
+              ))}
+              <div className="flex flex-col gap-2 pt-4 mt-4 border-t border-border">
+                <Button variant="outline" onClick={() => { navigate("/login"); setMobileOpen(false); }}>Portal Login</Button>
+                <Button className="bg-primary text-primary-foreground" onClick={() => { navigate("/signup"); setMobileOpen(false); }}>Apply Now</Button>
               </div>
             </div>
           </motion.div>
