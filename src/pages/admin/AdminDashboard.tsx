@@ -57,8 +57,8 @@ const AdminDashboard = () => {
         users: (usersRes.data || []).length,
         courses: allCourses.length,
         enrollments: allEnrollments.length,
-        pendingCourses: allCourses.filter(c => c.status === 'pending').length,
-        pendingEnr: allEnrollments.filter(e => e.status === 'pending').length
+        pendingCourses: allCourses.filter((c: any) => c.published === false).length,
+        pendingEnr: allEnrollments.filter((e: any) => !e.completed_at).length
       });
 
     } catch (err: any) {
