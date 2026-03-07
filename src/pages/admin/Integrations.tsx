@@ -18,8 +18,8 @@ const AdminIntegrations = () => {
 
   const fetchWebhooks = async () => {
     setLoading(true);
-    const { data } = await supabase
-      .from("webhook_configs")
+    const { data } = await (supabase
+      .from as any)("webhook_configs")
       .select("*")
       .order("created_at", { ascending: false });
     setWebhooks(data || []);
