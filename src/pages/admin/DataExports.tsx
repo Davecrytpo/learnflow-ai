@@ -53,7 +53,7 @@ const DataExports = () => {
   };
 
   const deleteExport = async (id: string) => {
-    await supabase.from("data_exports").delete().eq("id", id);
+    await (supabase.from as any)("data_exports").delete().eq("id", id);
     toast({ title: "Export removed" });
     fetchExports();
   };

@@ -59,8 +59,8 @@ const CourseCategories = () => {
   const deleteCategory = async (id: string) => {
     if (!window.confirm("Are you sure? This action cannot be undone.")) return;
 
-    const { error } = await supabase
-      .from("course_categories")
+    const { error } = await (supabase
+      .from as any)("course_categories")
       .delete()
       .eq("id", id);
 

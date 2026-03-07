@@ -33,7 +33,7 @@ const Plagiarism = () => {
   }, []);
 
   const updateStatus = async (id: string, status: string) => {
-    await supabase.from("plagiarism_cases").update({ status }).eq("id", id);
+    await (supabase.from as any)("plagiarism_cases").update({ status }).eq("id", id);
     toast({ title: "Case Updated", description: `Status changed to ${status}.` });
     fetchCases();
   };

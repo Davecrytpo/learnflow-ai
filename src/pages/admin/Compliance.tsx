@@ -61,7 +61,7 @@ const AdminCompliance = () => {
 
   const deleteControl = async (id: string) => {
     if (!confirm("Remove this compliance record?")) return;
-    await supabase.from("compliance_records").delete().eq("id", id);
+    await (supabase.from as any)("compliance_records").delete().eq("id", id);
     toast({ title: "Record removed" });
     fetchCompliance();
   };

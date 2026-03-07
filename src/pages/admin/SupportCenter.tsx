@@ -39,7 +39,7 @@ const SupportCenter = () => {
   };
 
   const deleteTicket = async (id: string) => {
-    await supabase.from("support_tickets").delete().eq("id", id);
+    await (supabase.from as any)("support_tickets").delete().eq("id", id);
     toast({ title: "Ticket Deleted" });
     fetchTickets();
   };

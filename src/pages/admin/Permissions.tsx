@@ -20,8 +20,8 @@ const AdminPermissions = () => {
 
   const fetchRoles = async () => {
     setLoading(true);
-    const { data, error } = await supabase
-      .from("permissions_roles")
+    const { data, error } = await (supabase
+      .from as any)("permissions_roles")
       .select("*")
       .order("created_at", { ascending: false });
     

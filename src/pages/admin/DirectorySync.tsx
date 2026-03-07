@@ -59,7 +59,7 @@ const DirectorySync = () => {
 
   const deleteSync = async (id: string) => {
     if (!confirm("Terminate this directory sync connection?")) return;
-    await supabase.from("directory_syncs").delete().eq("id", id);
+    await (supabase.from as any)("directory_syncs").delete().eq("id", id);
     toast({ title: "Connection terminated" });
     fetchSyncs();
   };

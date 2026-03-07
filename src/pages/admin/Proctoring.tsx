@@ -34,7 +34,7 @@ const Proctoring = () => {
 
   const terminateSession = async (id: string) => {
     if (!confirm("Terminate this live proctoring session?")) return;
-    await supabase.from("proctoring_sessions").update({ status: 'terminated' }).eq("id", id);
+    await (supabase.from as any)("proctoring_sessions").update({ status: 'terminated' }).eq("id", id);
     toast({ title: "Session Terminated", description: "The exam access has been revoked." });
     fetchSessions();
   };

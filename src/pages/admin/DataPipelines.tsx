@@ -52,7 +52,7 @@ const DataPipelines = () => {
   };
 
   const deletePipeline = async (id: string) => {
-    await supabase.from("data_pipelines").delete().eq("id", id);
+    await (supabase.from as any)("data_pipelines").delete().eq("id", id);
     toast({ title: "Pipeline removed" });
     fetchPipelines();
   };

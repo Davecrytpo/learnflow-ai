@@ -32,8 +32,8 @@ const AdminReports = () => {
 
       setStats({
         totalEnrollments: enrolls.length,
-        completedEnrollments: enrolls.filter(e => e.status === 'completed').length,
-        activeLearners: enrolls.filter(e => e.status === 'active' || e.status === 'approved').length,
+        completedEnrollments: enrolls.filter((e: any) => e.completed_at).length,
+        activeLearners: enrolls.filter((e: any) => !e.completed_at).length,
         certificatesIssued: certs.length
       });
       setLoading(false);

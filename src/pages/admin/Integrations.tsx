@@ -54,7 +54,7 @@ const AdminIntegrations = () => {
 
   const deleteWebhook = async (id: string) => {
     if (!confirm("Remove this webhook?")) return;
-    await supabase.from("webhook_configs").delete().eq("id", id);
+    await (supabase.from as any)("webhook_configs").delete().eq("id", id);
     toast({ title: "Webhook removed" });
     fetchWebhooks();
   };
