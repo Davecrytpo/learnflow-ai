@@ -16,8 +16,8 @@ const AdminBilling = () => {
 
   const fetchBilling = async () => {
     setLoading(true);
-    const { data, error } = await supabase
-      .from("billing_invoices")
+    const { data, error } = await (supabase
+      .from as any)("billing_invoices")
       .select("*")
       .order("created_at", { ascending: false });
     
