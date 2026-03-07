@@ -26,8 +26,8 @@ const AdminAccreditation = () => {
 
   const fetchAccreditations = async () => {
     setLoading(true);
-    const { data, error } = await supabase
-      .from("accreditations")
+    const { data, error } = await (supabase
+      .from as any)("accreditations")
       .select("*")
       .order("created_at", { ascending: false });
     
