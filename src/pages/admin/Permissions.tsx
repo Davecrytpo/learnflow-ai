@@ -42,7 +42,7 @@ const AdminPermissions = () => {
     if (!newRole.name) return;
     setSaving(true);
     
-    const { error } = await supabase.from("permissions_roles").insert(newRole);
+    const { error } = await (supabase.from as any)("permissions_roles").insert(newRole);
 
     if (error) {
       toast({ title: "Error creating role", description: error.message, variant: "destructive" });
