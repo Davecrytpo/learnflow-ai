@@ -33,7 +33,7 @@ const SupportCenter = () => {
   }, []);
 
   const resolveTicket = async (id: string) => {
-    await supabase.from("support_tickets").update({ status: 'resolved' }).eq("id", id);
+    await (supabase.from as any)("support_tickets").update({ status: 'resolved' }).eq("id", id);
     toast({ title: "Ticket Resolved" });
     fetchTickets();
   };
