@@ -21,8 +21,8 @@ const DataExports = () => {
 
   const fetchExports = async () => {
     setLoading(true);
-    const { data } = await supabase
-      .from("data_exports")
+    const { data } = await (supabase
+      .from as any)("data_exports")
       .select("*")
       .order("created_at", { ascending: false });
     setExports(data || []);
