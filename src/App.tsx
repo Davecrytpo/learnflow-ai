@@ -137,6 +137,38 @@ const Gradebook = lazy(() => import("./pages/instructor/Gradebook"));
 const Attendance = lazy(() => import("./pages/instructor/Attendance"));
 const AdminDashboard = lazy(() => import("./pages/admin/AdminDashboard"));
 
+// Academics
+const Undergraduate = lazy(() => import("./pages/academics/Undergraduate"));
+const Graduate = lazy(() => import("./pages/academics/Graduate"));
+const Doctoral = lazy(() => import("./pages/academics/Doctoral"));
+const OnlineLearning = lazy(() => import("./pages/academics/OnlineLearning"));
+const AcademicCalendar = lazy(() => import("./pages/academics/AcademicCalendar"));
+
+// Research
+const ResearchCenters = lazy(() => import("./pages/research/ResearchCenters"));
+const Publications = lazy(() => import("./pages/research/Publications"));
+const Labs = lazy(() => import("./pages/research/Labs"));
+const Grants = lazy(() => import("./pages/research/Grants"));
+
+// Admissions
+const Apply = lazy(() => import("./pages/admissions/Apply"));
+const Tuition = lazy(() => import("./pages/admissions/Tuition"));
+const Visit = lazy(() => import("./pages/admissions/Visit"));
+const AdmissionsContact = lazy(() => import("./pages/admissions/Contact"));
+
+// Campus
+const Events = lazy(() => import("./pages/campus/Events"));
+const StudentLife = lazy(() => import("./pages/campus/StudentLife"));
+const Housing = lazy(() => import("./pages/campus/Housing"));
+const Athletics = lazy(() => import("./pages/campus/Athletics"));
+const Health = lazy(() => import("./pages/campus/Health"));
+const Discover = lazy(() => import("./pages/campus/Discover"));
+
+// General
+const Contact = lazy(() => import("./pages/Contact"));
+const Careers = lazy(() => import("./pages/Careers"));
+const Giving = lazy(() => import("./pages/Giving"));
+
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -157,6 +189,41 @@ const App = () => (
               >
                 <Routes>
                   <Route path="/" element={<Index />} />
+                  
+                  {/* Academics */}
+                  <Route path="/academics/undergraduate" element={<Undergraduate />} />
+                  <Route path="/academics/graduate" element={<Graduate />} />
+                  <Route path="/academics/doctoral" element={<Doctoral />} />
+                  <Route path="/academics/online" element={<OnlineLearning />} />
+                  <Route path="/academics/catalog" element={<CourseCatalog />} />
+                  <Route path="/academics/calendar" element={<AcademicCalendar />} />
+
+                  {/* Research */}
+                  <Route path="/research/centers" element={<ResearchCenters />} />
+                  <Route path="/research/publications" element={<Publications />} />
+                  <Route path="/research/labs" element={<Labs />} />
+                  <Route path="/research/grants" element={<Grants />} />
+
+                  {/* Admissions */}
+                  <Route path="/admissions/apply" element={<Apply />} />
+                  <Route path="/admissions/tuition" element={<Tuition />} />
+                  <Route path="/admissions/visit" element={<Visit />} />
+                  <Route path="/admissions/contact" element={<AdmissionsContact />} />
+
+                  {/* Campus */}
+                  <Route path="/campus/news" element={<News />} />
+                  <Route path="/campus/events" element={<Events />} />
+                  <Route path="/campus/student-life" element={<StudentLife />} />
+                  <Route path="/campus/housing" element={<Housing />} />
+                  <Route path="/campus/athletics" element={<Athletics />} />
+                  <Route path="/campus/health" element={<Health />} />
+                  <Route path="/campus/discover" element={<Discover />} />
+
+                  {/* General */}
+                  <Route path="/contact" element={<Contact />} />
+                  <Route path="/careers" element={<Careers />} />
+                  <Route path="/giving" element={<Giving />} />
+
                   <Route path="/student" element={<StudentPortal />} />
                   <Route path="/instructor-portal" element={<InstructorPortal />} />
                   <Route path="/admin-portal" element={<AdminPortal />} />

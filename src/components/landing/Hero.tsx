@@ -1,7 +1,10 @@
-import { Link } from "react-router-dom";
+import { useState, useEffect, useRef } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Zap, BookOpen, Award, TrendingUp } from "lucide-react";
-import { motion } from "framer-motion";
+import { ArrowRight, Zap, BookOpen, Award, TrendingUp, Search, MapPin, Beaker, Calendar, Users, GraduationCap, Loader2 } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Input } from "@/components/ui/input";
+import { supabase } from "@/integrations/supabase/client";
 
 const statsItems = [
   { value: "68K+", label: "Active Learners" },
@@ -10,7 +13,63 @@ const statsItems = [
   { value: "180+", label: "Institutions" },
 ];
 
+const quickLinks = [
+  { label: "How to Apply", icon: GraduationCap, href: "/admissions/apply" },
+  { label: "Programs", icon: BookOpen, href: "/academics/undergraduate" },
+  { label: "Research", icon: Beaker, href: "/research/centers" },
+  { label: "Visit Campus", icon: MapPin, href: "/admissions/visit" },
+  { label: "Events", icon: Calendar, href: "/campus/events" },
+  { label: "Student Life", icon: Users, href: "/campus/student-life" },
+];
+
 const Hero = () => {
+  const navigate = useNavigate();
+  const [searchQuery, setSearchQuery] = useState("");
+  const [suggestions, setSuggestions] = useState<any[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const searchRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
+        setShowSuggestions(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  useEffect(() => {
+    const fetchSuggestions = async () => {
+      if (searchQuery.length < 2) {
+        setSuggestions([]);
+        return;
+      }
+
+      setIsSearching(true);
+      const { data } = await supabase
+        .from("courses")
+        .select("id, title, category, slug")
+        .ilike("title", `%${searchQuery}%`)
+        .limit(5);
+      
+      setSuggestions(data || []);
+      setIsSearching(false);
+      setShowSuggestions(true);
+    };
+
+    const timer = setTimeout(fetchSuggestions, 300);
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
+
+  const handleSearchSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (searchQuery.trim()) {
+      navigate(`/courses?search=${encodeURIComponent(searchQuery)}`);
+    }
+  };
+
   return (
     <section className="relative min-h-screen overflow-hidden bg-background pt-20">
       <div className="absolute inset-0 bg-aurora" />
@@ -47,28 +106,100 @@ const Hero = () => {
             and runs enterprise-grade
           </h1>
           <p className="mx-auto mt-8 max-w-2xl text-lg leading-relaxed text-muted-foreground sm:text-xl">
-            Learnflow AI is the learning platform built for modern institutions, from K-12 to universities. Design courses, teach at scale, assess confidently, and certify outcomes.
+            Global University Institute is the learning platform built for modern institutions.
           </p>
         </motion.div>
 
+        {/* Hero Search Bar */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.25 }}
-          className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row"
+          className="relative mx-auto mt-10 max-w-2xl z-20"
+          ref={searchRef}
         >
-          <Button size="lg" className="h-14 gap-2 bg-gradient-brand px-10 text-base font-semibold text-primary-foreground shadow-xl shadow-primary/30 hover:opacity-90" asChild>
-            <Link to="/signup">
-              Start for Free
-              <ArrowRight className="h-4 w-4" />
+          <form onSubmit={handleSearchSubmit} className="relative flex items-center">
+            <Search className="absolute left-4 h-6 w-6 text-muted-foreground" />
+            <Input
+              type="text"
+              placeholder="What do you want to study?"
+              className="h-16 w-full rounded-full border-2 border-primary/20 bg-background/80 pl-14 pr-4 text-lg shadow-xl backdrop-blur-xl transition-all focus:border-primary focus:ring-4 focus:ring-primary/10"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              onFocus={() => setShowSuggestions(suggestions.length > 0)}
+            />
+            <Button 
+              type="submit" 
+              className="absolute right-2 h-12 rounded-full bg-gradient-brand px-6 font-bold text-primary-foreground transition-transform hover:scale-105"
+            >
+              Search
+            </Button>
+            {isSearching && (
+              <div className="absolute right-24 top-1/2 -translate-y-1/2">
+                <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+              </div>
+            )}
+          </form>
+
+          <AnimatePresence>
+            {showSuggestions && (
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 10 }}
+                className="absolute left-0 right-0 mt-4 overflow-hidden rounded-2xl border border-border bg-background/95 shadow-2xl backdrop-blur-xl"
+              >
+                <div className="p-2 border-b border-border bg-secondary/20">
+                    <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground px-2">Suggestions</p>
+                </div>
+                <div className="max-h-80 overflow-auto">
+                  {suggestions.map((s) => (
+                    <button
+                      key={s.id}
+                      onClick={() => {
+                        navigate(`/course/${s.id}`);
+                        setShowSuggestions(false);
+                      }}
+                      className="flex w-full items-center gap-4 px-6 py-4 text-left hover:bg-secondary/50 transition-colors border-b border-border/50 last:border-0"
+                    >
+                      <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
+                        <BookOpen className="h-5 w-5" />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <p className="text-base font-semibold truncate text-foreground">{s.title}</p>
+                        <p className="text-xs text-muted-foreground uppercase tracking-wider">{s.category}</p>
+                      </div>
+                      <ArrowRight className="h-4 w-4 text-muted-foreground" />
+                    </button>
+                  ))}
+                  {suggestions.length === 0 && !isSearching && (
+                    <div className="p-8 text-center text-muted-foreground">
+                      No matches found.
+                    </div>
+                  )}
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </motion.div>
+
+        {/* Quick Links */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.35 }}
+          className="mx-auto mt-8 flex max-w-4xl flex-wrap justify-center gap-4"
+        >
+          {quickLinks.map((link) => (
+            <Link 
+              key={link.label} 
+              to={link.href}
+              className="group flex items-center gap-2 rounded-full border border-border bg-background/50 px-5 py-2 text-sm font-medium text-muted-foreground backdrop-blur-sm transition-all hover:border-primary/50 hover:bg-primary/5 hover:text-primary"
+            >
+              <link.icon className="h-4 w-4 transition-transform group-hover:scale-110" />
+              {link.label}
             </Link>
-          </Button>
-          <Button size="lg" variant="outline" className="h-14 gap-2 border-border px-10 text-base font-medium hover:bg-secondary/60" asChild>
-            <Link to="/courses">
-              <BookOpen className="h-4 w-4" />
-              Browse Courses
-            </Link>
-          </Button>
+          ))}
         </motion.div>
 
         <motion.div
