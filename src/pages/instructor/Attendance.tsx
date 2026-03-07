@@ -74,7 +74,7 @@ const Attendance = () => {
   const createSession = async () => {
     if (!newDate || !selectedCourse) return;
     setCreating(true);
-    const { data, error } = await supabase.from("attendance_sessions").insert({
+    const { data, error } = await (supabase.from as any)("attendance_sessions").insert({
       course_id: selectedCourse,
       date: newDate
     }).select().single();
