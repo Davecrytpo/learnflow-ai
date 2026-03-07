@@ -18,8 +18,8 @@ const CourseCategories = () => {
 
   const fetchCategories = async () => {
     setLoading(true);
-    const { data, error } = await supabase
-      .from("course_categories")
+    const { data, error } = await (supabase
+      .from as any)("course_categories")
       .select("*")
       .order("name", { ascending: true });
     
