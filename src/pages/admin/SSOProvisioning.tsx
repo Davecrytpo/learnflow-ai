@@ -42,7 +42,7 @@ const SSOProvisioning = () => {
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
     setSaving(true);
-    const { error } = await supabase.from("sso_providers").insert(newProvider);
+    const { error } = await (supabase.from as any)("sso_providers").insert(newProvider);
     if (error) {
       toast({ title: "Error", description: error.message, variant: "destructive" });
     } else {
