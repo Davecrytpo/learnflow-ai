@@ -31,7 +31,7 @@ const AdminSecurity = () => {
         .single();
       
       if (data) {
-        setSettings({ ...settings, ...data.value });
+        setSettings({ ...settings, ...(data as any).value });
       } else if (error && error.code !== 'PGRST116') {
         // PGRST116 is "Row not found", which is fine, we use defaults
         console.error("Error fetching security settings:", error);
