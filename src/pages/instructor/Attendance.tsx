@@ -65,7 +65,7 @@ const Attendance = () => {
       ]);
       setStudents(enrollRes.data || []);
       const map: Record<string, string> = {};
-      recordRes.data?.forEach(r => map[r.student_id] = r.status);
+      recordRes.data?.forEach((r: any) => map[r.student_id] = r.status);
       setAttendanceMap(map);
     };
     fetchAttendance();
