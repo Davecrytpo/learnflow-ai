@@ -17,8 +17,8 @@ const Plagiarism = () => {
 
   const fetchCases = async () => {
     setLoading(true);
-    const { data } = await supabase
-      .from("plagiarism_cases")
+    const { data } = await (supabase
+      .from as any)("plagiarism_cases")
       .select(`
         *,
         profiles:student_id (display_name)
@@ -33,7 +33,7 @@ const Plagiarism = () => {
   }, []);
 
   const updateStatus = async (id: string, status: string) => {
-    await supabase.from("plagiarism_cases").update({ status }).eq("id", id);
+    await (supabase.from as any)("plagiarism_cases").update({ status }).eq("id", id);
     toast({ title: "Case Updated", description: `Status changed to ${status}.` });
     fetchCases();
   };

@@ -30,8 +30,8 @@ const DiscussionBoard = ({ courseId }: DiscussionBoardProps) => {
 
   const fetchDiscussions = async () => {
     setLoading(true);
-    const { data, error } = await supabase
-      .from("discussions")
+    const { data, error } = await (supabase
+      .from as any)("discussions")
       .select("*, profiles(display_name, avatar_url)")
       .eq("course_id", courseId)
       .order("created_at", { ascending: false });
@@ -48,8 +48,8 @@ const DiscussionBoard = ({ courseId }: DiscussionBoardProps) => {
 
   const createDiscussion = async () => {
     if (!user) return;
-    const { data, error } = await supabase
-      .from("discussions")
+    const { data, error } = await (supabase
+      .from as any)("discussions")
       .insert({
         course_id: courseId,
         user_id: user.id,

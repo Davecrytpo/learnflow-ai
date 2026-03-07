@@ -45,7 +45,7 @@ const Attendance = () => {
   useEffect(() => {
     if (!selectedCourse) return;
     const fetchSessions = async () => {
-      const { data } = await supabase.from("attendance_sessions").select("*").eq("course_id", selectedCourse).order("date", { ascending: false });
+      const { data } = await (supabase.from as any)("attendance_sessions").select("*").eq("course_id", selectedCourse).order("date", { ascending: false });
       setSessions(data || []);
       if (data && data.length > 0) setSelectedSession(data[0].id);
       else setSelectedSession("");
@@ -61,11 +61,11 @@ const Attendance = () => {
     const fetchAttendance = async () => {
       const [enrollRes, recordRes] = await Promise.all([
         supabase.from("enrollments").select("student_id, profiles(display_name, avatar_url)").eq("course_id", selectedCourse),
-        supabase.from("attendance_records").select("student_id, status").eq("session_id", selectedSession)
+        (supabase.from as any)("attendance_records").select("student_id, status").eq("session_id", selectedSession)
       ]);
       setStudents(enrollRes.data || []);
       const map: Record<string, string> = {};
-      recordRes.data?.forEach(r => map[r.student_id] = r.status);
+      recordRes.data?.forEach((r: any) => map[r.student_id] = r.status);
       setAttendanceMap(map);
     };
     fetchAttendance();
@@ -74,7 +74,7 @@ const Attendance = () => {
   const createSession = async () => {
     if (!newDate || !selectedCourse) return;
     setCreating(true);
-    const { data, error } = await supabase.from("attendance_sessions").insert({
+    const { data, error } = await (supabase.from as any)("attendance_sessions").insert({
       course_id: selectedCourse,
       date: newDate
     }).select().single();
@@ -91,7 +91,7 @@ const Attendance = () => {
 
   const markAttendance = async (studentId: string, status: string) => {
     setAttendanceMap(prev => ({ ...prev, [studentId]: status }));
-    await supabase.from("attendance_records").upsert({
+    await (supabase.from as any)("attendance_records").upsert({
       session_id: selectedSession,
       student_id: studentId,
       status
@@ -109,7 +109,7 @@ const Attendance = () => {
     students.forEach(s => newMap[s.student_id] = status);
     setAttendanceMap(newMap);
 
-    await supabase.from("attendance_records").upsert(updates, { onConflict: "session_id,student_id" });
+    await (supabase.from as any)("attendance_records").upsert(updates, { onConflict: "session_id,student_id" });
     toast({ title: `Marked all as ${status}` });
   };
 

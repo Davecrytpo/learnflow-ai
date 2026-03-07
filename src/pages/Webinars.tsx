@@ -19,8 +19,8 @@ const WebinarsPage = () => {
     const fetchWebinars = async () => {
       setLoading(true);
       try {
-        const { data, error } = await supabase
-          .from("webinars")
+        const { data, error } = await (supabase
+          .from as any)("webinars")
           .select("*")
           .order("start_time", { ascending: true });
         if (error) throw error;

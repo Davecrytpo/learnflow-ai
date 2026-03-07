@@ -21,8 +21,8 @@ const DirectorySync = () => {
 
   const fetchSyncs = async () => {
     setLoading(true);
-    const { data, error } = await supabase
-      .from("directory_syncs")
+    const { data, error } = await (supabase
+      .from as any)("directory_syncs")
       .select("*")
       .order("created_at", { ascending: false });
     
@@ -41,7 +41,7 @@ const DirectorySync = () => {
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
     setSaving(true);
-    const { error } = await supabase.from("directory_syncs").insert({
+    const { error } = await (supabase.from as any)("directory_syncs").insert({
       source: newSync.source,
       users_synced: parseInt(newSync.users_synced),
       status: 'synced'
@@ -59,7 +59,7 @@ const DirectorySync = () => {
 
   const deleteSync = async (id: string) => {
     if (!confirm("Terminate this directory sync connection?")) return;
-    await supabase.from("directory_syncs").delete().eq("id", id);
+    await (supabase.from as any)("directory_syncs").delete().eq("id", id);
     toast({ title: "Connection terminated" });
     fetchSyncs();
   };

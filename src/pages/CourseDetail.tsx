@@ -46,7 +46,7 @@ const CourseDetail = () => {
         if (user) {
           const [enrolledRes, userCountRes] = await Promise.all([
             supabase.from("enrollments").select("id").eq("course_id", courseId).eq("student_id", user.id).maybeSingle(),
-            supabase.from("enrollments").select("*", { count: "exact", head: true }).eq("student_id", user.id).neq("status", "rejected")
+            (supabase.from("enrollments") as any).select("*", { count: "exact", head: true }).eq("student_id", user.id)
           ]);
           setIsEnrolled(!!enrolledRes.data);
           setUserEnrollmentCount(userCountRes.count || 0);

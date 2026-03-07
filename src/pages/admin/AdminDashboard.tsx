@@ -47,8 +47,8 @@ const AdminDashboard = () => {
       const allCourses = coursesRes.data || [];
       const allEnrollments = enrollRes.data || [];
       
-      setPendingCourses(allCourses.filter(c => c.status === 'pending'));
-      setPendingEnrollments(allEnrollments.filter(e => e.status === 'pending'));
+      setPendingCourses(allCourses.filter((c: any) => c.published === false));
+      setPendingEnrollments(allEnrollments.filter((e: any) => !e.completed_at));
       
       const instructorIds = (rolesRes.data || []).map(r => r.user_id);
       setInstructors((usersRes.data || []).filter(u => instructorIds.includes(u.user_id)));
@@ -57,8 +57,8 @@ const AdminDashboard = () => {
         users: (usersRes.data || []).length,
         courses: allCourses.length,
         enrollments: allEnrollments.length,
-        pendingCourses: allCourses.filter(c => c.status === 'pending').length,
-        pendingEnr: allEnrollments.filter(e => e.status === 'pending').length
+        pendingCourses: allCourses.filter((c: any) => c.published === false).length,
+        pendingEnr: allEnrollments.filter((e: any) => !e.completed_at).length
       });
 
     } catch (err: any) {
@@ -111,13 +111,13 @@ const AdminDashboard = () => {
   };
 
   const handleCourseAction = async (id: string, status: 'approved' | 'rejected') => {
-    const { error } = await supabase.from("courses").update({ status }).eq("id", id);
+    const { error } = await supabase.from("courses").update({ published: status === 'approved' }).eq("id", id);
     if (error) toast({ title: "Error", variant: "destructive" });
     else { toast({ title: `Course ${status}` }); fetchData(); }
   };
 
   const handleEnrollAction = async (id: string, status: 'approved' | 'rejected') => {
-    const { error } = await supabase.from("enrollments").update({ status }).eq("id", id);
+    const { error } = await (supabase.from as any)("enrollments").update({ completed_at: status === 'rejected' ? new Date().toISOString() : null }).eq("id", id);
     if (error) toast({ title: "Error", variant: "destructive" });
     else { toast({ title: `Enrollment ${status}` }); fetchData(); }
   };

@@ -13,7 +13,7 @@ const Newsletter = () => {
   const handleSubscribe = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    const { error } = await supabase.from("newsletter_subs").insert({ email });
+    const { error } = await (supabase.from as any)("newsletter_subs").insert({ email });
     setLoading(false);
     if (error) {
       if (error.code === "23505") {

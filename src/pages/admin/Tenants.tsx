@@ -19,8 +19,8 @@ const AdminTenants = () => {
 
   const fetchTenants = async () => {
     setLoading(true);
-    const { data } = await supabase
-      .from("tenants")
+    const { data } = await (supabase
+      .from as any)("tenants")
       .select("*")
       .order("name", { ascending: true });
     setTenants(data || []);
@@ -36,7 +36,7 @@ const AdminTenants = () => {
     if (!newTenant.name || !newTenant.slug) return;
     setAdding(true);
     
-    const { error } = await supabase.from("tenants").insert({
+    const { error } = await (supabase.from as any)("tenants").insert({
       name: newTenant.name,
       slug: newTenant.slug.toLowerCase().replace(/\s+/g, '-'),
       plan: "growth",
@@ -56,7 +56,7 @@ const AdminTenants = () => {
 
   const deleteTenant = async (id: string) => {
     if (!confirm("Are you sure? All data for this tenant will be inaccessible.")) return;
-    await supabase.from("tenants").delete().eq("id", id);
+    await (supabase.from as any)("tenants").delete().eq("id", id);
     toast({ title: "Tenant removed" });
     fetchTenants();
   };

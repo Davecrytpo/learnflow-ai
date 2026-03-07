@@ -21,8 +21,8 @@ const DataPipelines = () => {
 
   const fetchPipelines = async () => {
     setLoading(true);
-    const { data } = await supabase
-      .from("data_pipelines")
+    const { data } = await (supabase
+      .from as any)("data_pipelines")
       .select("*")
       .order("created_at", { ascending: false });
     setPipelines(data || []);
@@ -36,7 +36,7 @@ const DataPipelines = () => {
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
     setSaving(true);
-    const { error } = await supabase.from("data_pipelines").insert({
+    const { error } = await (supabase.from as any)("data_pipelines").insert({
       ...newPipeline,
       status: 'active'
     });
@@ -52,7 +52,7 @@ const DataPipelines = () => {
   };
 
   const deletePipeline = async (id: string) => {
-    await supabase.from("data_pipelines").delete().eq("id", id);
+    await (supabase.from as any)("data_pipelines").delete().eq("id", id);
     toast({ title: "Pipeline removed" });
     fetchPipelines();
   };

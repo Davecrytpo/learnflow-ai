@@ -17,8 +17,8 @@ const AdminAuditLogs = () => {
   useEffect(() => {
     const fetchLogs = async () => {
       try {
-        const { data, error } = await supabase
-          .from("audit_logs")
+        const { data, error } = await (supabase
+          .from as any)("audit_logs")
           .select(`
             *,
             profiles:actor_id (

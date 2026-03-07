@@ -22,8 +22,8 @@ const AdminCompliance = () => {
 
   const fetchCompliance = async () => {
     setLoading(true);
-    const { data, error } = await supabase
-      .from("compliance_records")
+    const { data, error } = await (supabase
+      .from as any)("compliance_records")
       .select("*")
       .order("created_at", { ascending: false });
     
@@ -43,7 +43,7 @@ const AdminCompliance = () => {
     e.preventDefault();
     setAdding(true);
     
-    const { error } = await supabase.from("compliance_records").insert({
+    const { error } = await (supabase.from as any)("compliance_records").insert({
       title: newControl.title,
       status: newControl.status
     });
@@ -61,7 +61,7 @@ const AdminCompliance = () => {
 
   const deleteControl = async (id: string) => {
     if (!confirm("Remove this compliance record?")) return;
-    await supabase.from("compliance_records").delete().eq("id", id);
+    await (supabase.from as any)("compliance_records").delete().eq("id", id);
     toast({ title: "Record removed" });
     fetchCompliance();
   };

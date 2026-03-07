@@ -26,8 +26,8 @@ const AdminAccreditation = () => {
 
   const fetchAccreditations = async () => {
     setLoading(true);
-    const { data, error } = await supabase
-      .from("accreditations")
+    const { data, error } = await (supabase
+      .from as any)("accreditations")
       .select("*")
       .order("created_at", { ascending: false });
     
@@ -47,7 +47,7 @@ const AdminAccreditation = () => {
     e.preventDefault();
     setSaving(true);
     
-    const { error } = await supabase.from("accreditations").insert({
+    const { error } = await (supabase.from as any)("accreditations").insert({
       agency: newAccreditation.agency,
       status: newAccreditation.status,
       renewal_date: newAccreditation.renewal_date || null
@@ -66,7 +66,7 @@ const AdminAccreditation = () => {
 
   const handleDelete = async (id: string) => {
     if (!confirm("Delete this accreditation record?")) return;
-    await supabase.from("accreditations").delete().eq("id", id);
+    await (supabase.from as any)("accreditations").delete().eq("id", id);
     toast({ title: "Record deleted" });
     fetchAccreditations();
   };

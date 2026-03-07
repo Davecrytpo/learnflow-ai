@@ -1,28 +1,38 @@
 import { Link } from "react-router-dom";
-import { Github, Twitter, Linkedin, Youtube } from "lucide-react";
+import { Github, Twitter, Linkedin, Youtube, Mail, Phone, MapPin } from "lucide-react";
 
 const Footer = () => (
-  <footer className="relative border-t border-border bg-background">
-    <div className="container mx-auto px-4 py-16">
-      <div className="grid gap-10 lg:grid-cols-5">
+  <footer className="relative border-t border-border bg-foreground text-background">
+    <div className="container mx-auto px-6 py-20">
+      <div className="grid gap-12 lg:grid-cols-6">
+        {/* Brand */}
         <div className="lg:col-span-2">
           <Link to="/" className="flex items-center gap-3">
-            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-brand shadow-md shadow-primary/20">
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary shadow-md">
               <svg className="h-5 w-5 text-primary-foreground" viewBox="0 0 24 24" fill="none">
                 <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
             </div>
-            <span className="font-display text-lg font-bold tracking-tight text-foreground">Global University Institute</span>
+            <div>
+              <span className="font-display text-lg font-bold tracking-tight text-background">Global University Institute</span>
+              <span className="block text-[9px] uppercase tracking-[0.15em] text-background/50">Est. 1994</span>
+            </div>
           </Link>
-          <p className="mt-4 max-w-xs text-sm leading-relaxed text-muted-foreground">
-            The enterprise-grade LMS built for modern education. Free for every student, every instructor, every institution.
+          <p className="mt-5 max-w-xs text-sm leading-relaxed text-background/50">
+            A world-renowned academic institution dedicated to research excellence,
+            innovative teaching, and preparing leaders for a changing world.
           </p>
+          <div className="mt-6 space-y-2 text-sm text-background/50">
+            <p className="flex items-center gap-2"><MapPin className="h-3.5 w-3.5" /> 1 University Drive, Cambridge, MA 02138</p>
+            <p className="flex items-center gap-2"><Phone className="h-3.5 w-3.5" /> +1 (800) 555-0199</p>
+            <p className="flex items-center gap-2"><Mail className="h-3.5 w-3.5" /> admissions@gui.edu</p>
+          </div>
           <div className="mt-6 flex gap-3">
             {[Github, Twitter, Linkedin, Youtube].map((Icon, i) => (
               <a
                 key={i}
                 href="#"
-                className="flex h-9 w-9 items-center justify-center rounded-lg border border-border text-muted-foreground transition-all hover:border-primary/40 hover:text-primary"
+                className="flex h-9 w-9 items-center justify-center rounded-lg border border-background/10 text-background/40 transition-all hover:border-primary/40 hover:text-primary"
                 aria-label="Social link"
               >
                 <Icon className="h-4 w-4" />
@@ -31,54 +41,94 @@ const Footer = () => (
           </div>
         </div>
 
+        {/* Academics */}
         <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.15em] text-foreground">Platform</p>
+          <p className="text-xs font-bold uppercase tracking-[0.15em] text-background/70">Academics</p>
           <ul className="mt-4 space-y-3">
-            {[["Course Catalog", "/courses"], ["Academy", "/academy"], ["Student Portal", "/student"], ["Instructor Portal", "/instructor-portal"]].map(([label, href]) => (
+            {[
+              ["Undergraduate", "/courses"],
+              ["Graduate", "/courses"],
+              ["Doctoral", "/courses"],
+              ["Online Programs", "/courses"],
+              ["Course Catalog", "/courses"],
+              ["Academic Calendar", "/news"],
+            ].map(([label, href]) => (
               <li key={label}>
-                <Link to={href} className="text-sm text-muted-foreground transition-colors hover:text-foreground">{label}</Link>
+                <Link to={href} className="text-sm text-background/40 transition-colors hover:text-background">{label}</Link>
               </li>
             ))}
           </ul>
         </div>
 
+        {/* Research */}
         <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.15em] text-foreground">Academy</p>
+          <p className="text-xs font-bold uppercase tracking-[0.15em] text-background/70">Research</p>
           <ul className="mt-4 space-y-3">
-            {[["Instructor Training", "/academy"], ["Admin Mastery", "/academy"], ["Pedagogy Research", "/academy"], ["Certifications", "/academy"]].map(([label, href]) => (
+            {[
+              ["Research Centers", "/about"],
+              ["Publications", "/about"],
+              ["Labs & Facilities", "/about"],
+              ["Grants & Funding", "/about"],
+              ["Research Ethics", "/about"],
+            ].map(([label, href]) => (
               <li key={label}>
-                <Link to={href} className="text-sm text-muted-foreground transition-colors hover:text-foreground">{label}</Link>
+                <Link to={href} className="text-sm text-background/40 transition-colors hover:text-background">{label}</Link>
               </li>
             ))}
           </ul>
         </div>
 
+        {/* Campus */}
         <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.15em] text-foreground">Get Started</p>
+          <p className="text-xs font-bold uppercase tracking-[0.15em] text-background/70">Campus</p>
           <ul className="mt-4 space-y-3">
-            {[["Student Signup", "/signup?role=student"], ["Instructor Registration", "/signup?role=instructor"], ["Admin Portal", "/admin-portal"], ["Sign In", "/login"]].map(([label, href]) => (
+            {[
+              ["Student Life", "/about"],
+              ["Housing", "/about"],
+              ["Athletics", "/about"],
+              ["Health Services", "/about"],
+              ["Safety & Security", "/about"],
+              ["Campus Map", "/about"],
+            ].map(([label, href]) => (
               <li key={label}>
-                <Link to={href} className="text-sm text-muted-foreground transition-colors hover:text-foreground">{label}</Link>
+                <Link to={href} className="text-sm text-background/40 transition-colors hover:text-background">{label}</Link>
               </li>
             ))}
           </ul>
         </div>
 
+        {/* Quick Links */}
         <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.15em] text-foreground">Legal</p>
+          <p className="text-xs font-bold uppercase tracking-[0.15em] text-background/70">Quick Links</p>
           <ul className="mt-4 space-y-3">
-            {["Privacy Policy", "Terms of Service", "Accessibility Statement", "FERPA Compliance"].map((item) => (
-              <li key={item}>
-                <a href="#" className="text-sm text-muted-foreground transition-colors hover:text-foreground">{item}</a>
+            {[
+              ["Apply Now", "/signup"],
+              ["Portal Login", "/login"],
+              ["News & Events", "/news"],
+              ["Alumni Network", "/about"],
+              ["Contact Us", "/about"],
+              ["Careers at GUI", "/about"],
+            ].map(([label, href]) => (
+              <li key={label}>
+                <Link to={href} className="text-sm text-background/40 transition-colors hover:text-background">{label}</Link>
               </li>
             ))}
           </ul>
         </div>
       </div>
 
-      <div className="mt-16 flex flex-col items-center justify-between gap-4 border-t border-border pt-8 sm:flex-row">
-        <p className="text-sm text-muted-foreground">Copyright {new Date().getFullYear()} Learnflow AI LMS. All rights reserved.</p>
-        <p className="text-sm text-muted-foreground">Free for educational use worldwide - Built with care for educators.</p>
+      {/* Bottom bar */}
+      <div className="mt-16 flex flex-col items-center justify-between gap-4 border-t border-background/10 pt-8 sm:flex-row">
+        <p className="text-xs text-background/30">
+          © {new Date().getFullYear()} Global University Institute. All rights reserved.
+        </p>
+        <div className="flex flex-wrap gap-6 text-xs text-background/30">
+          <a href="#" className="hover:text-background/60 transition-colors">Privacy Policy</a>
+          <a href="#" className="hover:text-background/60 transition-colors">Terms of Use</a>
+          <a href="#" className="hover:text-background/60 transition-colors">Accessibility</a>
+          <a href="#" className="hover:text-background/60 transition-colors">FERPA</a>
+          <a href="#" className="hover:text-background/60 transition-colors">Title IX</a>
+        </div>
       </div>
     </div>
   </footer>

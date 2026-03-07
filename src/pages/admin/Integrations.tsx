@@ -18,8 +18,8 @@ const AdminIntegrations = () => {
 
   const fetchWebhooks = async () => {
     setLoading(true);
-    const { data } = await supabase
-      .from("webhook_configs")
+    const { data } = await (supabase
+      .from as any)("webhook_configs")
       .select("*")
       .order("created_at", { ascending: false });
     setWebhooks(data || []);
@@ -35,7 +35,7 @@ const AdminIntegrations = () => {
     if (!newUrl.trim()) return;
     setAdding(true);
 
-    const { error } = await supabase.from("webhook_configs").insert({
+    const { error } = await (supabase.from as any)("webhook_configs").insert({
       name: `Webhook ${webhooks.length + 1}`,
       endpoint: newUrl,
       events: ["all"],
@@ -54,7 +54,7 @@ const AdminIntegrations = () => {
 
   const deleteWebhook = async (id: string) => {
     if (!confirm("Remove this webhook?")) return;
-    await supabase.from("webhook_configs").delete().eq("id", id);
+    await (supabase.from as any)("webhook_configs").delete().eq("id", id);
     toast({ title: "Webhook removed" });
     fetchWebhooks();
   };

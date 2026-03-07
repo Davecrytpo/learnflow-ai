@@ -16,8 +16,8 @@ const AdminBilling = () => {
 
   const fetchBilling = async () => {
     setLoading(true);
-    const { data, error } = await supabase
-      .from("billing_invoices")
+    const { data, error } = await (supabase
+      .from as any)("billing_invoices")
       .select("*")
       .order("created_at", { ascending: false });
     
@@ -25,8 +25,8 @@ const AdminBilling = () => {
       toast({ title: "Error loading billing", description: error.message, variant: "destructive" });
     } else {
       setInvoices(data || []);
-      const total = (data || []).reduce((acc, inv) => acc + Number(inv.amount), 0);
-      const pending = (data || []).filter(inv => inv.status === 'pending').length;
+      const total = (data || []).reduce((acc: number, inv: any) => acc + Number(inv.amount || 0), 0);
+      const pending = (data || []).filter((inv: any) => inv.status === 'pending').length;
       setStats({ total, pending });
     }
     setLoading(false);

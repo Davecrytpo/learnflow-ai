@@ -22,7 +22,7 @@ const VerificationPage = () => {
 
     const verifyCert = async () => {
       setLoading(true);
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from("certificates")
         .select(`
           *,

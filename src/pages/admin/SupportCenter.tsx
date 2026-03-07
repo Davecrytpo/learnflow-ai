@@ -17,8 +17,8 @@ const SupportCenter = () => {
 
   const fetchTickets = async () => {
     setLoading(true);
-    const { data } = await supabase
-      .from("support_tickets")
+    const { data } = await (supabase
+      .from as any)("support_tickets")
       .select(`
         *,
         profiles:user_id (display_name)
@@ -33,13 +33,13 @@ const SupportCenter = () => {
   }, []);
 
   const resolveTicket = async (id: string) => {
-    await supabase.from("support_tickets").update({ status: 'resolved' }).eq("id", id);
+    await (supabase.from as any)("support_tickets").update({ status: 'resolved' }).eq("id", id);
     toast({ title: "Ticket Resolved" });
     fetchTickets();
   };
 
   const deleteTicket = async (id: string) => {
-    await supabase.from("support_tickets").delete().eq("id", id);
+    await (supabase.from as any)("support_tickets").delete().eq("id", id);
     toast({ title: "Ticket Deleted" });
     fetchTickets();
   };

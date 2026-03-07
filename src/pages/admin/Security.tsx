@@ -24,14 +24,14 @@ const AdminSecurity = () => {
   useEffect(() => {
     const fetchSettings = async () => {
       setLoading(true);
-      const { data, error } = await supabase
-        .from("system_settings")
+      const { data, error } = await (supabase
+        .from as any)("system_settings")
         .select("value")
         .eq("key", "security_config")
         .single();
       
       if (data) {
-        setSettings({ ...settings, ...data.value });
+        setSettings({ ...settings, ...(data as any).value });
       } else if (error && error.code !== 'PGRST116') {
         // PGRST116 is "Row not found", which is fine, we use defaults
         console.error("Error fetching security settings:", error);
@@ -43,8 +43,8 @@ const AdminSecurity = () => {
 
   const handleSave = async () => {
     setSaving(true);
-    const { error } = await supabase
-      .from("system_settings")
+    const { error } = await (supabase
+      .from as any)("system_settings")
       .upsert({ 
         key: "security_config", 
         value: settings,
@@ -57,7 +57,7 @@ const AdminSecurity = () => {
       toast({ title: "Security settings updated", description: "Policy changes have been applied." });
       
       // Log this action
-      await supabase.from("audit_logs").insert({
+      await (supabase.from as any)("audit_logs").insert({
         action: "update_security_settings",
         entity_type: "system",
         metadata: settings

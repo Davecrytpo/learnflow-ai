@@ -22,8 +22,8 @@ const SSOProvisioning = () => {
 
   const fetchProviders = async () => {
     setLoading(true);
-    const { data, error } = await supabase
-      .from("sso_providers")
+    const { data, error } = await (supabase
+      .from as any)("sso_providers")
       .select("*")
       .order("created_at", { ascending: false });
     
@@ -42,7 +42,7 @@ const SSOProvisioning = () => {
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
     setSaving(true);
-    const { error } = await supabase.from("sso_providers").insert(newProvider);
+    const { error } = await (supabase.from as any)("sso_providers").insert(newProvider);
     if (error) {
       toast({ title: "Error", description: error.message, variant: "destructive" });
     } else {
@@ -56,7 +56,7 @@ const SSOProvisioning = () => {
 
   const deleteProvider = async (id: string) => {
     if (!confirm("Remove this SSO configuration?")) return;
-    await supabase.from("sso_providers").delete().eq("id", id);
+    await (supabase.from as any)("sso_providers").delete().eq("id", id);
     toast({ title: "Configuration removed" });
     fetchProviders();
   };

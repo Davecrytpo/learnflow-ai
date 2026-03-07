@@ -24,14 +24,14 @@ const AdminBranding = () => {
   useEffect(() => {
     const fetchTheme = async () => {
       setLoading(true);
-      const { data } = await supabase
-        .from("system_settings")
+      const { data } = await (supabase
+        .from as any)("system_settings")
         .select("value")
         .eq("key", "appearance_config")
         .single();
       
       if (data) {
-        setTheme({ ...theme, ...data.value });
+        setTheme({ ...theme, ...(data as any).value });
       }
       setLoading(false);
     };
@@ -40,8 +40,8 @@ const AdminBranding = () => {
 
   const handleSave = async () => {
     setSaving(true);
-    const { error } = await supabase
-      .from("system_settings")
+    const { error } = await (supabase
+      .from as any)("system_settings")
       .upsert({ 
         key: "appearance_config", 
         value: theme,

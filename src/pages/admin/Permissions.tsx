@@ -20,8 +20,8 @@ const AdminPermissions = () => {
 
   const fetchRoles = async () => {
     setLoading(true);
-    const { data, error } = await supabase
-      .from("permissions_roles")
+    const { data, error } = await (supabase
+      .from as any)("permissions_roles")
       .select("*")
       .order("created_at", { ascending: false });
     
@@ -42,7 +42,7 @@ const AdminPermissions = () => {
     if (!newRole.name) return;
     setSaving(true);
     
-    const { error } = await supabase.from("permissions_roles").insert(newRole);
+    const { error } = await (supabase.from as any)("permissions_roles").insert(newRole);
 
     if (error) {
       toast({ title: "Error creating role", description: error.message, variant: "destructive" });
@@ -57,7 +57,7 @@ const AdminPermissions = () => {
 
   const handleDelete = async (id: string) => {
     if (!confirm("Delete this role?")) return;
-    await supabase.from("permissions_roles").delete().eq("id", id);
+    await (supabase.from as any)("permissions_roles").delete().eq("id", id);
     toast({ title: "Role deleted" });
     fetchRoles();
   };

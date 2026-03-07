@@ -18,8 +18,8 @@ const CourseCategories = () => {
 
   const fetchCategories = async () => {
     setLoading(true);
-    const { data, error } = await supabase
-      .from("course_categories")
+    const { data, error } = await (supabase
+      .from as any)("course_categories")
       .select("*")
       .order("name", { ascending: true });
     
@@ -42,8 +42,8 @@ const CourseCategories = () => {
     setAdding(true);
     const slug = newCategory.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)+/g, "");
     
-    const { error } = await supabase
-      .from("course_categories")
+    const { error } = await (supabase
+      .from as any)("course_categories")
       .insert({ name: newCategory, slug });
 
     if (error) {
@@ -59,8 +59,8 @@ const CourseCategories = () => {
   const deleteCategory = async (id: string) => {
     if (!window.confirm("Are you sure? This action cannot be undone.")) return;
 
-    const { error } = await supabase
-      .from("course_categories")
+    const { error } = await (supabase
+      .from as any)("course_categories")
       .delete()
       .eq("id", id);
 
