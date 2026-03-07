@@ -40,8 +40,8 @@ const InstructorAnnouncements = () => {
   useEffect(() => {
     if (!selectedCourse) return;
     const fetch = async () => {
-      const { data } = await supabase
-        .from("course_announcements")
+      const { data } = await (supabase
+        .from as any)("course_announcements")
         .select("*")
         .eq("course_id", selectedCourse)
         .order("created_at", { ascending: false });
