@@ -43,7 +43,7 @@ const AdminCompliance = () => {
     e.preventDefault();
     setAdding(true);
     
-    const { error } = await supabase.from("compliance_records").insert({
+    const { error } = await (supabase.from as any)("compliance_records").insert({
       title: newControl.title,
       status: newControl.status
     });
