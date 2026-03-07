@@ -35,7 +35,7 @@ const AdminIntegrations = () => {
     if (!newUrl.trim()) return;
     setAdding(true);
 
-    const { error } = await supabase.from("webhook_configs").insert({
+    const { error } = await (supabase.from as any)("webhook_configs").insert({
       name: `Webhook ${webhooks.length + 1}`,
       endpoint: newUrl,
       events: ["all"],
