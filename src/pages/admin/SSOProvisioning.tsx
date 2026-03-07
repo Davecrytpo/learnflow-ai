@@ -22,8 +22,8 @@ const SSOProvisioning = () => {
 
   const fetchProviders = async () => {
     setLoading(true);
-    const { data, error } = await supabase
-      .from("sso_providers")
+    const { data, error } = await (supabase
+      .from as any)("sso_providers")
       .select("*")
       .order("created_at", { ascending: false });
     
