@@ -21,8 +21,8 @@ const DirectorySync = () => {
 
   const fetchSyncs = async () => {
     setLoading(true);
-    const { data, error } = await supabase
-      .from("directory_syncs")
+    const { data, error } = await (supabase
+      .from as any)("directory_syncs")
       .select("*")
       .order("created_at", { ascending: false });
     

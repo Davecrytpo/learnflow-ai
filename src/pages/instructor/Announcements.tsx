@@ -53,8 +53,8 @@ const InstructorAnnouncements = () => {
   const createAnnouncement = async () => {
     if (!user || !selectedCourse || !title || !body) return;
     setSaving(true);
-    const { data, error } = await supabase
-      .from("course_announcements")
+    const { data, error } = await (supabase
+      .from as any)("course_announcements")
       .insert({ course_id: selectedCourse, author_id: user.id, title, body })
       .select()
       .single();

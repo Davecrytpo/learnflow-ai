@@ -56,7 +56,7 @@ const SSOProvisioning = () => {
 
   const deleteProvider = async (id: string) => {
     if (!confirm("Remove this SSO configuration?")) return;
-    await supabase.from("sso_providers").delete().eq("id", id);
+    await (supabase.from as any)("sso_providers").delete().eq("id", id);
     toast({ title: "Configuration removed" });
     fetchProviders();
   };

@@ -57,7 +57,7 @@ const AdminSecurity = () => {
       toast({ title: "Security settings updated", description: "Policy changes have been applied." });
       
       // Log this action
-      await supabase.from("audit_logs").insert({
+      await (supabase.from as any)("audit_logs").insert({
         action: "update_security_settings",
         entity_type: "system",
         metadata: settings

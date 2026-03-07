@@ -109,7 +109,7 @@ const Attendance = () => {
     students.forEach(s => newMap[s.student_id] = status);
     setAttendanceMap(newMap);
 
-    await supabase.from("attendance_records").upsert(updates, { onConflict: "session_id,student_id" });
+    await (supabase.from as any)("attendance_records").upsert(updates, { onConflict: "session_id,student_id" });
     toast({ title: `Marked all as ${status}` });
   };
 

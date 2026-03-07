@@ -56,7 +56,7 @@ const AdminTenants = () => {
 
   const deleteTenant = async (id: string) => {
     if (!confirm("Are you sure? All data for this tenant will be inaccessible.")) return;
-    await supabase.from("tenants").delete().eq("id", id);
+    await (supabase.from as any)("tenants").delete().eq("id", id);
     toast({ title: "Tenant removed" });
     fetchTenants();
   };
