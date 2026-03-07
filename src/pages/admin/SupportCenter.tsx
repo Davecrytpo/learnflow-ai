@@ -17,8 +17,8 @@ const SupportCenter = () => {
 
   const fetchTickets = async () => {
     setLoading(true);
-    const { data } = await supabase
-      .from("support_tickets")
+    const { data } = await (supabase
+      .from as any)("support_tickets")
       .select(`
         *,
         profiles:user_id (display_name)
