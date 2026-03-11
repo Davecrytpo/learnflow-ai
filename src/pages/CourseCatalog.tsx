@@ -9,7 +9,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Skeleton } from "@/components/ui/skeleton";
 import { 
   Search, BookOpen, Sparkles, GraduationCap, Filter, 
-  Clock, Calendar, Award, ChevronDown, Check
+  Clock, Calendar, Award, ChevronDown, Check, ArrowRight
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -21,6 +21,7 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const categories = ["All", "Technology", "Science", "Mathematics", "Business", "Arts", "Health", "Engineering", "Humanities"];
 const levels = ["All", "Undergraduate", "Graduate", "Doctoral", "Certificate", "Online"];
@@ -36,6 +37,33 @@ const categoryColors: Record<string, string> = {
   Humanities: "from-yellow-500 to-amber-400",
 };
 
+const degreePaths = [
+  { 
+    title: "School of Engineering", 
+    desc: "Innovative programs in CS, AI, and Robotics.", 
+    icon: GraduationCap,
+    color: "bg-blue-600"
+  },
+  { 
+    title: "Business & Management", 
+    desc: "Leadership and entrepreneurship for the global economy.", 
+    icon: Award,
+    color: "bg-emerald-600"
+  },
+  { 
+    title: "Health Sciences", 
+    desc: "Advancing medicine and public health globally.", 
+    icon: Check,
+    color: "bg-rose-600"
+  },
+  { 
+    title: "Arts & Humanities", 
+    desc: "Critical thinking and creative expression.", 
+    icon: BookOpen,
+    color: "bg-amber-600"
+  }
+];
+
 const CourseCatalog = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const initialSearch = searchParams.get("search") || "";
@@ -50,8 +78,8 @@ const CourseCatalog = () => {
     const fetch = async () => {
       setLoading(true);
       try {
-        const { data, error } = await (supabase
-          .from("courses") as any)
+        const { data, error } = await supabase
+          .from("courses")
           .select("id, title, slug, summary, cover_image_url, category, author_id, level, duration, credits, profiles:author_id(display_name)")
           .eq("published", true)
           .order("created_at", { ascending: false });
@@ -67,7 +95,6 @@ const CourseCatalog = () => {
     fetch();
   }, []);
 
-  // Update URL params when search changes
   useEffect(() => {
     if (search) {
       setSearchParams({ search });
@@ -90,71 +117,108 @@ const CourseCatalog = () => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col font-sans text-slate-900">
+    <div className="min-h-screen bg-[#F8FAFC] flex flex-col font-sans text-slate-900">
       <Navbar />
       
       {/* Hero Section */}
-      <div className="relative h-[400px] w-full overflow-hidden bg-slate-900">
+      <div className="relative h-[500px] w-full overflow-hidden bg-slate-900">
         <div className="absolute inset-0">
           <img 
             src="/images/campus-library.jpg" 
             alt="Library" 
-            className="h-full w-full object-cover opacity-40"
+            className="h-full w-full object-cover opacity-30 scale-105"
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-slate-900/50 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-slate-900/40 to-transparent" />
         </div>
         <div className="relative container mx-auto h-full px-4 flex flex-col justify-center items-center text-center pt-20">
           <motion.div 
-            initial={{ opacity: 0, y: 20 }} 
+            initial={{ opacity: 0, y: 30 }} 
             animate={{ opacity: 1, y: 0 }} 
-            className="max-w-3xl"
+            transition={{ duration: 0.8 }}
+            className="max-w-4xl"
           >
-            <h1 className="font-display text-4xl font-bold tracking-tight text-white sm:text-5xl md:text-6xl mb-6">
-              Find Your Future
+            <Badge className="bg-primary/20 text-primary-foreground border-none px-4 py-1 mb-6 backdrop-blur-sm">
+              Academic Year 2026-2027
+            </Badge>
+            <h1 className="font-display text-5xl font-bold tracking-tight text-white sm:text-6xl md:text-7xl mb-6">
+              Empowering Global Minds
             </h1>
-            <p className="text-xl text-slate-200 max-w-2xl mx-auto mb-8">
-              Explore over {courses.length > 0 ? courses.length : "100+"} world-class courses across diverse disciplines.
-              From undergraduate degrees to professional certificates.
+            <p className="text-xl text-slate-300 max-w-2xl mx-auto mb-10 leading-relaxed">
+              Discover over {courses.length > 0 ? courses.length : "150"} accredited programs across 12 disciplines. 
+              Find the degree path that aligns with your future.
             </p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+               <div className="relative w-full max-w-md">
+                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400" />
+                 <Input 
+                   placeholder="Search by degree, major, or course name..." 
+                   className="h-14 pl-12 bg-white/95 border-none text-slate-900 rounded-2xl shadow-2xl focus:ring-2 ring-primary"
+                   value={search}
+                   onChange={(e) => setSearch(e.target.value)}
+                 />
+               </div>
+            </div>
           </motion.div>
         </div>
       </div>
 
-      <main className="container mx-auto px-4 py-12 flex-1">
-        <div className="flex flex-col lg:flex-row gap-8">
+      <main className="container mx-auto px-4 py-16 flex-1">
+        
+        {/* Academic Schools / Paths */}
+        <section className="mb-20">
+          <div className="flex items-center justify-between mb-8">
+            <h2 className="text-3xl font-display font-bold text-slate-900">Academic Schools</h2>
+            <Button variant="link" className="text-primary font-bold">Explore All Faculties <ArrowRight className="ml-2 h-4 w-4" /></Button>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {degreePaths.map((path, i) => (
+              <motion.div 
+                key={i}
+                initial={{ opacity: 0, scale: 0.95 }}
+                whileInView={{ opacity: 1, scale: 1 }}
+                viewport={{ once: true }}
+                transition={{ delay: i * 0.1 }}
+                className="group p-8 rounded-[2.5rem] bg-white border border-slate-100 shadow-sm hover:shadow-xl transition-all hover:-translate-y-1 cursor-pointer"
+              >
+                <div className={`h-14 w-14 rounded-2xl ${path.color} flex items-center justify-center text-white mb-6 shadow-lg shadow-primary/20`}>
+                  <path.icon className="h-7 w-7" />
+                </div>
+                <h3 className="text-xl font-bold text-slate-900 mb-3 group-hover:text-primary transition-colors">{path.title}</h3>
+                <p className="text-slate-500 text-sm leading-relaxed mb-6">{path.desc}</p>
+                <span className="text-xs font-bold uppercase tracking-widest text-primary flex items-center gap-2">
+                  View Programs <ArrowRight className="h-3 w-3" />
+                </span>
+              </motion.div>
+            ))}
+          </div>
+        </section>
+
+        <div className="flex flex-col lg:flex-row gap-12 border-t border-slate-200 pt-16">
           
           {/* Sidebar Filters - Desktop */}
-          <aside className="hidden lg:block w-72 shrink-0 space-y-8">
-            <div className="sticky top-24 space-y-8">
-              <div>
-                <h3 className="font-display font-bold text-lg mb-4 flex items-center gap-2">
-                  <Filter className="h-4 w-4" /> Filters
+          <aside className="hidden lg:block w-72 shrink-0 space-y-10">
+            <div className="sticky top-24 space-y-10">
+              <div className="space-y-4">
+                <h3 className="font-display font-bold text-lg flex items-center gap-2">
+                  <Filter className="h-4 w-4 text-primary" /> Filter Results
                 </h3>
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-                  <Input
-                    placeholder="Search catalog..."
-                    value={search}
-                    onChange={(e) => setSearch(e.target.value)}
-                    className="pl-9 bg-white border-slate-200 focus:border-primary focus:ring-primary"
-                  />
-                </div>
+                <div className="h-1 w-10 bg-primary rounded-full" />
               </div>
 
               <div className="space-y-4">
-                <h4 className="font-bold text-sm uppercase tracking-wider text-slate-500">Program Level</h4>
-                <div className="space-y-2">
+                <h4 className="font-bold text-sm uppercase tracking-wider text-slate-400">Program Level</h4>
+                <div className="space-y-3">
                   {levels.map((level) => (
                     <div key={level} className="flex items-center">
                       <Checkbox 
                         id={`level-${level}`} 
                         checked={selectedLevel === level}
                         onCheckedChange={() => setSelectedLevel(level)}
-                        className="border-slate-300 data-[state=checked]:bg-primary data-[state=checked]:border-primary"
+                        className="rounded-md border-slate-300 data-[state=checked]:bg-primary data-[state=checked]:border-primary"
                       />
                       <label 
                         htmlFor={`level-${level}`}
-                        className="ml-3 text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
+                        className="ml-3 text-sm font-semibold text-slate-600 cursor-pointer hover:text-primary transition-colors"
                         onClick={() => setSelectedLevel(level)}
                       >
                         {level}
@@ -165,19 +229,19 @@ const CourseCatalog = () => {
               </div>
 
               <div className="space-y-4">
-                <h4 className="font-bold text-sm uppercase tracking-wider text-slate-500">Subject Area</h4>
-                <div className="space-y-2">
+                <h4 className="font-bold text-sm uppercase tracking-wider text-slate-400">Discipline</h4>
+                <div className="space-y-3">
                   {categories.map((cat) => (
                     <div key={cat} className="flex items-center">
                       <Checkbox 
                         id={`cat-${cat}`} 
                         checked={selectedCategory === cat}
                         onCheckedChange={() => setSelectedCategory(cat)}
-                        className="border-slate-300 data-[state=checked]:bg-primary data-[state=checked]:border-primary"
+                        className="rounded-md border-slate-300 data-[state=checked]:bg-primary data-[state=checked]:border-primary"
                       />
                       <label 
                         htmlFor={`cat-${cat}`}
-                        className="ml-3 text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
+                        className="ml-3 text-sm font-semibold text-slate-600 cursor-pointer hover:text-primary transition-colors"
                         onClick={() => setSelectedCategory(cat)}
                       >
                         {cat}
@@ -188,172 +252,112 @@ const CourseCatalog = () => {
               </div>
 
               <Button 
-                variant="outline" 
-                className="w-full border-slate-300 hover:bg-slate-100 text-slate-600"
+                variant="ghost" 
+                className="w-full text-slate-400 hover:text-primary hover:bg-transparent font-bold"
                 onClick={clearFilters}
               >
-                Reset All Filters
+                Clear all filters
               </Button>
             </div>
           </aside>
 
-          {/* Mobile Filters */}
-          <div className="lg:hidden mb-6">
-            <Sheet open={mobileFiltersOpen} onOpenChange={setMobileFiltersOpen}>
-              <SheetTrigger asChild>
-                <Button variant="outline" className="w-full flex items-center justify-between">
-                  <span className="flex items-center gap-2"><Filter className="h-4 w-4" /> Filter Courses</span>
-                  <ChevronDown className="h-4 w-4 opacity-50" />
-                </Button>
-              </SheetTrigger>
-              <SheetContent side="left" className="w-[300px] sm:w-[400px] overflow-y-auto">
-                <SheetHeader>
-                  <SheetTitle>Filter Courses</SheetTitle>
-                  <SheetDescription>Find the perfect program for you.</SheetDescription>
-                </SheetHeader>
-                <div className="py-6 space-y-8">
-                  {/* Same filters as desktop */}
-                  <div className="space-y-4">
-                    <h4 className="font-bold text-sm uppercase tracking-wider text-slate-500">Program Level</h4>
-                    <div className="space-y-2">
-                      {levels.map((level) => (
-                        <div key={level} className="flex items-center">
-                          <Checkbox 
-                            id={`mobile-level-${level}`} 
-                            checked={selectedLevel === level}
-                            onCheckedChange={() => setSelectedLevel(level)}
-                          />
-                          <label htmlFor={`mobile-level-${level}`} className="ml-3 text-sm font-medium">{level}</label>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                  <div className="space-y-4">
-                    <h4 className="font-bold text-sm uppercase tracking-wider text-slate-500">Subject Area</h4>
-                    <div className="space-y-2">
-                      {categories.map((cat) => (
-                        <div key={cat} className="flex items-center">
-                          <Checkbox 
-                            id={`mobile-cat-${cat}`} 
-                            checked={selectedCategory === cat}
-                            onCheckedChange={() => setSelectedCategory(cat)}
-                          />
-                          <label htmlFor={`mobile-cat-${cat}`} className="ml-3 text-sm font-medium">{cat}</label>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                  <Button onClick={() => setMobileFiltersOpen(false)} className="w-full">Show Results</Button>
-                </div>
-              </SheetContent>
-            </Sheet>
-            
-            <div className="mt-4 relative">
-              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-              <Input
-                placeholder="Search catalog..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                className="pl-9 bg-white"
-              />
-            </div>
-          </div>
-
           {/* Results Grid */}
           <div className="flex-1">
-            <div className="mb-6 flex items-center justify-between">
-              <h2 className="text-2xl font-display font-bold text-slate-900">
-                {selectedCategory !== "All" ? selectedCategory : "All"} Courses
-                <span className="ml-3 text-sm font-normal text-slate-500 bg-slate-100 px-2 py-1 rounded-full align-middle">
-                  {filtered.length} results
-                </span>
-              </h2>
+            <div className="mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <div>
+                <h2 className="text-3xl font-display font-bold text-slate-900">
+                  {selectedCategory !== "All" ? selectedCategory : "Academic"} Catalog
+                </h2>
+                <p className="text-slate-500 mt-1">Showing {filtered.length} accredited courses found.</p>
+              </div>
+              <div className="flex gap-2">
+                 <Badge variant="outline" className="px-3 py-1 font-bold">{selectedLevel}</Badge>
+                 {selectedCategory !== "All" && <Badge variant="outline" className="px-3 py-1 font-bold">{selectedCategory}</Badge>}
+              </div>
             </div>
 
             {loading ? (
-              <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-3">
+              <div className="grid gap-8 sm:grid-cols-2 xl:grid-cols-3">
                 {Array.from({ length: 6 }).map((_, i) => (
                   <div key={i} className="space-y-4">
-                    <Skeleton className="h-48 w-full rounded-xl" />
+                    <Skeleton className="h-64 w-full rounded-[2rem]" />
                     <Skeleton className="h-4 w-3/4" />
                     <Skeleton className="h-4 w-1/2" />
                   </div>
                 ))}
               </div>
             ) : filtered.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-20 bg-white rounded-2xl border border-slate-200 text-center">
-                <div className="h-20 w-20 bg-slate-100 rounded-full flex items-center justify-center mb-6">
-                  <BookOpen className="h-10 w-10 text-slate-400" />
+              <div className="flex flex-col items-center justify-center py-32 bg-white rounded-[3rem] border border-slate-100 text-center shadow-sm">
+                <div className="h-24 w-24 bg-slate-50 rounded-full flex items-center justify-center mb-8">
+                  <BookOpen className="h-10 w-10 text-slate-300" />
                 </div>
-                <h3 className="text-xl font-bold text-slate-900 mb-2">No courses found</h3>
-                <p className="text-slate-500 max-w-sm mx-auto mb-6">
-                  We couldn't find any courses matching your criteria. Try adjusting your filters or search terms.
+                <h3 className="text-2xl font-bold text-slate-900 mb-2">No programs found</h3>
+                <p className="text-slate-500 max-w-sm mx-auto mb-8">
+                  Try adjusting your search terms or filters to find your desired course.
                 </p>
-                <Button onClick={clearFilters} variant="outline">Clear Filters</Button>
+                <Button onClick={clearFilters} variant="outline" className="rounded-xl px-8">Reset Search</Button>
               </div>
             ) : (
-              <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-3">
+              <div className="grid gap-8 sm:grid-cols-2 xl:grid-cols-3">
                 {filtered.map((course, i) => {
                   const gradColor = categoryColors[course.category] || "from-blue-600 to-indigo-600";
                   return (
                     <motion.div
                       key={course.id}
                       initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: i * 0.05 }}
-                      className="group flex flex-col bg-white rounded-2xl overflow-hidden border border-slate-200 shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1"
+                      whileInView={{ opacity: 1, y: 0 }}
+                      viewport={{ once: true }}
+                      transition={{ delay: i % 3 * 0.1 }}
+                      className="group flex flex-col bg-white rounded-[2.5rem] overflow-hidden border border-slate-100 shadow-sm hover:shadow-2xl transition-all duration-500 hover:-translate-y-2"
                     >
                       {/* Card Image Header */}
-                      <Link to={`/course/${course.id}`} className="relative h-48 overflow-hidden">
+                      <Link to={`/course/${course.id}`} className="relative h-56 overflow-hidden">
                         {course.cover_image_url ? (
                           <img 
                             src={course.cover_image_url} 
                             alt={course.title} 
-                            className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
+                            className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-110"
                           />
                         ) : (
                           <div className={`h-full w-full bg-gradient-to-br ${gradColor} p-6 flex items-center justify-center relative`}>
-                            <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-20 transition-opacity" />
                             <GraduationCap className="h-16 w-16 text-white/20" />
                           </div>
                         )}
-                        <div className="absolute top-4 left-4">
-                          <Badge className="bg-white/90 text-slate-900 hover:bg-white backdrop-blur-sm font-bold shadow-sm">
+                        <div className="absolute top-6 left-6">
+                          <Badge className="bg-white/95 text-slate-900 hover:bg-white backdrop-blur-md font-bold px-4 py-1.5 rounded-xl shadow-lg">
                             {course.category || "General"}
                           </Badge>
                         </div>
                       </Link>
 
                       {/* Card Content */}
-                      <div className="p-5 flex flex-col flex-1">
-                        <div className="flex items-center gap-2 text-xs font-semibold text-primary mb-3 uppercase tracking-wider">
-                          <Badge variant="secondary" className="bg-primary/5 text-primary hover:bg-primary/10 border-none rounded-md px-2">
+                      <div className="p-8 flex flex-col flex-1">
+                        <div className="flex items-center gap-3 text-[10px] font-bold text-primary mb-4 uppercase tracking-[0.2em]">
+                          <span className="bg-primary/5 px-2 py-1 rounded text-primary">
                              {course.level || "Undergraduate"}
-                          </Badge>
-                          {course.credits && <span className="text-slate-400">• {course.credits} Credits</span>}
+                          </span>
+                          {course.credits && <span>• {course.credits} Credits</span>}
                         </div>
                         
                         <Link to={`/course/${course.id}`} className="block">
-                          <h3 className="font-display font-bold text-lg text-slate-900 leading-snug mb-2 group-hover:text-primary transition-colors">
+                          <h3 className="font-display font-bold text-2xl text-slate-900 leading-tight mb-4 group-hover:text-primary transition-colors line-clamp-2">
                             {course.title}
                           </h3>
                         </Link>
                         
-                        <p className="text-sm text-slate-500 line-clamp-2 mb-4 flex-1">
-                          {course.summary || "This course offers a comprehensive introduction to the subject matter, preparing students for advanced study and professional application."}
+                        <p className="text-slate-500 text-sm line-clamp-2 mb-8 flex-1 leading-relaxed">
+                          {course.summary || "Explore the core foundations of this discipline through advanced research and practical application."}
                         </p>
 
-                        <div className="flex items-center justify-between pt-4 border-t border-slate-100 mt-auto">
-                           <div className="flex items-center gap-2 text-xs text-slate-500">
-                             <Clock className="h-3.5 w-3.5" />
-                             <span>{course.duration || "12 Weeks"}</span>
+                        <div className="flex items-center justify-between pt-6 border-t border-slate-50 mt-auto">
+                           <div className="flex items-center gap-4 text-xs font-semibold text-slate-400">
+                             <span className="flex items-center gap-1.5"><Clock className="h-3.5 w-3.5" /> {course.duration || "12 Weeks"}</span>
                            </div>
                            <Link 
                              to={`/course/${course.id}`} 
-                             className="text-sm font-bold text-primary flex items-center gap-1 group/btn"
+                             className="h-10 w-10 rounded-full bg-slate-900 text-white flex items-center justify-center transition-all group-hover:bg-primary group-hover:scale-110"
                            >
-                             View Details 
-                             <ArrowRight className="h-3 w-3 transition-transform group-hover/btn:translate-x-1" />
+                             <ArrowRight className="h-4 w-4" />
                            </Link>
                         </div>
                       </div>

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
@@ -8,7 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
-import { BookOpen, Award, Bell, Play, Calendar, Sparkles, Target, Users, MessageSquare, Search } from "lucide-react";
+import { BookOpen, Award, Bell, Play, Calendar, Sparkles, Target, Users, MessageSquare, Search, Loader2 } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
 import { Badge } from "@/components/ui/badge";
 
@@ -23,10 +23,12 @@ interface EnrolledCourse {
     cover_image_url: string | null;
     category: string | null;
   };
+  progress?: number;
 }
 
 const StudentDashboard = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [enrollments, setEnrollments] = useState<EnrolledCourse[]>([]);
   const [goals, setGoals] = useState<string[]>([]);
   const [progressData, setProgressData] = useState<{ name: string; progress: number }[]>([]);
@@ -46,28 +48,57 @@ const StudentDashboard = () => {
           .eq("status", "approved")
           .order("enrolled_at", { ascending: false });
 
+        const enrolls = (enrollRes as any) || [];
+
+        // Fetch Progress for each course
+        const { data: progressRes } = await supabase
+          .from("lesson_progress")
+          .select("course_id, completed")
+          .eq("user_id", user.id)
+          .eq("completed", true);
+
+        // Fetch Total Lessons for each course
+        const { data: lessonsRes } = await supabase
+          .from("lessons")
+          .select("course_id");
+
+        const enrollmentsWithProgress = enrolls.map((enr: any) => {
+          const courseLessons = lessonsRes?.filter(l => l.course_id === enr.course_id) || [];
+          const completedLessons = progressRes?.filter(p => p.course_id === enr.course_id) || [];
+          const progress = courseLessons.length > 0 
+            ? Math.round((completedLessons.length / courseLessons.length) * 100) 
+            : 0;
+          return { ...enr, progress };
+        });
+
+        setEnrollments(enrollmentsWithProgress);
+        
+        const pData = enrollmentsWithProgress.slice(0, 5).map((e: any) => ({
+          name: e.courses.title.length > 15 ? e.courses.title.slice(0, 12) + "..." : e.courses.title,
+          progress: e.progress
+        }));
+        setProgressData(pData);
+
         // Fetch Student Profile for Goals
         const { data: profileRes } = await supabase
           .from("student_profiles")
           .select("learning_goals")
           .eq("user_id", user.id)
-          .single();
+          .maybeSingle();
 
-        setEnrollments((enrollRes as any) || []);
-        setGoals(profileRes?.learning_goals || ["Master React", "Learn System Design"]); // Fallback for demo
+        setGoals(profileRes?.learning_goals || ["Complete my first course", "Maintain a 5-day streak"]);
 
-        // Mock Progress Data (In real app, calculate from lesson_progress)
-        const pData = ((enrollRes as any) || []).slice(0, 5).map((e: any) => ({
-          name: e.courses.title.slice(0, 10),
-          progress: Math.floor(Math.random() * 80) + 10 // Mock progress
-        }));
-        setProgressData(pData);
+        // Fetch Upcoming Webinars
+        const courseIds = enrolls.map((e: any) => e.course_id);
+        const { data: webinars } = await supabase
+          .from("webinars")
+          .select("*")
+          .in("course_id", courseIds)
+          .gte("start_time", new Date().toISOString())
+          .order("start_time", { ascending: true })
+          .limit(3);
 
-        // Mock Upcoming Classes
-        setUpcomingClasses([
-          { id: 1, title: "Advanced Patterns Q&A", time: "Tomorrow, 10:00 AM", instructor: "Dr. Smith" },
-          { id: 2, title: "Career Coaching Session", time: "Fri, 2:00 PM", instructor: "Career Team" }
-        ]);
+        setUpcomingClasses(webinars || []);
 
       } catch (err) {
         console.error("Dashboard Fetch Error:", err);
@@ -77,6 +108,14 @@ const StudentDashboard = () => {
     };
     fetch();
   }, [user]);
+
+  if (loading) return (
+    <DashboardLayout allowedRoles={["student"]} sidebar={<StudentSidebar />}>
+      <div className="flex items-center justify-center min-h-[400px]">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    </DashboardLayout>
+  );
 
   return (
     <DashboardLayout allowedRoles={["student"]} sidebar={<StudentSidebar />}>
@@ -89,10 +128,10 @@ const StudentDashboard = () => {
               <h1 className="text-3xl font-display font-bold text-foreground">
                 Welcome back, {user?.user_metadata?.full_name?.split(' ')[0] || "Scholar"}.
               </h1>
-              <p className="mt-2 text-muted-foreground">You're on a 3-day learning streak! Keep it up.</p>
+              <p className="mt-2 text-muted-foreground">Continue your journey. You have {enrollments.length} active courses.</p>
             </div>
-            <Button className="bg-gradient-brand text-primary-foreground shadow-lg shadow-primary/20">
-              <Search className="mr-2 h-4 w-4" /> Find a Tutor (Match System)
+            <Button className="bg-gradient-brand text-primary-foreground shadow-lg shadow-primary/20" onClick={() => navigate("/courses")}>
+              <Search className="mr-2 h-4 w-4" /> Browse Course Catalog
             </Button>
           </div>
         </section>
@@ -104,15 +143,15 @@ const StudentDashboard = () => {
             {/* My Progress */}
             <Card className="border-primary/10 bg-card/50">
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <BarChart className="h-5 w-5 text-primary" /> Learning Velocity
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <TrendingUp className="h-5 w-5 text-primary" /> Learning Velocity
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="h-[200px] w-full">
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart data={progressData}>
-                      <XAxis dataKey="name" tick={{fontSize: 12}} />
+                      <XAxis dataKey="name" tick={{fontSize: 10}} />
                       <Tooltip 
                         contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
                         cursor={{fill: 'transparent'}}
@@ -134,32 +173,42 @@ const StudentDashboard = () => {
             <div>
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-xl font-semibold">Jump Back In</h2>
-                <Link to="/courses" className="text-sm text-primary hover:underline">View All</Link>
+                <Link to="/student/courses" className="text-sm text-primary hover:underline">View All</Link>
               </div>
-              <div className="grid gap-4 md:grid-cols-2">
-                {enrollments.slice(0, 4).map((enr) => (
-                  <Card key={enr.id} className="group hover:border-primary/30 transition-all cursor-pointer">
-                    <CardContent className="p-5 flex gap-4">
-                      <div className="h-16 w-16 rounded-lg bg-accent/10 flex items-center justify-center shrink-0 text-accent font-bold text-xl">
-                        {enr.courses.title.charAt(0)}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <h3 className="font-semibold truncate group-hover:text-primary transition-colors">{enr.courses.title}</h3>
-                        <p className="text-xs text-muted-foreground mb-3">{enr.courses.category || "General"}</p>
-                        <div className="flex items-center gap-3">
-                          <Progress value={45} className="h-1.5 flex-1" />
-                          <span className="text-[10px] font-medium text-muted-foreground">45%</span>
+              {enrollments.length === 0 ? (
+                <div className="text-center py-12 border-2 border-dashed rounded-3xl bg-slate-50">
+                  <BookOpen className="h-10 w-10 text-slate-300 mx-auto mb-4" />
+                  <p className="text-slate-500 font-medium">No active courses. Explore our catalog!</p>
+                  <Button variant="link" className="mt-2" onClick={() => navigate("/courses")}>Go to Catalog</Button>
+                </div>
+              ) : (
+                <div className="grid gap-4 md:grid-cols-2">
+                  {enrollments.slice(0, 4).map((enr) => (
+                    <Card key={enr.id} className="group hover:border-primary/30 transition-all cursor-pointer overflow-hidden" onClick={() => navigate(`/student/course/${enr.course_id}`)}>
+                      <CardContent className="p-5 flex gap-4">
+                        <div className="h-16 w-16 rounded-lg bg-accent/10 flex items-center justify-center shrink-0 text-accent font-bold text-xl overflow-hidden">
+                          {enr.courses.cover_image_url ? (
+                            <img src={enr.courses.cover_image_url} className="h-full w-full object-cover" />
+                          ) : enr.courses.title.charAt(0)}
                         </div>
-                      </div>
-                      <div className="self-center">
-                        <Button size="icon" variant="ghost" className="rounded-full h-8 w-8 hover:bg-primary/10 hover:text-primary">
-                          <Play className="h-3 w-3 ml-0.5" />
-                        </Button>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
+                        <div className="flex-1 min-w-0">
+                          <h3 className="font-semibold truncate group-hover:text-primary transition-colors">{enr.courses.title}</h3>
+                          <p className="text-xs text-muted-foreground mb-3">{enr.courses.category || "General"}</p>
+                          <div className="flex items-center gap-3">
+                            <Progress value={enr.progress} className="h-1.5 flex-1" />
+                            <span className="text-[10px] font-medium text-muted-foreground">{enr.progress}%</span>
+                          </div>
+                        </div>
+                        <div className="self-center">
+                          <Button size="icon" variant="ghost" className="rounded-full h-8 w-8 hover:bg-primary/10 hover:text-primary">
+                            <Play className="h-3 w-3 ml-0.5" />
+                          </Button>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              )}
             </div>
 
           </div>
@@ -177,12 +226,12 @@ const StudentDashboard = () => {
               <CardContent>
                 <div className="space-y-3">
                   {goals.map((goal, i) => (
-                    <div key={i} className="flex items-center gap-3 p-2 rounded-lg bg-background/50 border border-border/50">
+                    <div key={i} className="flex items-center gap-3 p-3 rounded-xl bg-background/50 border border-border/50">
                       <div className="h-2 w-2 rounded-full bg-accent animate-pulse" />
                       <span className="text-sm font-medium">{goal}</span>
                     </div>
                   ))}
-                  <Button variant="ghost" size="sm" className="w-full text-xs mt-2">Edit Goals</Button>
+                  <Button variant="ghost" size="sm" className="w-full text-xs mt-2 border-dashed border-2 rounded-xl">Edit Learning Plan</Button>
                 </div>
               </CardContent>
             </Card>
@@ -196,28 +245,34 @@ const StudentDashboard = () => {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {upcomingClasses.map((cls) => (
-                    <div key={cls.id} className="flex gap-3 items-start border-l-2 border-emerald-500/30 pl-3">
-                      <div>
-                        <p className="text-sm font-semibold">{cls.title}</p>
-                        <p className="text-xs text-muted-foreground">{cls.time} • {cls.instructor}</p>
+                  {upcomingClasses.length === 0 ? (
+                    <p className="text-xs text-muted-foreground italic text-center py-4">No live sessions scheduled.</p>
+                  ) : (
+                    upcomingClasses.map((cls) => (
+                      <div key={cls.id} className="flex gap-3 items-start border-l-2 border-emerald-500/30 pl-3">
+                        <div>
+                          <p className="text-sm font-semibold">{cls.title}</p>
+                          <p className="text-xs text-muted-foreground">
+                            {new Date(cls.start_time).toLocaleString(undefined, { weekday: 'short', hour: 'numeric', minute: 'numeric' })}
+                          </p>
+                        </div>
                       </div>
-                    </div>
-                  ))}
-                  <Button variant="outline" size="sm" className="w-full">Full Schedule</Button>
+                    ))
+                  )}
+                  <Button variant="outline" size="sm" className="w-full rounded-xl">View Schedule</Button>
                 </div>
               </CardContent>
             </Card>
 
             {/* Community & Achievements */}
             <div className="grid grid-cols-2 gap-4">
-              <Card className="flex flex-col items-center justify-center p-4 text-center hover:bg-accent/5 transition-colors cursor-pointer">
+              <Card className="flex flex-col items-center justify-center p-4 text-center hover:bg-accent/5 transition-colors cursor-pointer rounded-2xl border-none shadow-sm" onClick={() => navigate("/student/groups")}>
                 <Users className="h-6 w-6 text-primary mb-2" />
-                <span className="text-xs font-semibold">Study Groups</span>
+                <span className="text-xs font-bold uppercase tracking-tighter">Groups</span>
               </Card>
-              <Card className="flex flex-col items-center justify-center p-4 text-center hover:bg-accent/5 transition-colors cursor-pointer">
+              <Card className="flex flex-col items-center justify-center p-4 text-center hover:bg-accent/5 transition-colors cursor-pointer rounded-2xl border-none shadow-sm" onClick={() => navigate("/student/certificates")}>
                 <Award className="h-6 w-6 text-amber-500 mb-2" />
-                <span className="text-xs font-semibold">Certificates</span>
+                <span className="text-xs font-bold uppercase tracking-tighter">Certificates</span>
               </Card>
             </div>
 

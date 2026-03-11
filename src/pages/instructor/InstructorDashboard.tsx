@@ -10,11 +10,12 @@ import {
   BookOpen, Users, DollarSign, Star, 
   PlusCircle, Calendar, MessageSquare, 
   TrendingUp, Award, ArrowRight, Loader2,
-  FileText, ClipboardCheck, Layout, PlayCircle
+  FileText, ClipboardCheck, Layout, Sparkles
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
+import { analyzeStudentPerformance } from "@/lib/anthropic";
 
 const InstructorDashboard = () => {
   const { user } = useAuth();
@@ -22,6 +23,8 @@ const InstructorDashboard = () => {
   const { toast } = useToast();
   const [courses, setCourses] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [aiAnalysis, setAiAnalysis] = useState<string | null>(null);
+  const [analyzing, setAnalyzing] = useState(false);
   const [stats, setStats] = useState({
     students: 0,
     revenue: 0,
@@ -41,10 +44,34 @@ const InstructorDashboard = () => {
       const myCourses = coursesData || [];
       setCourses(myCourses);
       
+      const courseIds = myCourses.map(c => c.id);
+      
+      // Fetch Real Students Count
+      const { count: studentCount } = await supabase
+        .from("enrollments")
+        .select("*", { count: 'exact', head: true })
+        .in("course_id", courseIds)
+        .eq("status", "approved");
+
+      // Fetch Real Revenue
+      // Assuming enrollment record has a price or we use course price
+      // For simplicity, sum of price_cents from courses for each approved enrollment
+      const { data: enrollments } = await supabase
+        .from("enrollments")
+        .select("course_id")
+        .in("course_id", courseIds)
+        .eq("status", "approved");
+
+      let totalRevenue = 0;
+      enrollments?.forEach(enr => {
+        const course = myCourses.find(c => c.id === enr.course_id);
+        if (course) totalRevenue += (course.price_cents || 0);
+      });
+
       setStats({
-        students: myCourses.length * 12 + 5, 
-        revenue: myCourses.length * 450 + 120,
-        rating: 4.9,
+        students: studentCount || 0, 
+        revenue: totalRevenue / 100,
+        rating: 4.9, // This would need a reviews table
         activeCourses: myCourses.filter(c => c.published).length
       });
     } catch (err) {
@@ -57,6 +84,36 @@ const InstructorDashboard = () => {
   useEffect(() => {
     fetchData();
   }, [user]);
+
+  const handleAiAnalysis = async () => {
+    setAnalyzing(true);
+    try {
+      // Gather data for AI: attendance, grades, submissions
+      const courseIds = courses.map(c => c.id);
+      const [attendanceRes, gradesRes] = await Promise.all([
+        (supabase.from as any)("attendance_records").select("status").in("session_id", 
+          (supabase.from as any)("attendance_sessions").select("id").in("course_id", courseIds)
+        ),
+        supabase.from("submissions").select("score, assignment_id").in("assignment_id", 
+          supabase.from("assignments").select("id").in("course_id", courseIds)
+        )
+      ]);
+
+      const dataSummary = {
+        totalStudents: stats.students,
+        attendanceStats: attendanceRes.data,
+        gradeStats: gradesRes.data,
+        courseCount: courses.length
+      };
+
+      const analysis = await analyzeStudentPerformance(dataSummary);
+      setAiAnalysis(analysis);
+    } catch (err: any) {
+      toast({ title: "AI Analysis Failed", description: err.message, variant: "destructive" });
+    } finally {
+      setAnalyzing(false);
+    }
+  };
 
   return (
     <DashboardLayout allowedRoles={["instructor"]} sidebar={<InstructorSidebar />}>
@@ -106,7 +163,7 @@ const InstructorDashboard = () => {
         <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
           {[
             { label: "Total Students", value: stats.students, icon: Users, color: "text-blue-600", bg: "bg-blue-50" },
-            { label: "Institutional Revenue", value: `$${stats.revenue}`, icon: DollarSign, color: "text-emerald-600", bg: "bg-emerald-50" },
+            { label: "Institutional Revenue", value: `$${stats.revenue.toLocaleString()}`, icon: DollarSign, color: "text-emerald-600", bg: "bg-emerald-50" },
             { label: "Avg. Faculty Rating", value: stats.rating, icon: Star, color: "text-amber-600", bg: "bg-amber-50" },
             { label: "Active Curriculum", value: stats.activeCourses, icon: BookOpen, color: "text-indigo-600", bg: "bg-indigo-50" },
           ].map((s, i) => (
@@ -131,6 +188,45 @@ const InstructorDashboard = () => {
             </motion.div>
           ))}
         </div>
+
+        {/* AI Faculty Assistant Section */}
+        <Card className="border-none shadow-xl bg-gradient-to-br from-indigo-50 to-white overflow-hidden relative">
+          <div className="absolute top-0 right-0 p-8 opacity-10 pointer-events-none">
+            <Sparkles className="h-32 w-32 text-indigo-600" />
+          </div>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle className="text-2xl font-display font-bold flex items-center gap-2">
+                  <Sparkles className="h-6 w-6 text-indigo-600" /> AI Faculty Assistant
+                </CardTitle>
+                <CardDescription>Get automated insights into student performance and attendance trends.</CardDescription>
+              </div>
+              <Button 
+                onClick={handleAiAnalysis} 
+                disabled={analyzing || courses.length === 0}
+                className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold"
+              >
+                {analyzing ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Sparkles className="mr-2 h-4 w-4" />}
+                Run Performance Analysis
+              </Button>
+            </div>
+          </CardHeader>
+          <CardContent>
+            {aiAnalysis ? (
+              <motion.div 
+                initial={{ opacity: 0 }} 
+                animate={{ opacity: 1 }} 
+                className="prose prose-indigo max-w-none bg-white/50 p-6 rounded-2xl border border-indigo-100"
+                dangerouslySetInnerHTML={{ __html: aiAnalysis }}
+              />
+            ) : (
+              <div className="text-center py-12 text-slate-500 italic">
+                {courses.length === 0 ? "Create courses to enable AI insights." : "Click the button above to generate a performance analysis based on real student data."}
+              </div>
+            )}
+          </CardContent>
+        </Card>
 
         <div className="grid gap-8 lg:grid-cols-3">
           {/* Main Course List */}
@@ -178,8 +274,8 @@ const InstructorDashboard = () => {
                             <div className="min-w-0">
                               <h3 className="font-bold text-lg text-slate-900 group-hover:text-primary transition-colors line-clamp-1">{course.title}</h3>
                               <div className="flex items-center gap-4 mt-2 text-sm text-slate-500">
-                                <span className="flex items-center gap-1.5"><Users className="h-3.5 w-3.5" /> 12 Students</span>
-                                <span className="flex items-center gap-1.5"><Calendar className="h-3.5 w-3.5" /> Updated 2d ago</span>
+                                <span className="flex items-center gap-1.5"><Users className="h-3.5 w-3.5" /> Enrolled Students</span>
+                                <span className="flex items-center gap-1.5"><Calendar className="h-3.5 w-3.5" /> Updated {new Date(course.updated_at).toLocaleDateString()}</span>
                               </div>
                             </div>
                             <Button variant="outline" size="sm" asChild className="rounded-xl font-bold shrink-0 ml-4">
@@ -203,8 +299,8 @@ const InstructorDashboard = () => {
               <CardContent className="p-6 space-y-2">
                 {[
                   { label: "Gradebook", icon: ClipboardCheck, href: "/instructor/grading", color: "text-rose-600", bg: "bg-rose-50" },
-                  { label: "Syllabus Review", icon: FileText, href: "#", color: "text-amber-600", bg: "bg-amber-50" },
-                  { label: "Faculty Calendar", icon: Calendar, href: "#", color: "text-blue-600", bg: "bg-blue-50" },
+                  { label: "Syllabus Review", icon: FileText, href: "/instructor/courses", color: "text-amber-600", bg: "bg-amber-50" },
+                  { label: "Faculty Calendar", icon: Calendar, href: "/student/calendar", color: "text-blue-600", bg: "bg-blue-50" },
                   { label: "Discussion Forums", icon: MessageSquare, href: "/instructor/discussions", color: "text-emerald-600", bg: "bg-emerald-50" },
                 ].map((action, i) => (
                   <Link 
