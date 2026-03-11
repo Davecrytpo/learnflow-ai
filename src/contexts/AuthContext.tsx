@@ -27,26 +27,32 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const fetchRole = useCallback(async (userId: string, email?: string) => {
     setRoleLoading(true);
     try {
-      // Hardcoded Admin Email Check
+      // 1. Admin Overrides
       if (email === "somedaynews739@gmail.com") {
         setRole("admin");
-        setRoleLoading(false);
         return;
       }
 
+      // 2. Check Database Role
       const { data, error } = await supabase
         .from("user_roles")
         .select("role")
         .eq("user_id", userId)
-        .order("created_at", { ascending: true })
-        .limit(1)
         .maybeSingle();
       
       if (error) throw error;
-      setRole((data?.role as AppRole) ?? null);
+
+      if (data?.role) {
+        setRole(data.role as AppRole);
+      } else {
+        // 3. Fallback: If no role in DB, check metadata or default to student
+        const { data: { user: freshUser } } = await supabase.auth.getUser();
+        const metaRole = freshUser?.user_metadata?.role;
+        setRole((metaRole as AppRole) || "student");
+      }
     } catch (err) {
-      console.error("Error fetching user role:", err);
-      setRole(null);
+      console.error("Auth: Role fetch failed, defaulting to student.", err);
+      setRole("student");
     } finally {
       setRoleLoading(false);
     }
@@ -81,7 +87,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => subscription.unsubscribe();
   }, [fetchRole]);
 
-  const loading = authLoading || roleLoading;
+  // If we have a user but no role yet, we are still loading
+  const loading = authLoading || (user && !role && roleLoading);
 
   return (
     <AuthContext.Provider value={{ user, role, loading, refreshRole }}>

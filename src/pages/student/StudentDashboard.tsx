@@ -41,13 +41,14 @@ const StudentDashboard = () => {
       setLoading(true);
       try {
         // Fetch Enrollments
-        const { data: enrollRes } = await supabase
+        const { data: enrollRes, error: enrollErr } = await supabase
           .from("enrollments")
           .select("id, course_id, enrolled_at, completed_at, courses(id, title, cover_image_url, category)")
           .eq("student_id", user.id)
           .eq("status", "approved")
           .order("enrolled_at", { ascending: false });
 
+        if (enrollErr) throw enrollErr;
         const enrolls = (enrollRes as any) || [];
 
         // Fetch Progress for each course
@@ -74,31 +75,39 @@ const StudentDashboard = () => {
         setEnrollments(enrollmentsWithProgress);
         
         const pData = enrollmentsWithProgress.slice(0, 5).map((e: any) => ({
-          name: e.courses.title.length > 15 ? e.courses.title.slice(0, 12) + "..." : e.courses.title,
-          progress: e.progress
+          name: e.courses?.title ? (e.courses.title.length > 15 ? e.courses.title.slice(0, 12) + "..." : e.courses.title) : "Untitled",
+          progress: e.progress || 0
         }));
         setProgressData(pData);
 
         // Fetch Student Profile for Goals
-        const { data: profileRes } = await supabase
-          .from("student_profiles")
-          .select("learning_goals")
-          .eq("user_id", user.id)
-          .maybeSingle();
-
-        setGoals(profileRes?.learning_goals || ["Complete my first course", "Maintain a 5-day streak"]);
+        try {
+          const { data: profileRes } = await supabase
+            .from("student_profiles")
+            .select("learning_goals")
+            .eq("user_id", user.id)
+            .maybeSingle();
+          setGoals(profileRes?.learning_goals || ["Complete my first course", "Maintain a 5-day streak"]);
+        } catch (e) {
+          setGoals(["Complete my first course", "Maintain a 5-day streak"]);
+        }
 
         // Fetch Upcoming Webinars
-        const courseIds = enrolls.map((e: any) => e.course_id);
-        const { data: webinars } = await supabase
-          .from("webinars")
-          .select("*")
-          .in("course_id", courseIds)
-          .gte("start_time", new Date().toISOString())
-          .order("start_time", { ascending: true })
-          .limit(3);
-
-        setUpcomingClasses(webinars || []);
+        if (enrolls.length > 0) {
+          try {
+            const courseIds = enrolls.map((e: any) => e.course_id);
+            const { data: webinars } = await supabase
+              .from("webinars")
+              .select("*")
+              .in("course_id", courseIds)
+              .gte("start_time", new Date().toISOString())
+              .order("start_time", { ascending: true })
+              .limit(3);
+            setUpcomingClasses(webinars || []);
+          } catch (e) {
+            setUpcomingClasses([]);
+          }
+        }
 
       } catch (err) {
         console.error("Dashboard Fetch Error:", err);

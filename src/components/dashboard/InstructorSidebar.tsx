@@ -1,34 +1,45 @@
-import { BookOpen, LayoutDashboard, PlusCircle, ClipboardCheck, BarChart3, User, CalendarCheck, Megaphone, Users, ListChecks, UploadCloud, Link, FileCheck2, HelpCircle, MessagesSquare, FileSignature, Video, ClipboardList, Layers, LibraryBig, ClipboardSignature, ShieldCheck, FileSearch, Briefcase, UserRoundCheck, Clock, Activity, ScrollText } from "lucide-react";
+import { 
+  LayoutDashboard, BookOpen, Users, 
+  MessageSquare, BarChart, Settings, 
+  PlusCircle, Calendar, GraduationCap,
+  ClipboardCheck, Bell, User, ListChecks,
+  FileText, MessageSquareQuote, FileStack,
+  Video, Star, BrainCircuit, Activity,
+  FileCheck, HeartHandshake, CalendarDays,
+  PieChart, ScrollText, ListPlus, UploadCloud,
+  ShieldCheck, Briefcase
+} from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarHeader } from "@/components/ui/sidebar";
 
 const items = [
   { title: "Dashboard", url: "/instructor", icon: LayoutDashboard },
-  { title: "My Courses", url: "/instructor/courses", icon: BookOpen },
-  { title: "Create Course", url: "/instructor/courses/new", icon: PlusCircle },
-  { title: "Grading", url: "/instructor/grading", icon: ClipboardCheck },
-  { title: "Attendance", url: "/instructor/attendance", icon: CalendarCheck },
-  { title: "Announcements", url: "/instructor/announcements", icon: Megaphone },
-  { title: "Cohorts", url: "/instructor/groups", icon: Users },
-  { title: "Analytics", url: "/instructor/analytics", icon: BarChart3 },
-  { title: "Resources", url: "/instructor/resources", icon: Link },
-  { title: "Assignments", url: "/instructor/assignments", icon: FileCheck2 },
-  { title: "Quizzes", url: "/instructor/quizzes", icon: HelpCircle },
-  { title: "Discussions", url: "/instructor/discussions", icon: MessagesSquare },
-  { title: "Messages", url: "/instructor/messages", icon: MessagesSquare },
-  { title: "Rubrics", url: "/instructor/rubrics", icon: FileSignature },
+  { title: "My Curriculum", url: "/instructor/courses", icon: BookOpen },
+  { title: "New Course", url: "/instructor/courses/new", icon: PlusCircle },
+  { title: "Announcements", url: "/instructor/announcements", icon: Bell },
+  { title: "Groups", url: "/instructor/groups", icon: Users },
+  { title: "Grading Queue", url: "/instructor/grading", icon: ClipboardCheck },
+  { title: "Gradebook", url: "/instructor/gradebook", icon: ListPlus },
+  { title: "Attendance", url: "/instructor/attendance", icon: CalendarDays },
+  { title: "Analytics", url: "/instructor/analytics", icon: BarChart },
+  { title: "Resources", url: "/instructor/resources", icon: FileStack },
+  { title: "Assignments", url: "/instructor/assignments", icon: FileText },
+  { title: "Quizzes", url: "/instructor/quizzes", icon: ListChecks },
+  { title: "Discussions", url: "/instructor/discussions", icon: MessageSquare },
+  { title: "Messages", url: "/instructor/messages", icon: MessageSquareQuote },
+  { title: "Rubrics", url: "/instructor/rubrics", icon: FileCheck },
   { title: "Live Sessions", url: "/instructor/live-sessions", icon: Video },
-  { title: "Surveys", url: "/instructor/surveys", icon: ClipboardList },
-  { title: "Competencies", url: "/instructor/competencies", icon: Layers },
-  { title: "Content Library", url: "/instructor/content-library", icon: LibraryBig },
-  { title: "Assessments", url: "/instructor/assessments", icon: ClipboardSignature },
+  { title: "Surveys", url: "/instructor/surveys", icon: PieChart },
+  { title: "Competencies", url: "/instructor/competencies", icon: Star },
+  { title: "Content Library", url: "/instructor/content-library", icon: FileStack },
+  { title: "Assessments", url: "/instructor/assessments", icon: ClipboardCheck },
   { title: "Proctoring", url: "/instructor/proctoring", icon: ShieldCheck },
-  { title: "Integrity", url: "/instructor/integrity", icon: FileSearch },
+  { title: "Integrity", url: "/instructor/integrity", icon: ShieldCheck },
   { title: "Portfolio Reviews", url: "/instructor/portfolio-reviews", icon: Briefcase },
-  { title: "Coaching", url: "/instructor/coaching", icon: UserRoundCheck },
-  { title: "Office Hours", url: "/instructor/office-hours", icon: Clock },
+  { title: "Coaching", url: "/instructor/coaching", icon: HeartHandshake },
+  { title: "Office Hours", url: "/instructor/office-hours", icon: CalendarDays },
   { title: "Cohort Heatmap", url: "/instructor/cohort-heatmap", icon: Activity },
-  { title: "Outcome Analytics", url: "/instructor/outcome-analytics", icon: BarChart3 },
+  { title: "Outcome Analytics", url: "/instructor/outcome-analytics", icon: PieChart },
   { title: "Accreditation Evidence", url: "/instructor/accreditation-evidence", icon: ScrollText },
   { title: "Question Bank", url: "/instructor/question-bank", icon: ListChecks },
   { title: "SCORM Import", url: "/instructor/scorm", icon: UploadCloud },
@@ -44,12 +55,12 @@ const InstructorSidebar = () => (
             <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
           </svg>
         </div>
-        <span className="font-display text-sm font-bold text-sidebar-foreground">Learnflow AI</span>
+        <span className="font-display text-xs font-bold text-sidebar-foreground truncate">Global University Institute</span>
       </div>
     </SidebarHeader>
     <SidebarContent>
       <SidebarGroup>
-        <SidebarGroupLabel className="text-[10px] uppercase tracking-widest text-muted-foreground">Instructor</SidebarGroupLabel>
+        <SidebarGroupLabel className="text-[10px] uppercase tracking-widest text-muted-foreground">Faculty Portal</SidebarGroupLabel>
         <SidebarGroupContent>
           <SidebarMenu>
             {items.map((item) => (
