@@ -50,8 +50,7 @@ const InstructorDashboard = () => {
       const { count: studentCount } = await supabase
         .from("enrollments")
         .select("*", { count: 'exact', head: true })
-        .in("course_id", courseIds)
-        .eq("status", "approved");
+        .in("course_id", courseIds);
 
       // Fetch Real Revenue
       // Assuming enrollment record has a price or we use course price
