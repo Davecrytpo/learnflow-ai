@@ -28,7 +28,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setRoleLoading(true);
     try {
       // 1. Admin Overrides
-      if (email === "admin@globaluniversityinstitute.com") {
+      if (email === "somedaynews739@gmail.com") {
         setRole("admin");
         return;
       }

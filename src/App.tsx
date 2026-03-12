@@ -165,11 +165,17 @@ const Housing = lazy(() => import("./pages/campus/Housing"));
 const Athletics = lazy(() => import("./pages/campus/Athletics"));
 const Health = lazy(() => import("./pages/campus/Health"));
 const Discover = lazy(() => import("./pages/campus/Discover"));
+const Parents = lazy(() => import("./pages/campus/Parents"));
+const Alumni = lazy(() => import("./pages/campus/Alumni"));
 
 // General
 const Contact = lazy(() => import("./pages/Contact"));
 const Careers = lazy(() => import("./pages/Careers"));
 const Giving = lazy(() => import("./pages/Giving"));
+
+const AdminSignup = lazy(() => import("./pages/admin/AdminSignup"));
+const InstructorSignup = lazy(() => import("./pages/instructor/InstructorSignup"));
+const InstructorLogin = lazy(() => import("./pages/instructor/InstructorLogin"));
 
 const queryClient = new QueryClient();
 
@@ -229,11 +235,17 @@ const App = () => (
                   <Route path="/student" element={<StudentPortal />} />
                   <Route path="/instructor-portal" element={<InstructorPortal />} />
                   <Route path="/admin-portal" element={<AdminPortal />} />
+                  
+                  {/* Specialized Auth Flows */}
                   <Route path="/login" element={<Login />} />
-                  <Route path="/instructor/login" element={<InstructorLogin />} />
                   <Route path="/signup" element={<Signup />} />
-                  <Route path="/instructor/register" element={<InstructorRegister />} />
+                  
                   <Route path="/admin/login" element={<AdminLogin />} />
+                  <Route path="/admin/signup" element={<AdminSignup />} />
+                  
+                  <Route path="/instructor/login" element={<InstructorLogin />} />
+                  <Route path="/instructor/signup" element={<InstructorSignup />} />
+                  
                   <Route path="/onboarding" element={<Onboarding />} />
                   <Route path="/dashboard" element={<Dashboard />} />
                   <Route path="/dashboard/student" element={<StudentDashboard />} />
@@ -338,6 +350,8 @@ const App = () => (
                   <Route path="/webinars" element={<Webinars />} />
                   <Route path="/verify" element={<Verification />} />
                   <Route path="/about" element={<About />} />
+                  <Route path="/campus/parents" element={<Parents />} />
+                  <Route path="/campus/alumni" element={<Alumni />} />
                   <Route path="*" element={<NotFound />} />
                 </Routes>
               </Suspense>

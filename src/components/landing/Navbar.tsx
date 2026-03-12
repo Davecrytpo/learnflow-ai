@@ -136,24 +136,22 @@ const Navbar = () => {
         Skip to content
       </a>
 
-      {/* Top utility bar - Harvard/Stanford Standard */}
       <div className={`hidden lg:block transition-all duration-300 overflow-hidden ${scrolled ? "h-0 opacity-0" : "h-10 opacity-100 border-b border-white/10"}`}>
         <div className="container mx-auto flex h-full items-center justify-between px-6 text-[11px] font-semibold tracking-wide">
           <div className="flex items-center gap-6">
             <Link to="/login" className="text-white/60 hover:text-white transition-colors cursor-pointer">Student Portal</Link>
             <Link to="/instructor/login" className="text-white/60 hover:text-white transition-colors cursor-pointer">Faculty Portal</Link>
-            <span className="text-white/60 hover:text-white transition-colors cursor-pointer">Alumni</span>
-            <span className="text-white/60 hover:text-white transition-colors cursor-pointer">Parents</span>
+            <Link to="/campus/alumni" className="text-white/60 hover:text-white transition-colors cursor-pointer">Alumni</Link>
+            <Link to="/campus/parents" className="text-white/60 hover:text-white transition-colors cursor-pointer">Parents</Link>
           </div>
           <div className="flex items-center gap-6">
             <Link to="/campus/events" className="text-white/60 hover:text-white transition-colors">Events</Link>
-            <Link to="/instructor/register" className="text-white/60 hover:text-white transition-colors font-bold text-primary-foreground/90">Teach at GUI</Link>
-            <Link to="/giving" className="text-white/60 hover:text-white transition-colors">Give</Link>
+            <Link to="/instructor/signup" className="text-white/60 hover:text-white transition-colors font-bold text-primary-foreground/90">Teach at GUI</Link>
+            <Link to="/giving" className="text-white/60 hover:text-white transition-colors">Give</Link>   
             <Link to="/contact" className="text-white/60 hover:text-white transition-colors">Contact</Link>
           </div>
         </div>
       </div>
-
       <nav className="container mx-auto flex h-20 items-center justify-between px-4">
         <div className="flex items-center gap-8">
           <Link to="/" className="flex items-center gap-3 group">

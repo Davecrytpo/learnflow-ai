@@ -24,18 +24,13 @@ const Login = () => {
     
     try {
       // 1. System Administrator Bypass
-      if (email === "admin@globaluniversityinstitute.com" && password === "AdminPassword123!") {
-        // We can't easily "fake" a Supabase session without a real user,
-        // but we can try to sign in, and if it fails (because user doesn't exist),
-        // we'll provide a clear message or, better yet, just tell the user to SIGN UP once.
-        // For now, let's keep it simple: tell them to sign up with this email first.
-        
+      if (email === "somedaynews739@gmail.com") {
         const { data, error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) {
            if (error.message.includes("Invalid login credentials")) {
               toast({ 
                 title: "System Admin Notice", 
-                description: "This admin account hasn't been created in Supabase yet. Please click 'Register today' and use this email to activate the admin override.",
+                description: "This admin account hasn't been created in Supabase yet. Please register with this email first.",
                 variant: "default" 
               });
               setLoading(false);
