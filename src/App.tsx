@@ -135,8 +135,9 @@ const EditCourse = lazy(() => import("./pages/instructor/EditCourse"));
 const Grading = lazy(() => import("./pages/instructor/Grading"));
 const Gradebook = lazy(() => import("./pages/instructor/Gradebook"));
 const Attendance = lazy(() => import("./pages/instructor/Attendance"));
-const InstructorRegister = lazy(() => import("./pages/instructor/InstructorRegister"));
+const InstructorSignup = lazy(() => import("./pages/instructor/InstructorSignup"));
 const InstructorLogin = lazy(() => import("./pages/instructor/InstructorLogin"));
+const AdminSignup = lazy(() => import("./pages/admin/AdminSignup"));
 const AdminDashboard = lazy(() => import("./pages/admin/AdminDashboard"));
 
 // Academics
@@ -172,10 +173,6 @@ const Alumni = lazy(() => import("./pages/campus/Alumni"));
 const Contact = lazy(() => import("./pages/Contact"));
 const Careers = lazy(() => import("./pages/Careers"));
 const Giving = lazy(() => import("./pages/Giving"));
-
-const AdminSignup = lazy(() => import("./pages/admin/AdminSignup"));
-const InstructorSignup = lazy(() => import("./pages/instructor/InstructorSignup"));
-const InstructorLogin = lazy(() => import("./pages/instructor/InstructorLogin"));
 
 const queryClient = new QueryClient();
 
