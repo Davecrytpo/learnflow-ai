@@ -96,14 +96,13 @@ const StudentDashboard = () => {
         if (enrolls.length > 0) {
           try {
             const courseIds = enrolls.map((e: any) => e.course_id);
-            const { data: webinars } = await supabase
-              .from("webinars")
+            const { data: announcements } = await supabase
+              .from("announcements")
               .select("*")
               .in("course_id", courseIds)
-              .gte("start_time", new Date().toISOString())
-              .order("start_time", { ascending: true })
+              .order("created_at", { ascending: false })
               .limit(3);
-            setUpcomingClasses(webinars || []);
+            setUpcomingClasses(announcements || []);
           } catch (e) {
             setUpcomingClasses([]);
           }
