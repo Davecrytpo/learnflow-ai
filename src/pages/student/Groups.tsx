@@ -23,8 +23,7 @@ const StudentGroups = () => {
         setLoading(false);
         return;
       }
-      const { data } = await supabase
-        .from("course_groups")
+      const { data } = await (supabase.from as any)("course_groups")
         .select("*, courses(title)")
         .in("id", groupIds)
         .order("created_at", { ascending: false });

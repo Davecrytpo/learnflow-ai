@@ -50,8 +50,7 @@ const InstructorGroups = () => {
   const createGroup = async () => {
     if (!user || !selectedCourse || !name) return;
     setSaving(true);
-    const { data, error } = await supabase
-      .from("course_groups")
+    const { data, error } = await (supabase.from as any)("course_groups")
       .insert({ course_id: selectedCourse, name })
       .select()
       .single();

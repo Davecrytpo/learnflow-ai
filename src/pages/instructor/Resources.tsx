@@ -45,7 +45,7 @@ const InstructorResources = () => {
   const addResource = async () => {
     if (!selectedCourse || !title || !url) return;
     setSaving(true);
-    const { data, error } = await supabase.from("course_resources").insert({ course_id: selectedCourse, title, url, type }).select().single();
+    const { data, error } = await (supabase.from as any)("course_resources").insert({ course_id: selectedCourse, title, url, type }).select().single();
     setSaving(false);
     if (error) {
       toast({ title: "Error", description: error.message, variant: "destructive" });
