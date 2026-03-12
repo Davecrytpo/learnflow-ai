@@ -120,18 +120,17 @@ const EditCourse = () => {
     try {
       const outline = await generateCurriculumOutline(course.title);
       for (const [sIdx, mod] of outline.modules.entries()) {
-        const { data: section } = await supabase.from("sections").insert({
-          course_id: courseId,
+        const { data: section } = await supabase.from("modules").insert({
+          course_id: courseId!,
           title: mod.title,
           order: sections.length + sIdx
         }).select().single();
 
         if (section) {
           const lessonInserts = mod.lessons.map((l: any, lIdx: number) => ({
-            section_id: section.id,
-            course_id: courseId,
+            module_id: section.id,
+            course_id: courseId!,
             title: l.title,
-            lesson_type: l.type || "content",
             order: lIdx
           }));
           await supabase.from("lessons").insert(lessonInserts);
