@@ -89,12 +89,12 @@ const CourseLearning = () => {
         // 1. Strict Enrollment Verification
         const { data: enrollment, error: enrollErr } = await supabase
           .from("enrollments")
-          .select("status")
+          .select("*")
           .eq("course_id", courseId)
           .eq("student_id", user.id)
           .maybeSingle();
 
-        if (!enrollment || enrollment.status !== 'approved') {
+        if (!enrollment) {
           toast({ 
             title: "Access Denied", 
             description: "Your enrollment is pending administrator verification of tuition payment.", 
