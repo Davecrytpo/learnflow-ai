@@ -43,15 +43,20 @@ const AdminUsers = () => {
 
   const changeRole = async (userId: string, currentRoleId: string | undefined, newRole: string) => {
     try {
-      if (currentRoleId) {
-        await supabase.from("user_roles").update({ role: newRole as any }).eq("id", currentRoleId);
-      } else {
-        await supabase.from("user_roles").insert({ user_id: userId, role: newRole as any });
-      }
-      toast({ title: "Role updated" });
+      // Use upsert to handle both insert and update gracefully
+      const { error } = await supabase
+        .from("user_roles")
+        .upsert(
+          { user_id: userId, role: newRole as any },
+          { onConflict: 'user_id,role' }
+        );
+
+      if (error) throw error;
+      
+      toast({ title: "Institutional Role updated", description: `User is now assigned as ${newRole}.` });
       fetchUsers();
     } catch (err: any) {
-      toast({ title: "Update failed", variant: "destructive" });
+      toast({ title: "Role Update failed", description: err.message, variant: "destructive" });
     }
   };
 

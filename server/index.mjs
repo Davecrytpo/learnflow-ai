@@ -40,7 +40,7 @@ const sendEmail = async ({ to, subject, htmlContent }) => {
         personalizations: [{
           to: [{ email: to }]
         }],
-        from: { email: SENDGRID_SENDER_EMAIL, name: "Learnflow AI" },
+        from: { email: SENDGRID_SENDER_EMAIL, name: "Global University Institute" },
         subject,
         content: [{
           type: "text/html",

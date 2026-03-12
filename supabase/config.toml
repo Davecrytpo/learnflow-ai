@@ -16,5 +16,5 @@ port = 587
 user = "apikey"
 # The password will be the API key provided
 pass = "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"
-sender_name = "Learnflow AI"
+sender_name = "Global University Institute"
 admin_email = "noreply@globaluniversityinstitute.com"

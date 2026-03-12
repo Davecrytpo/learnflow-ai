@@ -1,67 +1,68 @@
-# Global University Institute
+# Global University Institute (GUI)
 
-Enterprise LMS for modern education. Global University Institute helps institutions design courses, assess learners, and certify outcomes with a clean, fast, and scalable frontend experience.
+## Enterprise-Grade Learning Management System
 
-**Highlights**
-- Role-based experiences for students, instructors, and administrators
-- Course catalog, curriculum builder, assessments, gradebook, and attendance
-- Analytics, certificates, and verifiable credentials
-- Modern UI with accessible components, responsive layouts, and clear hierarchy
-- Moodle-plus breadth: assessments, proctoring, integrity, competencies, portfolios, and enterprise admin workflows
+Global University Institute is a sophisticated, scalable, and modern Learning Management System (LMS) designed for top-tier academic institutions. It provides a seamless, role-based experience for students, faculty, and administrators, bridging the gap between traditional education and the digital future.
 
-**Tech Stack**
-- React + TypeScript + Vite
-- Tailwind CSS + shadcn-ui
-- TanStack Query
-- Supabase (auth and data)
+---
 
-**Getting Started**
+### 🏛️ Institutional Pillars
+
+- **Student Excellence:** Adaptive learning paths, personalized portfolios, and global career connectivity.
+- **Faculty Innovation:** AI-assisted curriculum building, advanced proctoring, and comprehensive analytics.
+- **Administrative Control:** Multi-campus management, institutional accreditation tracking, and deep system governance.
+- **Academic Integrity:** Built-in plagiarism detection, verifiable credentials, and proctored assessment environments.
+
+### 🚀 Technical Excellence
+
+- **Frontend:** React 18 with TypeScript, powered by Vite for lightning-fast development.
+- **Styling:** Tailwind CSS with a custom "Civic Brass" professional theme.
+- **Components:** High-performance, accessible UI primitives via shadcn-ui.
+- **Backend:** Supabase for secure authentication and real-time data orchestration.
+- **AI Integration:** Powered by Claude 3.5 Sonnet for intelligent content generation and institutional reporting.
+
+### 🛠️ Quick Start
+
+#### Prerequisites
+- Node.js (v18+)
+- npm or bun
+
+#### Installation
 ```bash
+# Clone the repository
+git clone https://github.com/Davecrytpo/learnflow-ai.git
+
+# Install dependencies
 npm install
+
+# Start the development environment
 npm run dev
 ```
 
-**Scripts**
-- `npm run dev` Start the development server
-- `npm run build` Create a production build
-- `npm run preview` Preview the production build
-- `npm run lint` Run ESLint
-- `npm run test` Run unit tests
-
-**Environment Variables**
-Create a `.env` file with the following values.
-- `VITE_SUPABASE_URL`
-- `VITE_SUPABASE_ANON_KEY`
-- `SUPABASE_URL` (server API)
-- `SUPABASE_SERVICE_ROLE_KEY` (server API)
-
-**Project Structure**
-- `src/components` UI components and landing sections
-- `src/pages` Route-based pages (student, instructor, admin)
-- `src/contexts` Global state and providers
-- `src/lib` Utilities and helper modules
-- `src/integrations` External integrations
-- `docs` Feature comparisons and QA checklists
-- `server` External API layer (Express)
-
-**Feature Coverage**
-See the full Moodle comparison and QA checklist:
-- `docs/FEATURES_MOODLE_COMPARISON.md`
-- `docs/QA_CHECKLIST.md`
-
-**Design Direction**
-Civic Brass theme with deep teal primary and copper accents. Typography uses `Fraunces` for display and `Sora` for body text.
-
-**Deployment**
-Build the project and deploy the `dist` directory to your hosting provider.
-
-```bash
-npm run build
+#### Environment Configuration
+Create a `.env` file in the root directory:
+```env
+VITE_SUPABASE_URL=your_supabase_url
+VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
+VITE_ANTHROPIC_API_KEY=your_anthropic_api_key
+SENDGRID_API_KEY=your_sendgrid_key
+SENDGRID_SENDER_EMAIL=noreply@globaluniversityinstitute.com
 ```
 
-**API Layer**
-Run the external API (Express) for server-side workflows.
+### 📖 Documentation
 
-```bash
-npm run api:dev
-```
+Detailed feature analysis and quality assurance checklists are available in the `/docs` directory:
+- [Moodle Comparison & Feature Breadth](./docs/FEATURES_MOODLE_COMPARISON.md)
+- [QA & Launch Checklist](./docs/QA_CHECKLIST.md)
+
+### 🗄️ Database Seeding
+
+To populate the system with professional-looking content for testing, run the contents of `supabase/seed_courses.sql` in your Supabase SQL Editor. This will:
+1.  Assign the first registered user as an `instructor`.
+2.  Insert several high-quality courses across different academic categories.
+3.  Set up initial modules and lessons for demonstration.
+
+### ⚖️ License
+
+Copyright © 2026 Global University Institute. All rights reserved.
+Internal use only.
