@@ -58,8 +58,7 @@ const InstructorDashboard = () => {
       const { data: enrollments } = await supabase
         .from("enrollments")
         .select("course_id")
-        .in("course_id", courseIds)
-        .eq("status", "approved");
+        .in("course_id", courseIds);
 
       let totalRevenue = 0;
       enrollments?.forEach(enr => {
