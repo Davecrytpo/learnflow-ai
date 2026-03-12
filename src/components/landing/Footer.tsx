@@ -105,7 +105,7 @@ const Footer = () => (
               ["Apply Now", "/signup"],
               ["Student Portal", "/login"],
               ["Faculty Portal", "/instructor/login"],
-              ["Admin Login", "/admin/login"],
+              ["Admin Login", "/admin"],
               ["Contact Us", "/contact"],
               ["Careers at GUI", "/instructor/register"],
             ].map(([label, href]) => (
