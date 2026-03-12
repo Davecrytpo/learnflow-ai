@@ -164,7 +164,6 @@ const EditCourse = () => {
     const { error } = await supabase.from("lessons").update({
       title: editingLesson.title,
       content: editingLesson.content,
-      lesson_type: editingLesson.lesson_type,
       video_url: editingLesson.video_url,
     }).eq("id", editingLesson.id);
 
