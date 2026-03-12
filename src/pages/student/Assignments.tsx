@@ -27,8 +27,7 @@ const StudentAssignments = () => {
       const { data: enrolls } = await supabase
         .from("enrollments")
         .select("course_id")
-        .eq("student_id", user.id)
-        .eq("status", "approved");
+        .eq("student_id", user.id);
       
       const courseIds = (enrolls || []).map(e => e.course_id);
 
