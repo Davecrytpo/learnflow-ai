@@ -75,10 +75,9 @@ const EditCourse = () => {
 
   const addLesson = async (sectionId: string) => {
     const { data, error } = await supabase.from("lessons").insert({
-      section_id: sectionId,
-      course_id: courseId,
+      module_id: sectionId,
+      course_id: courseId!,
       title: "New Lesson",
-      lesson_type: "content",
       order: 0
     }).select().single();
     
