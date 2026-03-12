@@ -380,7 +380,7 @@ const CourseLearning = () => {
                     >
                       <LinkIcon className="h-4 w-4 flex-shrink-0 text-muted-foreground/40" />
                       <span className="line-clamp-1">{resource.title}</span>
-                      <Badge variant="ghost" className="ml-auto text-[10px]">Resource</Badge>
+                      <Badge variant="outline" className="ml-auto text-[10px]">Resource</Badge>
                     </a>
                   ))}
                 </div>
