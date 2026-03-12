@@ -232,7 +232,7 @@ const Gradebook = () => {
                           return (
                             <TableCell key={q.id} className="text-center">
                               {typeof grade === 'number' ? (
-                                <Badge variant={grade >= q.passing_score ? "accent" : "destructive"}>
+                                <Badge variant={grade >= q.passing_score ? "secondary" : "destructive"}>
                                   {grade}%
                                 </Badge>
                               ) : (

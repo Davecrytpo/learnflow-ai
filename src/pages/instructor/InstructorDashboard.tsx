@@ -91,12 +91,8 @@ const InstructorDashboard = () => {
       // Gather data for AI: attendance, grades, submissions
       const courseIds = courses.map(c => c.id);
       const [attendanceRes, gradesRes] = await Promise.all([
-        (supabase.from as any)("attendance_records").select("status").in("session_id", 
-          (supabase.from as any)("attendance_sessions").select("id").in("course_id", courseIds)
-        ),
-        supabase.from("submissions").select("score, assignment_id").in("assignment_id", 
-          supabase.from("assignments").select("id").in("course_id", courseIds)
-        )
+        supabase.from("attendance").select("status").in("course_id", courseIds),
+        supabase.from("submissions").select("score, assignment_id"),
       ]);
 
       const dataSummary = {

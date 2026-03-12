@@ -12,7 +12,7 @@ import {
   BookOpen, Clock, Users, CheckCircle, 
   Loader2, ClipboardCheck, Award, 
   ArrowRight, Star, Globe, ShieldCheck,
-  User, BookmarkCheck, Sparkles
+  User, BookmarkCheck, Sparkles, PlayCircle
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { Badge } from "@/components/ui/badge";
