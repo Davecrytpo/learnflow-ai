@@ -283,6 +283,80 @@ export type Database = {
         }
         Relationships: []
       }
+      course_groups: {
+        Row: {
+          course_id: string
+          created_at: string
+          id: string
+          name: string
+        }
+        Insert: {
+          course_id: string
+          created_at?: string
+          id?: string
+          name: string
+        }
+        Update: {
+          course_id?: string
+          created_at?: string
+          id?: string
+          name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "course_groups_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "courses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      course_resources: {
+        Row: {
+          course_id: string
+          created_at: string
+          id: string
+          module_id: string | null
+          title: string
+          type: string
+          url: string
+        }
+        Insert: {
+          course_id: string
+          created_at?: string
+          id?: string
+          module_id?: string | null
+          title: string
+          type?: string
+          url: string
+        }
+        Update: {
+          course_id?: string
+          created_at?: string
+          id?: string
+          module_id?: string | null
+          title?: string
+          type?: string
+          url?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "course_resources_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "courses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "course_resources_module_id_fkey"
+            columns: ["module_id"]
+            isOneToOne: false
+            referencedRelation: "modules"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       courses: {
         Row: {
           author_id: string
@@ -407,6 +481,7 @@ export type Database = {
           course_id: string
           enrolled_at: string
           id: string
+          status: string
           student_id: string
         }
         Insert: {
@@ -414,6 +489,7 @@ export type Database = {
           course_id: string
           enrolled_at?: string
           id?: string
+          status?: string
           student_id: string
         }
         Update: {
@@ -421,6 +497,7 @@ export type Database = {
           course_id?: string
           enrolled_at?: string
           id?: string
+          status?: string
           student_id?: string
         }
         Relationships: [
@@ -642,6 +719,7 @@ export type Database = {
           institution: string | null
           phone: string | null
           state: string | null
+          status: string | null
           subject_areas: string[] | null
           updated_at: string
           user_id: string
@@ -657,6 +735,7 @@ export type Database = {
           institution?: string | null
           phone?: string | null
           state?: string | null
+          status?: string | null
           subject_areas?: string[] | null
           updated_at?: string
           user_id: string
@@ -672,6 +751,7 @@ export type Database = {
           institution?: string | null
           phone?: string | null
           state?: string | null
+          status?: string | null
           subject_areas?: string[] | null
           updated_at?: string
           user_id?: string
