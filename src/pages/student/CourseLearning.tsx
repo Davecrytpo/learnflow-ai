@@ -33,8 +33,8 @@ const CourseLearning = () => {
   const [lessons, setLessons] = useState<Tables<"lessons">[]>([]);
   const [quizzes, setQuizzes] = useState<Tables<"quizzes">[]>([]);
   const [assignments, setAssignments] = useState<Tables<"assignments">[]>([]);
-  const [resources, setResources] = useState<Tables<"course_resources">[]>([]);
-  const [submissions, setSubmissions] = useState<Tables<"submissions">[]>([]);
+  const [resources, setResources] = useState<any[]>([]);
+  const [submissions, setSubmissions] = useState<any[]>([]);
   const [completedLessons, setCompletedLessons] = useState<Set<string>>(new Set());
   const [quizAttempts, setQuizAttempts] = useState<Tables<"quiz_attempts">[]>([]);
   
