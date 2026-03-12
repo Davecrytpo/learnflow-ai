@@ -308,8 +308,8 @@ const CourseLearning = () => {
             {modules.map((mod) => {
               const modLessons = lessons.filter((l) => l.module_id === mod.id);
               const modQuizzes = quizzes.filter((q) => q.module_id === mod.id);
-              const modAssignments = assignments.filter((a) => a.module_id === mod.id || a.lesson_id && lessons.find(l => l.id === a.lesson_id)?.module_id === mod.id);
-              const modResources = resources.filter((r) => r.module_id === mod.id);
+              const modAssignments = assignments.filter((a: any) => a.lesson_id && lessons.find(l => l.id === a.lesson_id)?.module_id === mod.id);
+              const modResources = resources.filter((r: any) => r.module_id === mod.id);
               
               return (
                 <div key={mod.id}>
