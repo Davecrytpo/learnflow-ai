@@ -251,7 +251,7 @@ const EditCourse = () => {
                       {section.lessons?.sort((a: any, b: any) => (a.order || 0) - (b.order || 0)).map((lesson: any) => (
                         <div key={lesson.id} className="flex items-center justify-between p-3 rounded-lg border border-border bg-card group hover:border-primary/30 transition-all">
                           <div className="flex items-center gap-3">
-                            {lesson.lesson_type === 'video' ? <Video className="h-4 w-4 text-blue-500" /> : <FileText className="h-4 w-4 text-emerald-500" />}
+                            {lesson.video_url ? <Video className="h-4 w-4 text-blue-500" /> : <FileText className="h-4 w-4 text-emerald-500" />}
                             <span className="text-sm font-medium">{lesson.title}</span>
                           </div>
                           <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
