@@ -17,6 +17,7 @@ import DOMPurify from "dompurify";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import DiscussionBoard from "@/components/discussion/DiscussionBoard";
 import { Tables } from "@/integrations/supabase/types";
+import { Dialog, DialogContent, DialogFooter } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
