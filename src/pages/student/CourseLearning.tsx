@@ -110,7 +110,7 @@ const CourseLearning = () => {
           supabase.from("lessons").select("*").eq("course_id", courseId).eq("published", true).order("order"),
           supabase.from("quizzes").select("*").eq("course_id", courseId).eq("published", true).order("order"),
           supabase.from("assignments").select("*").eq("course_id", courseId).order("created_at"),
-          supabase.from("course_resources").select("*").eq("course_id", courseId).order("created_at"),
+          (supabase.from as any)("course_resources").select("*").eq("course_id", courseId).order("created_at"),
           supabase.from("lesson_progress").select("lesson_id").eq("user_id", user.id).eq("course_id", courseId).eq("completed", true),
           supabase.from("quiz_attempts").select("*").eq("user_id", user.id),
           supabase.from("submissions").select("*").eq("student_id", user.id),
