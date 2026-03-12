@@ -96,7 +96,7 @@ const EditCourse = () => {
   };
 
   const deleteSection = async (sectionId: string) => {
-    const { error } = await supabase.from("sections").delete().eq("id", sectionId);
+    const { error } = await supabase.from("modules").delete().eq("id", sectionId);
     if (error) toast({ title: "Error", variant: "destructive" });
     else fetchCourseData();
   };
