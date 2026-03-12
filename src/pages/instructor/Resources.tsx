@@ -36,7 +36,7 @@ const InstructorResources = () => {
   useEffect(() => {
     if (!selectedCourse) return;
     const fetch = async () => {
-      const { data } = await supabase.from("course_resources").select("*").eq("course_id", selectedCourse).order("created_at", { ascending: false });
+      const { data } = await (supabase.from as any)("course_resources").select("*").eq("course_id", selectedCourse).order("created_at", { ascending: false });
       setResources(data || []);
     };
     fetch();
