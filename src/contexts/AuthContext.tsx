@@ -46,8 +46,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setRole(data.role as AppRole);
       } else {
         // 3. Fallback: If no role in DB, check metadata or default to student
-        const { data: { user: freshUser } } = await supabase.auth.getUser();
-        const metaRole = freshUser?.user_metadata?.role;
+        // Use user.user_metadata if available instead of fetching again
+        const metaRole = user?.user_metadata?.role;
         setRole((metaRole as AppRole) || "student");
       }
     } catch (err) {
