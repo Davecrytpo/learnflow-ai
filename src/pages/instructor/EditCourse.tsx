@@ -12,7 +12,7 @@ import { Label } from "@/components/ui/label";
 import { 
   Plus, Trash2, GripVertical, FileText, 
   Video, FileStack, Sparkles, Loader2, 
-  ChevronRight, Save, Layout, Youtube, Upload
+  ChevronRight, Save, Layout, Youtube, Upload, Pencil
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
