@@ -83,11 +83,11 @@ const StudentDashboard = () => {
         // Fetch Student Profile for Goals
         try {
           const { data: profileRes } = await supabase
-            .from("student_profiles")
-            .select("learning_goals")
+            .from("profiles")
+            .select("bio")
             .eq("user_id", user.id)
             .maybeSingle();
-          setGoals(profileRes?.learning_goals || ["Complete my first course", "Maintain a 5-day streak"]);
+          setGoals(["Complete my first course", "Maintain a 5-day streak"]);
         } catch (e) {
           setGoals(["Complete my first course", "Maintain a 5-day streak"]);
         }
