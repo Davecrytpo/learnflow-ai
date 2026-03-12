@@ -44,7 +44,7 @@ const EditCourse = () => {
     try {
       const { data: courseData } = await supabase.from("courses").select("*").eq("id", courseId).single();
       const { data: sectionData } = await supabase
-        .from("sections")
+        .from("modules")
         .select("*, lessons(*)")
         .eq("course_id", courseId)
         .order("order", { ascending: true });
