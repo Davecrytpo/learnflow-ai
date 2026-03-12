@@ -65,8 +65,8 @@ const AdminDashboard = () => {
       const faculty = allUsers.filter(u => instructorIds.includes(u.user_id));
       
       // Real status check: Profiles with status 'pending' are applicants
-      setPendingInstructors(faculty.filter(f => f.status === 'pending'));
-      setInstructors(faculty.filter(f => f.status === 'approved' || !f.status));
+      setPendingInstructors(faculty.filter((f: any) => f.status === 'pending'));
+      setInstructors(faculty.filter((f: any) => f.status === 'approved' || !f.status));
 
       setStats({
         users: studentIds.length,
