@@ -294,7 +294,7 @@ const AdminDashboard = () => {
                           size="sm" 
                           className="bg-primary text-white font-bold h-10 px-6 rounded-xl"
                           onClick={async () => {
-                            const { error } = await supabase.from("profiles").update({ status: 'approved' }).eq("user_id", i.user_id);
+                            const { error } = await (supabase.from("profiles") as any).update({ status: 'approved' }).eq("user_id", i.user_id);
                             if (error) toast({ title: "Error", description: error.message });
                             else { toast({ title: "Faculty Approved" }); fetchData(); }
                           }}
