@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -49,8 +50,7 @@ const InstructorDashboard = () => {
       const { count: studentCount } = await supabase
         .from("enrollments")
         .select("*", { count: 'exact', head: true })
-        .in("course_id", courseIds)
-        .eq("status", "approved");
+        .in("course_id", courseIds);
 
       // Fetch Real Revenue
       // Assuming enrollment record has a price or we use course price
@@ -58,8 +58,7 @@ const InstructorDashboard = () => {
       const { data: enrollments } = await supabase
         .from("enrollments")
         .select("course_id")
-        .in("course_id", courseIds)
-        .eq("status", "approved");
+        .in("course_id", courseIds);
 
       let totalRevenue = 0;
       enrollments?.forEach(enr => {
@@ -90,12 +89,8 @@ const InstructorDashboard = () => {
       // Gather data for AI: attendance, grades, submissions
       const courseIds = courses.map(c => c.id);
       const [attendanceRes, gradesRes] = await Promise.all([
-        (supabase.from as any)("attendance_records").select("status").in("session_id", 
-          (supabase.from as any)("attendance_sessions").select("id").in("course_id", courseIds)
-        ),
-        supabase.from("submissions").select("score, assignment_id").in("assignment_id", 
-          supabase.from("assignments").select("id").in("course_id", courseIds)
-        )
+        supabase.from("attendance").select("status").in("course_id", courseIds),
+        supabase.from("submissions").select("score, assignment_id"),
       ]);
 
       const dataSummary = {

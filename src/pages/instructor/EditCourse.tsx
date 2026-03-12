@@ -12,7 +12,7 @@ import { Label } from "@/components/ui/label";
 import { 
   Plus, Trash2, GripVertical, FileText, 
   Video, FileStack, Sparkles, Loader2, 
-  ChevronRight, Save, Layout, Youtube, Upload
+  ChevronRight, Save, Layout, Youtube, Upload, Pencil
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
@@ -44,7 +44,7 @@ const EditCourse = () => {
     try {
       const { data: courseData } = await supabase.from("courses").select("*").eq("id", courseId).single();
       const { data: sectionData } = await supabase
-        .from("sections")
+        .from("modules")
         .select("*, lessons(*)")
         .eq("course_id", courseId)
         .order("order", { ascending: true });
@@ -63,8 +63,8 @@ const EditCourse = () => {
   }, [courseId]);
 
   const addSection = async () => {
-    const { data, error } = await supabase.from("sections").insert({
-      course_id: courseId,
+    const { data, error } = await supabase.from("modules").insert({
+      course_id: courseId!,
       title: "New Section",
       order: sections.length
     }).select().single();
@@ -75,10 +75,9 @@ const EditCourse = () => {
 
   const addLesson = async (sectionId: string) => {
     const { data, error } = await supabase.from("lessons").insert({
-      section_id: sectionId,
-      course_id: courseId,
+      module_id: sectionId,
+      course_id: courseId!,
       title: "New Lesson",
-      lesson_type: "content",
       order: 0
     }).select().single();
     
@@ -97,7 +96,7 @@ const EditCourse = () => {
   };
 
   const deleteSection = async (sectionId: string) => {
-    const { error } = await supabase.from("sections").delete().eq("id", sectionId);
+    const { error } = await supabase.from("modules").delete().eq("id", sectionId);
     if (error) toast({ title: "Error", variant: "destructive" });
     else fetchCourseData();
   };
@@ -121,18 +120,17 @@ const EditCourse = () => {
     try {
       const outline = await generateCurriculumOutline(course.title);
       for (const [sIdx, mod] of outline.modules.entries()) {
-        const { data: section } = await supabase.from("sections").insert({
-          course_id: courseId,
+        const { data: section } = await supabase.from("modules").insert({
+          course_id: courseId!,
           title: mod.title,
           order: sections.length + sIdx
         }).select().single();
 
         if (section) {
           const lessonInserts = mod.lessons.map((l: any, lIdx: number) => ({
-            section_id: section.id,
-            course_id: courseId,
+            module_id: section.id,
+            course_id: courseId!,
             title: l.title,
-            lesson_type: l.type || "content",
             order: lIdx
           }));
           await supabase.from("lessons").insert(lessonInserts);
@@ -166,7 +164,6 @@ const EditCourse = () => {
     const { error } = await supabase.from("lessons").update({
       title: editingLesson.title,
       content: editingLesson.content,
-      lesson_type: editingLesson.lesson_type,
       video_url: editingLesson.video_url,
     }).eq("id", editingLesson.id);
 
@@ -254,12 +251,12 @@ const EditCourse = () => {
                       {section.lessons?.sort((a: any, b: any) => (a.order || 0) - (b.order || 0)).map((lesson: any) => (
                         <div key={lesson.id} className="flex items-center justify-between p-3 rounded-lg border border-border bg-card group hover:border-primary/30 transition-all">
                           <div className="flex items-center gap-3">
-                            {lesson.lesson_type === 'video' ? <Video className="h-4 w-4 text-blue-500" /> : <FileText className="h-4 w-4 text-emerald-500" />}
+                            {lesson.video_url ? <Video className="h-4 w-4 text-blue-500" /> : <FileText className="h-4 w-4 text-emerald-500" />}
                             <span className="text-sm font-medium">{lesson.title}</span>
                           </div>
                           <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                             <Button variant="ghost" size="icon" className="h-8 w-8 text-primary" onClick={() => { setEditingLesson(lesson); setIsLessonModalOpen(true); }}>
-                              <Edit className="h-4 w-4" />
+                              <Pencil className="h-4 w-4" />
                             </Button>
                             <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => deleteLesson(lesson.id)}>
                               <Trash2 className="h-4 w-4" />

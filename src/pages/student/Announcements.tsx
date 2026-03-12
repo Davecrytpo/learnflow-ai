@@ -25,8 +25,8 @@ const StudentAnnouncements = () => {
         return;
       }
       const { data } = await supabase
-        .from("course_announcements")
-        .select("*, courses(title)")
+        .from("announcements")
+        .select("*, courses:course_id(title)")
         .in("course_id", courseIds)
         .order("created_at", { ascending: false });
       setAnnouncements(data || []);

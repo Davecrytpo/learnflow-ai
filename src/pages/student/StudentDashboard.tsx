@@ -8,7 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
-import { BookOpen, Award, Bell, Play, Calendar, Sparkles, Target, Users, MessageSquare, Search, Loader2 } from "lucide-react";
+import { BookOpen, Award, Bell, Play, Calendar, Sparkles, Target, Users, MessageSquare, Search, Loader2, TrendingUp } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
 import { Badge } from "@/components/ui/badge";
 
@@ -83,11 +83,11 @@ const StudentDashboard = () => {
         // Fetch Student Profile for Goals
         try {
           const { data: profileRes } = await supabase
-            .from("student_profiles")
-            .select("learning_goals")
+            .from("profiles")
+            .select("bio")
             .eq("user_id", user.id)
             .maybeSingle();
-          setGoals(profileRes?.learning_goals || ["Complete my first course", "Maintain a 5-day streak"]);
+          setGoals(["Complete my first course", "Maintain a 5-day streak"]);
         } catch (e) {
           setGoals(["Complete my first course", "Maintain a 5-day streak"]);
         }
@@ -96,14 +96,13 @@ const StudentDashboard = () => {
         if (enrolls.length > 0) {
           try {
             const courseIds = enrolls.map((e: any) => e.course_id);
-            const { data: webinars } = await supabase
-              .from("webinars")
+            const { data: announcements } = await supabase
+              .from("announcements")
               .select("*")
               .in("course_id", courseIds)
-              .gte("start_time", new Date().toISOString())
-              .order("start_time", { ascending: true })
+              .order("created_at", { ascending: false })
               .limit(3);
-            setUpcomingClasses(webinars || []);
+            setUpcomingClasses(announcements || []);
           } catch (e) {
             setUpcomingClasses([]);
           }

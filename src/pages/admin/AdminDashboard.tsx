@@ -65,8 +65,8 @@ const AdminDashboard = () => {
       const faculty = allUsers.filter(u => instructorIds.includes(u.user_id));
       
       // Real status check: Profiles with status 'pending' are applicants
-      setPendingInstructors(faculty.filter(f => f.status === 'pending'));
-      setInstructors(faculty.filter(f => f.status === 'approved' || !f.status));
+      setPendingInstructors(faculty.filter((f: any) => f.status === 'pending'));
+      setInstructors(faculty.filter((f: any) => f.status === 'approved' || !f.status));
 
       setStats({
         users: studentIds.length,
@@ -294,7 +294,7 @@ const AdminDashboard = () => {
                           size="sm" 
                           className="bg-primary text-white font-bold h-10 px-6 rounded-xl"
                           onClick={async () => {
-                            const { error } = await supabase.from("profiles").update({ status: 'approved' }).eq("user_id", i.user_id);
+                            const { error } = await (supabase.from("profiles") as any).update({ status: 'approved' }).eq("user_id", i.user_id);
                             if (error) toast({ title: "Error", description: error.message });
                             else { toast({ title: "Faculty Approved" }); fetchData(); }
                           }}

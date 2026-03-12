@@ -14,18 +14,16 @@ const StudentGroups = () => {
   useEffect(() => {
     if (!user) return;
     const fetch = async () => {
-      const { data: memberships } = await supabase
-        .from("group_members")
+      const { data: memberships } = await (supabase.from as any)("group_members")
         .select("group_id")
         .eq("student_id", user.id);
-      const groupIds = (memberships || []).map((m) => m.group_id);
+      const groupIds = (memberships || []).map((m: any) => m.group_id);
       if (groupIds.length === 0) {
         setGroups([]);
         setLoading(false);
         return;
       }
-      const { data } = await supabase
-        .from("course_groups")
+      const { data } = await (supabase.from as any)("course_groups")
         .select("*, courses(title)")
         .in("id", groupIds)
         .order("created_at", { ascending: false });

@@ -38,8 +38,7 @@ const InstructorGroups = () => {
   useEffect(() => {
     if (!selectedCourse) return;
     const fetch = async () => {
-      const { data } = await supabase
-        .from("course_groups")
+      const { data } = await (supabase.from as any)("course_groups")
         .select("*")
         .eq("course_id", selectedCourse)
         .order("created_at", { ascending: false });
@@ -51,8 +50,7 @@ const InstructorGroups = () => {
   const createGroup = async () => {
     if (!user || !selectedCourse || !name) return;
     setSaving(true);
-    const { data, error } = await supabase
-      .from("course_groups")
+    const { data, error } = await (supabase.from as any)("course_groups")
       .insert({ course_id: selectedCourse, name })
       .select()
       .single();
