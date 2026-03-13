@@ -1,8 +1,8 @@
 project_id = "sevwwecwlplptavbdjxv"
 
 [auth]
-site_url = "https://global-university-institute.vercel.app" # UPDATE THIS TO YOUR ACTUAL URL
-additional_redirect_urls = ["https://global-university-institute.vercel.app/**", "http://localhost:8080/**"]
+site_url = "http://localhost:8080"
+additional_redirect_urls = []
 
 [auth.email]
 enable_signup = true

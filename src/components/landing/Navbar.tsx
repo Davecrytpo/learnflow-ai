@@ -136,22 +136,24 @@ const Navbar = () => {
         Skip to content
       </a>
 
+      {/* Top utility bar - Harvard/Stanford Standard */}
       <div className={`hidden lg:block transition-all duration-300 overflow-hidden ${scrolled ? "h-0 opacity-0" : "h-10 opacity-100 border-b border-white/10"}`}>
         <div className="container mx-auto flex h-full items-center justify-between px-6 text-[11px] font-semibold tracking-wide">
           <div className="flex items-center gap-6">
             <Link to="/login" className="text-white/60 hover:text-white transition-colors cursor-pointer">Student Portal</Link>
             <Link to="/instructor/login" className="text-white/60 hover:text-white transition-colors cursor-pointer">Faculty Portal</Link>
-            <Link to="/campus/alumni" className="text-white/60 hover:text-white transition-colors cursor-pointer">Alumni</Link>
-            <Link to="/campus/parents" className="text-white/60 hover:text-white transition-colors cursor-pointer">Parents</Link>
+            <span className="text-white/60 hover:text-white transition-colors cursor-pointer">Alumni</span>
+            <span className="text-white/60 hover:text-white transition-colors cursor-pointer">Parents</span>
           </div>
           <div className="flex items-center gap-6">
             <Link to="/campus/events" className="text-white/60 hover:text-white transition-colors">Events</Link>
-            <Link to="/instructor/signup" className="text-white/60 hover:text-white transition-colors font-bold text-primary-foreground/90">Teach at GUI</Link>
-            <Link to="/giving" className="text-white/60 hover:text-white transition-colors">Give</Link>   
+            <Link to="/instructor/register" className="text-white/60 hover:text-white transition-colors font-bold text-primary-foreground/90">Teach at GUI</Link>
+            <Link to="/giving" className="text-white/60 hover:text-white transition-colors">Give</Link>
             <Link to="/contact" className="text-white/60 hover:text-white transition-colors">Contact</Link>
           </div>
         </div>
       </div>
+
       <nav className="container mx-auto flex h-20 items-center justify-between px-4">
         <div className="flex items-center gap-8">
           <Link to="/" className="flex items-center gap-3 group">
@@ -163,8 +165,8 @@ const Navbar = () => {
               </svg>
             </div>
             <div className="hidden sm:block">
-              <span className={`font-display text-lg font-bold tracking-tight block leading-tight ${scrolled ? "text-foreground" : "text-slate-900 md:text-white"}`}>Global University</span>
-              <span className={`text-[10px] uppercase tracking-[0.2em] font-bold block ${scrolled ? "text-muted-foreground" : "text-slate-600 md:text-white/60"}`}>Institute</span>
+              <span className={`font-display text-lg font-bold tracking-tight block leading-tight ${scrolled ? "text-foreground" : "text-white"}`}>Global University</span>
+              <span className={`text-[10px] uppercase tracking-[0.2em] font-bold block ${scrolled ? "text-muted-foreground" : "text-white/60"}`}>Institute</span>
             </div>
             <span className="font-display text-xl font-bold tracking-tight text-foreground xl:hidden block sm:hidden">GUI</span>
           </Link>
@@ -174,7 +176,7 @@ const Navbar = () => {
             <NavigationMenu>
               <NavigationMenuList>
                 <NavigationMenuItem>
-                  <NavigationMenuTrigger className={cn("bg-transparent hover:bg-white/10", scrolled ? "text-foreground" : "text-slate-900 xl:text-white")}>Academics</NavigationMenuTrigger>
+                  <NavigationMenuTrigger className={cn("bg-transparent hover:bg-white/10", scrolled ? "text-foreground" : "text-white")}>Academics</NavigationMenuTrigger>
                   <NavigationMenuContent>
                     <ul className="grid w-[400px] gap-3 p-4 md:w-[500px] md:grid-cols-2 lg:w-[600px] bg-popover">
                       {academics.map((item) => (
@@ -197,7 +199,7 @@ const Navbar = () => {
                 </NavigationMenuItem>
 
                 <NavigationMenuItem>
-                  <NavigationMenuTrigger className={cn("bg-transparent hover:bg-white/10", scrolled ? "text-foreground" : "text-slate-900 xl:text-white")}>Research</NavigationMenuTrigger>
+                  <NavigationMenuTrigger className={cn("bg-transparent hover:bg-white/10", scrolled ? "text-foreground" : "text-white")}>Research</NavigationMenuTrigger>
                   <NavigationMenuContent>
                     <ul className="grid w-[400px] gap-3 p-4 md:w-[500px] md:grid-cols-2 bg-popover">
                       {research.map((item) => (
@@ -220,7 +222,7 @@ const Navbar = () => {
                 </NavigationMenuItem>
 
                 <NavigationMenuItem>
-                  <NavigationMenuTrigger className={cn("bg-transparent hover:bg-white/10", scrolled ? "text-foreground" : "text-slate-900 xl:text-white")}>Admissions</NavigationMenuTrigger>
+                  <NavigationMenuTrigger className={cn("bg-transparent hover:bg-white/10", scrolled ? "text-foreground" : "text-white")}>Admissions</NavigationMenuTrigger>
                   <NavigationMenuContent>
                     <ul className="grid w-[400px] gap-3 p-4 md:w-[500px] md:grid-cols-2 bg-popover">
                       {admissions.map((item) => (
@@ -243,7 +245,7 @@ const Navbar = () => {
                 </NavigationMenuItem>
 
                 <NavigationMenuItem>
-                  <NavigationMenuTrigger className={cn("bg-transparent hover:bg-white/10", scrolled ? "text-foreground" : "text-slate-900 xl:text-white")}>Campus Life</NavigationMenuTrigger>
+                  <NavigationMenuTrigger className={cn("bg-transparent hover:bg-white/10", scrolled ? "text-foreground" : "text-white")}>Campus Life</NavigationMenuTrigger>
                   <NavigationMenuContent>
                     <ul className="grid w-[400px] gap-3 p-4 md:w-[500px] md:grid-cols-2 lg:w-[600px] bg-popover">
                       {campus.map((item) => (

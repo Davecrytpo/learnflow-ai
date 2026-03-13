@@ -3,7 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Loader2, GraduationCap, ArrowLeft, Eye, EyeOff } from "lucide-react";
+import { Loader2, Eye, EyeOff, BookOpen, School, ArrowLeft } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { motion } from "framer-motion";
@@ -21,85 +21,82 @@ const InstructorLogin = () => {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-
+    
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
-
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) throw error;
 
       if (data.user) {
-        toast({ title: "Welcome back, Professor", description: "Accessing faculty dashboard..." });
-        navigate("/instructor/dashboard");
+        // Check if user has instructor role
+        const { data: roleData } = await supabase
+          .from("user_roles")
+          .select("role")
+          .eq("user_id", data.user.id)
+          .eq("role", "instructor")
+          .single();
+
+        if (roleData) {
+          navigate("/instructor");
+        } else {
+          // Check if admin (admins can access instructor portal too usually)
+          const { data: adminData } = await supabase
+            .from("user_roles")
+            .select("role")
+            .eq("user_id", data.user.id)
+            .eq("role", "admin")
+            .single();
+          
+          if (adminData) {
+            navigate("/instructor");
+          } else {
+            await supabase.auth.signOut();
+            throw new Error("Access Denied: Instructor privileges required.");
+          }
+        }
       }
     } catch (error: any) {
-      toast({ title: "Authentication Failed", description: error.message, variant: "destructive" });
+      toast({ title: "Portal Access Failed", description: error.message, variant: "destructive" });
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col font-sans">
+    <div className="min-h-screen bg-slate-900 flex flex-col font-sans">
       <Navbar />
       <main className="flex-1 flex items-center justify-center py-20 px-4">
-        <div className="flex w-full max-w-5xl bg-white rounded-[2.5rem] shadow-2xl overflow-hidden border border-slate-100">
-          
-          <div className="hidden lg:flex w-1/2 bg-indigo-900 p-12 flex-col justify-between text-white relative">
-            <div className="absolute inset-0 bg-[url('/images/research-lab.jpg')] bg-cover opacity-20" />
-            <div className="relative z-10">
-              <div className="flex items-center gap-3 mb-12">
-                <div className="h-10 w-10 rounded-xl bg-white/10 backdrop-blur-md flex items-center justify-center border border-white/20">
-                  <GraduationCap className="h-6 w-6 text-white" />
+        <motion.div 
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="w-full max-w-lg"
+        >
+          <div className="bg-white rounded-[2.5rem] shadow-2xl overflow-hidden border border-white/10">
+            <div className="p-8 md:p-12">
+              <div className="text-center mb-10">
+                <div className="h-16 w-16 bg-primary/10 rounded-2xl flex items-center justify-center mx-auto mb-6 text-primary">
+                  <School className="h-8 w-8" />
                 </div>
-                <span className="font-display text-xl font-bold tracking-tight">Faculty Portal</span>
+                <h1 className="text-3xl font-display font-bold text-slate-900">Faculty Portal</h1>
+                <p className="text-slate-500 mt-2">Authorized Personnel Access Only</p>
               </div>
-              
-              <h2 className="text-4xl font-display font-bold leading-tight mb-6">
-                Empower the <br />
-                <span className="text-indigo-300">Next Generation</span>
-              </h2>
-              <p className="text-indigo-100/70 text-lg leading-relaxed max-w-xs">
-                Manage your curriculum, track student excellence, and utilize AI-powered pedagogical tools.
-              </p>
-            </div>
-
-            <div className="relative z-10 p-6 bg-white/5 rounded-2xl border border-white/10 backdrop-blur-sm">
-               <p className="text-xs font-bold uppercase tracking-widest text-indigo-300 mb-2">Institutional Notice</p>
-               <p className="text-sm text-white/80 leading-relaxed italic">
-                 "Academic excellence is the cornerstone of our global community. Access restricted to verified faculty members."
-               </p>
-            </div>
-          </div>
-
-          <div className="w-full lg:w-1/2 p-8 md:p-16">
-            <motion.div
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              className="w-full max-w-sm mx-auto"
-            >
-              <h1 className="text-3xl font-display font-bold text-slate-900 mb-2">Faculty Login</h1>
-              <p className="text-slate-500 mb-10">Sign in to your institutional workspace.</p>
 
               <form onSubmit={handleLogin} className="space-y-6">
                 <div className="space-y-2">
-                  <Label htmlFor="email" className="font-bold ml-1">Institutional Email</Label>
+                  <Label htmlFor="email" className="font-bold ml-1 text-slate-700">Institutional Email</Label>
                   <Input 
                     id="email" 
                     type="email" 
-                    placeholder="professor@gui.edu"
+                    placeholder="professor@university.edu"
                     value={email} 
                     onChange={(e) => setEmail(e.target.value)} 
                     required 
-                    className="h-12 bg-slate-50 border-slate-100 rounded-xl focus:bg-white transition-all" 
+                    className="h-12 bg-slate-50 border-slate-200 rounded-xl focus:bg-white" 
                   />
                 </div>
                 
                 <div className="space-y-2">
                   <div className="flex items-center justify-between px-1">
-                    <Label htmlFor="password" title="Password" className="font-bold">Security Key</Label>
+                    <Label htmlFor="password" title="Password" className="font-bold text-slate-700">Security Key</Label>
                     <a href="#" className="text-xs text-primary font-bold hover:underline">Support</a>
                   </div>
                   <div className="relative">
@@ -110,7 +107,7 @@ const InstructorLogin = () => {
                       value={password} 
                       onChange={(e) => setPassword(e.target.value)} 
                       required 
-                      className="h-12 bg-slate-50 border-slate-100 rounded-xl pr-12 focus:bg-white transition-all" 
+                      className="h-12 bg-slate-50 border-slate-200 rounded-xl pr-12 focus:bg-white" 
                     />
                     <button 
                       type="button" 
@@ -124,21 +121,33 @@ const InstructorLogin = () => {
 
                 <Button 
                   type="submit" 
-                  className="h-14 w-full bg-slate-900 text-white font-bold text-lg rounded-2xl shadow-xl shadow-slate-200 hover:bg-slate-800 transition-all active:scale-95" 
+                  className="h-14 w-full bg-primary text-white font-bold text-lg rounded-2xl shadow-xl shadow-primary/20 hover:bg-primary/90 transition-all" 
                   disabled={loading}
                 >
-                  {loading ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : "Access Faculty Workspace"}
+                  {loading ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : "Authorize & Sign In"}
                 </Button>
               </form>
 
-              <div className="mt-10 text-center">
+              <div className="mt-10 pt-8 border-t border-slate-100 flex flex-col items-center gap-4">
                 <p className="text-sm text-slate-500">
-                  New faculty? <Link to="/instructor/signup" className="text-primary font-bold hover:underline">Apply for credentials</Link>
+                  New faculty? <Link to="/instructor/register" className="text-primary font-bold hover:underline">Apply for credentials</Link>
                 </p>
+                <button 
+                  onClick={() => navigate("/login")}
+                  className="flex items-center gap-2 text-xs font-bold text-slate-400 hover:text-slate-600 transition-colors"
+                >
+                  <ArrowLeft className="h-3 w-3" /> Back to Student Login
+                </button>
               </div>
-            </motion.div>
+            </div>
           </div>
-        </div>
+          
+          <div className="mt-8 text-center">
+             <p className="text-[10px] text-white/40 uppercase tracking-[0.3em] font-bold">
+               Protected by GUI Multi-Layer Security
+             </p>
+          </div>
+        </motion.div>
       </main>
       <Footer />
     </div>

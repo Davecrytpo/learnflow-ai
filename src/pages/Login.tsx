@@ -23,25 +23,6 @@ const Login = () => {
     setLoading(true);
     
     try {
-      // 1. System Administrator Bypass
-      if (email === "somedaynews739@gmail.com") {
-        const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-        if (error) {
-           if (error.message.includes("Invalid login credentials")) {
-              toast({ 
-                title: "System Admin Notice", 
-                description: "This admin account hasn't been created in Supabase yet. Please register with this email first.",
-                variant: "default" 
-              });
-              setLoading(false);
-              return;
-           }
-           throw error;
-        }
-        if (data.user) navigate("/dashboard");
-        return;
-      }
-
       const { data, error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) throw error;
 

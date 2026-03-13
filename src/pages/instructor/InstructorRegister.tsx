@@ -25,7 +25,7 @@ const departments = [
   "Law"
 ];
 
-const InstructorSignup = () => {
+const InstructorRegister = () => {
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -68,10 +68,10 @@ const InstructorSignup = () => {
         options: {
           data: { 
             full_name: `${formData.firstName} ${formData.lastName}`,
-            role: 'instructor',
+            // role: 'instructor', // Omitted: Role will be assigned by Admin after approval
             department: formData.department,
             specialization: formData.specialization,
-            is_faculty_applicant: true
+            is_faculty_applicant: true // Flag for admin filtering
           },
           emailRedirectTo: window.location.origin,
         },
@@ -80,22 +80,15 @@ const InstructorSignup = () => {
       if (authError) throw authError;
 
       if (authData.user) {
-        // Create profile role entry explicitly
-        await supabase.from("user_roles").insert({
-          user_id: authData.user.id,
-          role: 'instructor'
-        });
-
         await supabase.from("profiles").update({
-          display_name: `${formData.firstName} ${formData.lastName}`,
           bio: formData.bio
         }).eq("user_id", authData.user.id);
 
         toast({ 
-          title: "Instructor Account Created", 
-          description: "Welcome to the faculty. You may now access the instructor dashboard." 
+          title: "Application Received", 
+          description: "Your faculty application is being reviewed by the Academic Board. You will be notified via email upon approval." 
         });
-        navigate("/instructor/dashboard");
+        navigate("/");
       }
     } catch (error: any) {
       toast({ title: "Registration failed", description: error.message, variant: "destructive" });
@@ -167,7 +160,7 @@ const InstructorSignup = () => {
                 <div className="h-14 w-14 bg-primary/10 rounded-xl flex items-center justify-center mx-auto mb-4 text-primary">
                   <BookOpen className="h-7 w-7" />
                 </div>
-                <h2 className="text-2xl font-bold text-slate-900">Faculty Registration</h2>
+                <h2 className="text-2xl font-bold text-slate-900">Faculty Application</h2>
                 <p className="text-slate-500">Create your instructor profile</p>
               </div>
 
@@ -269,12 +262,12 @@ const InstructorSignup = () => {
 
                 <Button type="submit" className="w-full h-12 text-lg font-bold bg-primary hover:bg-primary/90" disabled={loading}>
                   {loading && <Loader2 className="mr-2 h-5 w-5 animate-spin" />}
-                  Register Faculty Profile
+                  Submit Application
                 </Button>
               </form>
               
               <div className="mt-6 text-center text-sm text-slate-500">
-                Already a faculty member? <Link to="/instructor/login" className="text-primary font-bold hover:underline">Log in here</Link>
+                Already a faculty member? <Link to="/login?role=instructor" className="text-primary font-bold hover:underline">Log in here</Link>
               </div>
             </div>
           </motion.div>
@@ -285,4 +278,4 @@ const InstructorSignup = () => {
   );
 };
 
-export default InstructorSignup;
+export default InstructorRegister;

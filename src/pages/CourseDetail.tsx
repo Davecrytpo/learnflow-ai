@@ -357,8 +357,9 @@ const CourseDetail = () => {
                    Our admissions team is available 24/7 to support your learning journey.
                  </p>
                  <Button variant="outline" className="w-full border-indigo-200 text-indigo-700 hover:bg-indigo-100 font-bold rounded-xl" asChild>
-                   <Link to="/admissions/contact">Contact Admissions</Link>
-                 </Button>              </Card>
+                   <Link to="/contact">Contact Admissions</Link>
+                 </Button>
+              </Card>
             </div>
           </aside>
         </div>

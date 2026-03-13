@@ -17,17 +17,6 @@ const AdminLogin = () => {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    // STRICT EMAIL ENFORCEMENT
-    if (email !== "somedaynews739@gmail.com") {
-      toast({ 
-        title: "Access Denied", 
-        description: "This portal is restricted to the primary administrator.", 
-        variant: "destructive" 
-      });
-      return;
-    }
-
     setLoading(true);
 
     try {
@@ -36,22 +25,24 @@ const AdminLogin = () => {
         password,
       });
 
-      if (error) {
-        if (error.message.includes("Invalid login credentials")) {
-           toast({
-             title: "Account Required",
-             description: "Primary admin account not found. Please register via /admin/signup first.",
-             variant: "default"
-           });
-           setLoading(false);
-           return;
-        }
-        throw error;
-      }
+      if (error) throw error;
 
       if (data.user) {
-        toast({ title: "Authorized", description: "Welcome to the institutional command center." });
-        navigate("/admin/dashboard");
+        // Check if user is actually an admin
+        const { data: roleData } = await supabase
+          .from("user_roles")
+          .select("role")
+          .eq("user_id", data.user.id)
+          .eq("role", "admin")
+          .single();
+
+        if (roleData) {
+          toast({ title: "Authorized", description: "Welcome to the institutional command center." });
+          navigate("/admin/dashboard");
+        } else {
+          await supabase.auth.signOut();
+          throw new Error("Access Denied: Administrative privileges required.");
+        }
       }
     } catch (error: any) {
       toast({ title: "Login Failed", description: error.message, variant: "destructive" });
