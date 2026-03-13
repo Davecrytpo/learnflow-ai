@@ -26,7 +26,7 @@ const Dashboard = () => {
     console.log("Redirecting based on role:", role);
     if (role === "student") navigate("/dashboard/student", { replace: true });
     else if (role === "instructor") navigate("/instructor", { replace: true });
-    else if (role === "admin") navigate("/admin", { replace: true });
+    else if (role === "admin") navigate("/admin/dashboard", { replace: true });
     else {
       console.warn("Unknown role, defaulting to onboarding:", role);
       navigate("/onboarding", { replace: true });

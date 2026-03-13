@@ -45,10 +45,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (data?.role) {
         setRole(data.role as AppRole);
       } else {
-        // 3. Fallback: If no role in DB, check metadata or default to student
-        const { data: { user: freshUser } } = await supabase.auth.getUser();
-        const metaRole = freshUser?.user_metadata?.role;
-        setRole((metaRole as AppRole) || "student");
+        // 3. Fallback: no role in DB, default to null (will trigger onboarding)
+        setRole(null);
       }
     } catch (err) {
       console.error("Auth: Role fetch failed, defaulting to student.", err);
