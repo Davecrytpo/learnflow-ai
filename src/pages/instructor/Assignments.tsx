@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import api from "@/lib/api";
 import { useAuth } from "@/hooks/useAuth";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import InstructorSidebar from "@/components/dashboard/InstructorSidebar";
@@ -30,20 +30,14 @@ const InstructorAssignments = () => {
     if (!user) return;
     setLoading(true);
     try {
-      const { data: myCourses } = await supabase.from("courses").select("id, title").eq("author_id", user.id);
+      const { data: myCourses } = await api.get("/instructor/courses");
       setCourses(myCourses || []);
 
-      if (myCourses && myCourses.length > 0) {
-        const cIds = myCourses.map(c => c.id);
-        const { data: asgns, error } = await supabase
-          .from("assignments")
-          .select("*, courses:course_id(title)")
-          .in("course_id", cIds)
-          .order("created_at", { ascending: false });
-        
-        if (error) throw error;
-        setAssignments(asgns || []);
-      }
+      const { data: asgns } = await api.get("/assignments");
+      // Filter for assignments belonging to my courses
+      const myCourseIds = (myCourses || []).map((c: any) => c._id);
+      const filteredAsgns = (asgns || []).filter((a: any) => myCourseIds.includes(a.course_id));
+      setAssignments(filteredAsgns);
     } catch (err: any) {
       toast({ title: "Load failed", description: err.message, variant: "destructive" });
     } finally {
@@ -60,19 +54,18 @@ const InstructorAssignments = () => {
     if (!newAsgn.title || !newAsgn.course_id) return;
     setSaving(true);
     try {
-      const { error } = await supabase.from("assignments").insert({
+      await api.post("/assignments", {
         title: newAsgn.title,
         course_id: newAsgn.course_id,
         due_date: newAsgn.due_date || null,
         max_score: parseInt(newAsgn.max_score)
       });
-      if (error) throw error;
       toast({ title: "Assignment created" });
       setOpen(false);
       setNewAsgn({ title: "", course_id: "", due_date: "", max_score: "100" });
       fetchData();
     } catch (err: any) {
-      toast({ title: "Creation failed", description: err.message, variant: "destructive" });
+      toast({ title: "Creation failed", description: err.response?.data?.error || err.message, variant: "destructive" });
     } finally {
       setSaving(false);
     }
@@ -80,14 +73,17 @@ const InstructorAssignments = () => {
 
   const deleteAssignment = async (id: string) => {
     if (!confirm("Delete this assignment?")) return;
-    const { error } = await supabase.from("assignments").delete().eq("id", id);
-    if (error) toast({ title: "Error", description: error.message, variant: "destructive" });
-    else { toast({ title: "Assignment deleted" }); fetchData(); }
+    try {
+      await api.delete(`/assignments/${id}`);
+      toast({ title: "Assignment deleted" });
+      fetchData();
+    } catch (err: any) {
+      toast({ title: "Error", description: err.message, variant: "destructive" });
+    }
   };
 
   const filtered = assignments.filter(a => 
-    a.title.toLowerCase().includes(search.toLowerCase()) || 
-    a.courses?.title?.toLowerCase().includes(search.toLowerCase())
+    a.title.toLowerCase().includes(search.toLowerCase())
   );
 
   return (
@@ -117,7 +113,7 @@ const InstructorAssignments = () => {
                     <Select value={newAsgn.course_id} onValueChange={(v) => setNewAsgn({...newAsgn, course_id: v})}>
                       <SelectTrigger><SelectValue placeholder="Select course" /></SelectTrigger>
                       <SelectContent>
-                        {courses.map(c => <SelectItem key={c.id} value={c.id}>{c.title}</SelectItem>)}
+                        {courses.map(c => <SelectItem key={c._id} value={c._id}>{c.title}</SelectItem>)}
                       </SelectContent>
                     </Select>
                   </div>
@@ -183,9 +179,11 @@ const InstructorAssignments = () => {
                   </thead>
                   <tbody className="divide-y divide-border/60">
                     {filtered.map(a => (
-                      <tr key={a.id} className="hover:bg-accent/5 transition-colors">
+                      <tr key={a._id} className="hover:bg-accent/5 transition-colors">
                         <td className="p-4 font-medium text-foreground">{a.title}</td>
-                        <td className="p-4 hidden md:table-cell text-muted-foreground">{a.courses?.title}</td>
+                        <td className="p-4 hidden md:table-cell text-muted-foreground">
+                          {courses.find(c => c._id === a.course_id)?.title || "Course"}
+                        </td>
                         <td className="p-4">
                           <span className="flex items-center gap-2 text-muted-foreground">
                             <Calendar className="h-3.5 w-3.5" />
@@ -197,7 +195,7 @@ const InstructorAssignments = () => {
                             <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-primary/10">
                               <Edit className="h-4 w-4" />
                             </Button>
-                            <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:bg-destructive/10" onClick={() => deleteAssignment(a.id)}>
+                            <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:bg-destructive/10" onClick={() => deleteAssignment(a._id)}>
                               <Trash2 className="h-4 w-4" />
                             </Button>
                           </div>

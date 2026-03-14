@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
+import api from "@/lib/api";
 import { useAuth } from "@/hooks/useAuth";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import InstructorSidebar from "@/components/dashboard/InstructorSidebar";
@@ -11,8 +11,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { 
   Plus, Trash2, GripVertical, FileText, 
-  Video, FileStack, Sparkles, Loader2, 
-  ChevronRight, Save, Layout, Youtube, Upload, Pencil
+  Video, Sparkles, Loader2, Save, Layout, Youtube, Upload, Pencil
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
@@ -20,7 +19,7 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { generateCurriculumOutline, generateLessonContent } from "@/lib/anthropic";
 import RichTextEditor from "@/components/ui/rich-text-editor";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 
 const EditCourse = () => {
   const { courseId } = useParams();
@@ -34,7 +33,6 @@ const EditCourse = () => {
   const [saving, setSaving] = useState(false);
   const [aiLoading, setAiLoading] = useState(false);
 
-  // Lesson Edit State
   const [editingLesson, setEditingLesson] = useState<any>(null);
   const [isLessonModalOpen, setIsLessonModalOpen] = useState(false);
 
@@ -42,15 +40,9 @@ const EditCourse = () => {
     if (!courseId) return;
     setLoading(true);
     try {
-      const { data: courseData } = await supabase.from("courses").select("*").eq("id", courseId).single();
-      const { data: sectionData } = await supabase
-        .from("modules")
-        .select("*, lessons(*)")
-        .eq("course_id", courseId)
-        .order("order", { ascending: true });
-      
-      setCourse(courseData);
-      setSections(sectionData || []);
+      const { data } = await api.get(`/courses/${courseId}`);
+      setCourse(data);
+      setSections(data.modules || []);
     } catch (err: any) {
       toast({ title: "Error", description: err.message, variant: "destructive" });
     } finally {
@@ -63,55 +55,66 @@ const EditCourse = () => {
   }, [courseId]);
 
   const addSection = async () => {
-    const { data, error } = await supabase.from("modules").insert({
-      course_id: courseId!,
-      title: "New Section",
-      order: sections.length
-    }).select().single();
-    
-    if (error) toast({ title: "Error", variant: "destructive" });
-    else fetchCourseData();
+    try {
+      await api.post("/modules", {
+        course_id: courseId!,
+        title: "New Section",
+        order: sections.length
+      });
+      fetchCourseData();
+    } catch (err: any) {
+      toast({ title: "Error", description: err.message, variant: "destructive" });
+    }
   };
 
   const addLesson = async (sectionId: string) => {
-    const { data, error } = await supabase.from("lessons").insert({
-      module_id: sectionId,
-      course_id: courseId!,
-      title: "New Lesson",
-      order: 0
-    }).select().single();
-    
-    if (error) toast({ title: "Error", variant: "destructive" });
-    else {
+    try {
+      const { data } = await api.post("/lessons", {
+        module_id: sectionId,
+        course_id: courseId!,
+        title: "New Lesson",
+        order: 0
+      });
       setEditingLesson(data);
       setIsLessonModalOpen(true);
       fetchCourseData();
+    } catch (err: any) {
+      toast({ title: "Error", description: err.message, variant: "destructive" });
     }
   };
 
   const deleteLesson = async (lessonId: string) => {
-    const { error } = await supabase.from("lessons").delete().eq("id", lessonId);
-    if (error) toast({ title: "Error", variant: "destructive" });
-    else fetchCourseData();
+    try {
+      await api.delete(`/lessons/${lessonId}`);
+      fetchCourseData();
+    } catch (err: any) {
+      toast({ title: "Error", description: err.message, variant: "destructive" });
+    }
   };
 
   const deleteSection = async (sectionId: string) => {
-    const { error } = await supabase.from("modules").delete().eq("id", sectionId);
-    if (error) toast({ title: "Error", variant: "destructive" });
-    else fetchCourseData();
+    try {
+      await api.delete(`/modules/${sectionId}`);
+      fetchCourseData();
+    } catch (err: any) {
+      toast({ title: "Error", description: err.message, variant: "destructive" });
+    }
   };
 
   const updateCourse = async () => {
     setSaving(true);
-    const { error } = await supabase.from("courses").update({
-      title: course.title,
-      description: course.description,
-      summary: course.summary
-    }).eq("id", courseId);
-    
-    setSaving(false);
-    if (error) toast({ title: "Update failed", variant: "destructive" });
-    else toast({ title: "Changes saved" });
+    try {
+      await api.patch(`/courses/${courseId}`, {
+        title: course.title,
+        description: course.description,
+        summary: course.summary
+      });
+      toast({ title: "Changes saved" });
+    } catch (err: any) {
+      toast({ title: "Update failed", description: err.message, variant: "destructive" });
+    } finally {
+      setSaving(false);
+    }
   };
 
   const handleGenerateOutline = async () => {
@@ -120,23 +123,24 @@ const EditCourse = () => {
     try {
       const outline = await generateCurriculumOutline(course.title);
       for (const [sIdx, mod] of outline.modules.entries()) {
-        const { data: section } = await supabase.from("modules").insert({
+        const { data: section } = await api.post("/modules", {
           course_id: courseId!,
           title: mod.title,
           order: sections.length + sIdx
-        }).select().single();
+        });
 
         if (section) {
-          const lessonInserts = mod.lessons.map((l: any, lIdx: number) => ({
-            module_id: section.id,
-            course_id: courseId!,
-            title: l.title,
-            order: lIdx
-          }));
-          await supabase.from("lessons").insert(lessonInserts);
+          for (const [lIdx, l] of mod.lessons.entries()) {
+            await api.post("/lessons", {
+              module_id: section._id,
+              course_id: courseId!,
+              title: l.title,
+              order: lIdx
+            });
+          }
         }
       }
-      toast({ title: "Curriculum Generated", description: "AI has structured your course modules." });
+      toast({ title: "Curriculum Generated" });
       fetchCourseData();
     } catch (err: any) {
       toast({ title: "AI Error", description: err.message, variant: "destructive" });
@@ -161,17 +165,17 @@ const EditCourse = () => {
 
   const saveLesson = async () => {
     if (!editingLesson) return;
-    const { error } = await supabase.from("lessons").update({
-      title: editingLesson.title,
-      content: editingLesson.content,
-      video_url: editingLesson.video_url,
-    }).eq("id", editingLesson.id);
-
-    if (error) toast({ title: "Save Error", variant: "destructive" });
-    else {
+    try {
+      await api.patch(`/lessons/${editingLesson._id}`, {
+        title: editingLesson.title,
+        content: editingLesson.content,
+        video_url: editingLesson.video_url,
+      });
       toast({ title: "Lesson Saved" });
       setIsLessonModalOpen(false);
       fetchCourseData();
+    } catch (err: any) {
+      toast({ title: "Save Error", description: err.message, variant: "destructive" });
     }
   };
 

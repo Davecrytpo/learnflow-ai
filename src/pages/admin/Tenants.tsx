@@ -142,7 +142,7 @@ const AdminTenants = () => {
                         </div>
                         <div>
                           <p className="font-semibold text-sm">{t.name}</p>
-                          <p className="text-xs text-muted-foreground font-mono">{t.slug}.learnflow.ai</p>
+                          <p className="text-xs text-muted-foreground font-mono">{t.slug}.globaluniversityinstitute.com</p>
                         </div>
                       </div>
                       <div className="flex items-center gap-4">

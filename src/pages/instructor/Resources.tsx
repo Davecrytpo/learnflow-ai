@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import api from "@/lib/api";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import InstructorSidebar from "@/components/dashboard/InstructorSidebar";
 import { useAuth } from "@/hooks/useAuth";
@@ -25,10 +25,16 @@ const InstructorResources = () => {
   useEffect(() => {
     if (!user) return;
     const fetch = async () => {
-      const { data } = await supabase.from("courses").select("id, title").eq("author_id", user.id).order("created_at", { ascending: false });
-      setCourses(data || []);
-      if (data && data.length > 0) setSelectedCourse(data[0].id);
-      setLoading(false);
+      setLoading(true);
+      try {
+        const response = await api.get("/instructor/courses");
+        setCourses(response.data || []);
+        if (response.data && response.data.length > 0) setSelectedCourse(response.data[0]._id);
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
     };
     fetch();
   }, [user]);
@@ -36,8 +42,12 @@ const InstructorResources = () => {
   useEffect(() => {
     if (!selectedCourse) return;
     const fetch = async () => {
-      const { data } = await (supabase.from as any)("course_resources").select("*").eq("course_id", selectedCourse).order("created_at", { ascending: false });
-      setResources(data || []);
+      try {
+        const response = await api.get("/resources", { params: { course_id: selectedCourse } });
+        setResources(response.data || []);
+      } catch (err) {
+        console.error(err);
+      }
     };
     fetch();
   }, [selectedCourse]);
@@ -45,16 +55,22 @@ const InstructorResources = () => {
   const addResource = async () => {
     if (!selectedCourse || !title || !url) return;
     setSaving(true);
-    const { data, error } = await (supabase.from as any)("course_resources").insert({ course_id: selectedCourse, title, url, type }).select().single();
-    setSaving(false);
-    if (error) {
-      toast({ title: "Error", description: error.message, variant: "destructive" });
-      return;
+    try {
+      const response = await api.post("/resources", {
+        course_id: selectedCourse,
+        title,
+        url,
+        type
+      });
+      setResources([response.data, ...resources]);
+      setTitle("");
+      setUrl("");
+      toast({ title: "Resource added" });
+    } catch (error: any) {
+      toast({ title: "Error", description: error.response?.data?.error || "Failed to add resource", variant: "destructive" });
+    } finally {
+      setSaving(false);
     }
-    setResources([data, ...resources]);
-    setTitle("");
-    setUrl("");
-    toast({ title: "Resource added" });
   };
 
   return (
@@ -83,7 +99,7 @@ const InstructorResources = () => {
                 <Select value={selectedCourse} onValueChange={setSelectedCourse}>
                   <SelectTrigger><SelectValue placeholder="Select course" /></SelectTrigger>
                   <SelectContent>
-                    {courses.map(c => <SelectItem key={c.id} value={c.id}>{c.title}</SelectItem>)}
+                    {courses.map(c => <SelectItem key={c._id} value={c._id}>{c.title}</SelectItem>)}
                   </SelectContent>
                 </Select>
                 <Input placeholder="Title" value={title} onChange={(e) => setTitle(e.target.value)} />
@@ -110,7 +126,7 @@ const InstructorResources = () => {
             <Card className="p-6 text-center text-sm text-muted-foreground">No resources yet.</Card>
           ) : (
             resources.map(r => (
-              <Card key={r.id}>
+              <Card key={r._id}>
                 <CardContent className="p-5">
                   <p className="text-xs text-muted-foreground">{r.type}</p>
                   <p className="font-medium text-foreground">{r.title}</p>

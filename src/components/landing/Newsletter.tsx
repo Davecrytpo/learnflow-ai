@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { supabase } from "@/integrations/supabase/client";
+import api from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, Mail, Newspaper } from "lucide-react";
 import { motion } from "framer-motion";
@@ -14,18 +14,12 @@ const Newsletter = () => {
   const handleSubscribe = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    // Use a try-catch for better resilience
     try {
-      const { error } = await (supabase.from as any)("newsletter_subs").insert({ email });
-      if (error) throw error;
+      await api.post("/newsletter/subscribe", { email });
       toast({ title: "Subscription Confirmed", description: "You have successfully joined the GUI Institutional Gazette." });
       setEmail("");
     } catch (error: any) {
-      if (error.code === "23505") {
-        toast({ title: "Already Registered", description: "This institutional email is already on our distribution list." });
-      } else {
-        toast({ title: "Subscription Error", description: error.message, variant: "destructive" });
-      }
+      toast({ title: "Subscription Error", description: error.response?.data?.error || "Failed to subscribe.", variant: "destructive" });
     } finally {
       setLoading(false);
     }

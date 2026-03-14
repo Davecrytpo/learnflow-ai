@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import api from "@/lib/api";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import StudentSidebar from "@/components/dashboard/StudentSidebar";
 import { useAuth } from "@/hooks/useAuth";
@@ -14,13 +14,15 @@ const StudentCertificates = () => {
   useEffect(() => {
     if (!user) return;
     const fetch = async () => {
-      const { data } = await supabase
-        .from("certificates")
-        .select("*, courses(title)")
-        .eq("user_id", user.id)
-        .order("issued_at", { ascending: false });
-      setCerts(data || []);
-      setLoading(false);
+      setLoading(true);
+      try {
+        const { data } = await api.get("/certificates/me");
+        setCerts(data || []);
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
     };
     fetch();
   }, [user]);
@@ -51,8 +53,8 @@ const StudentCertificates = () => {
             ) : (
               <div className="space-y-2">
                 {certs.map(c => (
-                  <div key={c.id} className="rounded-xl border border-border p-3 text-sm">
-                    <p className="font-medium text-foreground">{c.courses?.title}</p>
+                  <div key={c._id} className="rounded-xl border border-border p-3 text-sm">
+                    <p className="font-medium text-foreground">{c.course_id?.title}</p>
                     <p className="text-xs text-muted-foreground">Issued {new Date(c.issued_at).toLocaleDateString()}</p>
                   </div>
                 ))}

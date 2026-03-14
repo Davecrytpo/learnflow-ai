@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import api from "@/lib/api";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import StudentSidebar from "@/components/dashboard/StudentSidebar";
 import { useAuth } from "@/hooks/useAuth";
@@ -14,13 +14,15 @@ const StudentNotifications = () => {
   useEffect(() => {
     if (!user) return;
     const fetch = async () => {
-      const { data } = await supabase
-        .from("notifications")
-        .select("*")
-        .eq("user_id", user.id)
-        .order("created_at", { ascending: false });
-      setNotifications(data || []);
-      setLoading(false);
+      setLoading(true);
+      try {
+        const { data } = await api.get("/notifications/me");
+        setNotifications(data || []);
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
     };
     fetch();
   }, [user]);
@@ -51,7 +53,7 @@ const StudentNotifications = () => {
             ) : (
               <div className="space-y-2">
                 {notifications.map(n => (
-                  <div key={n.id} className="rounded-xl border border-border p-3 text-sm">
+                  <div key={n._id} className="rounded-xl border border-border p-3 text-sm">
                     <p className="font-medium text-foreground">{n.title}</p>
                     <p className="text-xs text-muted-foreground">{n.message}</p>
                   </div>

@@ -8,7 +8,7 @@ const testimonials = [
     org: "MIT",
     initials: "SC",
     color: "from-primary to-emerald-400",
-    quote: "Learnflow AI changed how I structure graduate coursework. The content tools, assessments, and grading workflows are fast and reliable.",
+    quote: "Global University Institute changed how I structure graduate coursework. The content tools, assessments, and grading workflows are fast and reliable.",
     rating: 5,
   },
   {
@@ -26,7 +26,7 @@ const testimonials = [
     org: "Dallas ISD, Texas",
     initials: "ER",
     color: "from-emerald-500 to-teal-400",
-    quote: "We deployed Learnflow AI across 47 schools in under two weeks. The analytics and assessment flexibility replaced a six-figure legacy LMS.",
+    quote: "We deployed Global University Institute across 47 schools in under two weeks. The analytics and assessment flexibility replaced a six-figure legacy LMS.",
     rating: 5,
   },
   {
@@ -56,7 +56,7 @@ const Testimonials = () => (
           Trusted by educators at every level
         </h2>
         <p className="mt-5 text-lg text-muted-foreground">
-          From individual teachers to entire school districts, Learnflow AI delivers.
+          From individual teachers to entire school districts, Global University Institute delivers.
         </p>
       </motion.div>
 

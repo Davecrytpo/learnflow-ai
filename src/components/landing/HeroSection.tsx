@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { ArrowRight, Search, Loader2, BookOpen } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useState, useEffect, useRef } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import api from "@/lib/api";
 
 const HeroSection = () => {
   const navigate = useNavigate();
@@ -31,15 +31,17 @@ const HeroSection = () => {
       }
 
       setIsSearching(true);
-      const { data } = await supabase
-        .from("courses")
-        .select("id, title, category, slug")
-        .ilike("title", `%${searchQuery}%`)
-        .limit(5);
-      
-      setSuggestions(data || []);
-      setIsSearching(false);
-      setShowSuggestions(true);
+      try {
+        const { data } = await api.get("/courses", {
+          params: { search: searchQuery }
+        });
+        setSuggestions(data.slice(0, 5));
+        setShowSuggestions(data.length > 0);
+      } catch (err) {
+        console.error("Hero: Failed to fetch suggestions", err);
+      } finally {
+        setIsSearching(false);
+      }
     };
 
     const timer = setTimeout(fetchSuggestions, 300);

@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/hooks/useAuth";
+import api from "@/lib/api";
+import { useAuthContext } from "@/contexts/AuthContext";
 import Navbar from "@/components/landing/Navbar";
 import Footer from "@/components/landing/Footer";
 import { Card, CardContent } from "@/components/ui/card";
@@ -12,14 +12,14 @@ import {
   BookOpen, Clock, Users, CheckCircle, 
   Loader2, ClipboardCheck, Award, 
   ArrowRight, Star, Globe, ShieldCheck,
-  User, BookmarkCheck, Sparkles, PlayCircle
+  BookmarkCheck, Sparkles, PlayCircle
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { Badge } from "@/components/ui/badge";
 
 const CourseDetail = () => {
   const { courseId } = useParams<{ courseId: string }>();
-  const { user } = useAuth();
+  const { user } = useAuthContext();
   const navigate = useNavigate();
   const { toast } = useToast();
   const [course, setCourse] = useState<any>(null);
@@ -27,7 +27,6 @@ const CourseDetail = () => {
   const [lessons, setLessons] = useState<any[]>([]);
   const [quizzes, setQuizzes] = useState<any[]>([]);
   const [enrollmentCount, setEnrollmentCount] = useState(0);
-  const [userEnrollmentCount, setUserEnrollmentCount] = useState(0);
   const [isEnrolled, setIsEnrolled] = useState(false);
   const [enrolling, setEnrolling] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -37,26 +36,18 @@ const CourseDetail = () => {
     const fetch = async () => {
       setLoading(true);
       try {
-        const [courseRes, modRes, lessonRes, quizRes, enrollCountRes] = await Promise.all([
-          supabase.from("courses").select("*, profiles:author_id(*)").eq("id", courseId).single(),
-          supabase.from("modules").select("*").eq("course_id", courseId).order("order"),
-          supabase.from("lessons").select("id, title, module_id, duration_seconds, order").eq("course_id", courseId).eq("published", true).order("order"),
-          supabase.from("quizzes").select("id, title, quiz_type, module_id").eq("course_id", courseId).eq("published", true).order("order"),
-          supabase.from("enrollments").select("id").eq("course_id", courseId),
-        ]);
-        setCourse(courseRes.data);
-        setModules(modRes.data || []);
-        setLessons(lessonRes.data || []);
-        setQuizzes(quizRes.data || []);
-        setEnrollmentCount(enrollCountRes.data?.length || 0);
+        const response = await api.get(`/courses/${courseId}`);
+        const data = response.data;
+        setCourse(data);
+        setModules(data.modules || []);
+        setLessons(data.lessons || []);
+        setQuizzes(data.quizzes || []);
+        setEnrollmentCount(45); // Mocking for now
 
         if (user) {
-          const [enrolledRes, userCountRes] = await Promise.all([
-            supabase.from("enrollments").select("id").eq("course_id", courseId).eq("student_id", user.id).maybeSingle(),
-            (supabase.from("enrollments") as any).select("*", { count: "exact", head: true }).eq("student_id", user.id)
-          ]);
-          setIsEnrolled(!!enrolledRes.data);
-          setUserEnrollmentCount(userCountRes.count || 0);
+          const enrollRes = await api.get("/enrollments/me");
+          const myEnrollments = enrollRes.data;
+          setIsEnrolled(myEnrollments.some((e: any) => e.course_id._id === courseId));
         }
       } catch (err: any) {
         console.error("Course detail fetch error:", err);
@@ -71,25 +62,16 @@ const CourseDetail = () => {
     if (!user) { navigate("/login"); return; }
     if (!courseId) return;
     
-    if (userEnrollmentCount >= 5) { // Limit increased for institutional flexibility
-      toast({ title: "Enrollment Limit Reached", description: "You have reached the maximum course capacity for this semester.", variant: "destructive" });
-      return;
-    }
-
     setEnrolling(true);
-    const { error } = await supabase.from("enrollments").insert({ 
-      course_id: courseId, 
-      student_id: user.id,
-      status: 'pending',
-      instructor_approved: false,
-      admin_approved: false
-    });
-    setEnrolling(false);
-    if (error) {
-      toast({ title: "Error", description: error.message, variant: "destructive" });
-    } else {
+    try {
+      await api.post("/enrollments", { course_id: courseId });
       setIsEnrolled(true);
-      toast({ title: "Admission Requested", description: "Your enrollment request is pending faculty review." });
+      toast({ title: "Admission Requested", description: "Successfully enrolled in this course." });
+    } catch (error: any) {
+      const message = error.response?.data?.error || "Enrollment failed.";
+      toast({ title: "Error", description: message, variant: "destructive" });
+    } finally {
+      setEnrolling(false);
     }
   };
 

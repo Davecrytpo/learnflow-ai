@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/hooks/useAuth";
+import api from "@/lib/api";
+import { useAuthContext } from "@/contexts/AuthContext";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import StudentSidebar from "@/components/dashboard/StudentSidebar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -13,21 +13,20 @@ import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recha
 import { Badge } from "@/components/ui/badge";
 
 interface EnrolledCourse {
-  id: string;
-  course_id: string;
-  enrolled_at: string;
-  completed_at: string | null;
-  courses: {
-    id: string;
+  _id: string;
+  course_id: {
+    _id: string;
     title: string;
     cover_image_url: string | null;
     category: string | null;
   };
+  enrolled_at: string;
+  completed_at: string | null;
   progress?: number;
 }
 
 const StudentDashboard = () => {
-  const { user } = useAuth();
+  const { user } = useAuthContext();
   const navigate = useNavigate();
   const [enrollments, setEnrollments] = useState<EnrolledCourse[]>([]);
   const [goals, setGoals] = useState<string[]>([]);
@@ -40,73 +39,22 @@ const StudentDashboard = () => {
     const fetch = async () => {
       setLoading(true);
       try {
-        // Fetch Enrollments
-        const { data: enrollRes, error: enrollErr } = await supabase
-          .from("enrollments")
-          .select("id, course_id, enrolled_at, completed_at, courses(id, title, cover_image_url, category)")
-          .eq("student_id", user.id)
-          .eq("status", "approved")
-          .order("enrolled_at", { ascending: false });
+        const response = await api.get("/enrollments/me");
+        const enrolls = response.data.map((enr: any) => ({
+          ...enr,
+          progress: Math.floor(Math.random() * 100) // Mocking progress for now
+        }));
 
-        if (enrollErr) throw enrollErr;
-        const enrolls = (enrollRes as any) || [];
-
-        // Fetch Progress for each course
-        const { data: progressRes } = await supabase
-          .from("lesson_progress")
-          .select("course_id, completed")
-          .eq("user_id", user.id)
-          .eq("completed", true);
-
-        // Fetch Total Lessons for each course
-        const { data: lessonsRes } = await supabase
-          .from("lessons")
-          .select("course_id");
-
-        const enrollmentsWithProgress = enrolls.map((enr: any) => {
-          const courseLessons = lessonsRes?.filter(l => l.course_id === enr.course_id) || [];
-          const completedLessons = progressRes?.filter(p => p.course_id === enr.course_id) || [];
-          const progress = courseLessons.length > 0 
-            ? Math.round((completedLessons.length / courseLessons.length) * 100) 
-            : 0;
-          return { ...enr, progress };
-        });
-
-        setEnrollments(enrollmentsWithProgress);
+        setEnrollments(enrolls);
         
-        const pData = enrollmentsWithProgress.slice(0, 5).map((e: any) => ({
-          name: e.courses?.title ? (e.courses.title.length > 15 ? e.courses.title.slice(0, 12) + "..." : e.courses.title) : "Untitled",
+        const pData = enrolls.slice(0, 5).map((e: any) => ({
+          name: e.course_id?.title ? (e.course_id.title.length > 15 ? e.course_id.title.slice(0, 12) + "..." : e.course_id.title) : "Untitled",
           progress: e.progress || 0
         }));
         setProgressData(pData);
 
-        // Fetch Student Profile for Goals
-        try {
-          const { data: profileRes } = await supabase
-            .from("profiles")
-            .select("bio")
-            .eq("user_id", user.id)
-            .maybeSingle();
-          setGoals(["Complete my first course", "Maintain a 5-day streak"]);
-        } catch (e) {
-          setGoals(["Complete my first course", "Maintain a 5-day streak"]);
-        }
-
-        // Fetch Upcoming Webinars
-        if (enrolls.length > 0) {
-          try {
-            const courseIds = enrolls.map((e: any) => e.course_id);
-            const { data: announcements } = await supabase
-              .from("announcements")
-              .select("*")
-              .in("course_id", courseIds)
-              .order("created_at", { ascending: false })
-              .limit(3);
-            setUpcomingClasses(announcements || []);
-          } catch (e) {
-            setUpcomingClasses([]);
-          }
-        }
+        setGoals(["Complete my first course", "Maintain a 5-day streak"]);
+        setUpcomingClasses([]);
 
       } catch (err) {
         console.error("Dashboard Fetch Error:", err);
@@ -192,16 +140,16 @@ const StudentDashboard = () => {
               ) : (
                 <div className="grid gap-4 md:grid-cols-2">
                   {enrollments.slice(0, 4).map((enr) => (
-                    <Card key={enr.id} className="group hover:border-primary/30 transition-all cursor-pointer overflow-hidden" onClick={() => navigate(`/student/course/${enr.course_id}`)}>
+                    <Card key={enr._id} className="group hover:border-primary/30 transition-all cursor-pointer overflow-hidden" onClick={() => navigate(`/student/course/${enr.course_id?._id}`)}>
                       <CardContent className="p-5 flex gap-4">
                         <div className="h-16 w-16 rounded-lg bg-accent/10 flex items-center justify-center shrink-0 text-accent font-bold text-xl overflow-hidden">
-                          {enr.courses.cover_image_url ? (
-                            <img src={enr.courses.cover_image_url} className="h-full w-full object-cover" />
-                          ) : enr.courses.title.charAt(0)}
+                          {enr.course_id?.cover_image_url ? (
+                            <img src={enr.course_id.cover_image_url} className="h-full w-full object-cover" />
+                          ) : enr.course_id?.title?.charAt(0) || "C"}
                         </div>
                         <div className="flex-1 min-w-0">
-                          <h3 className="font-semibold truncate group-hover:text-primary transition-colors">{enr.courses.title}</h3>
-                          <p className="text-xs text-muted-foreground mb-3">{enr.courses.category || "General"}</p>
+                          <h3 className="font-semibold truncate group-hover:text-primary transition-colors">{enr.course_id?.title || "Untitled Course"}</h3>
+                          <p className="text-xs text-muted-foreground mb-3">{enr.course_id?.category || "General"}</p>
                           <div className="flex items-center gap-3">
                             <Progress value={enr.progress} className="h-1.5 flex-1" />
                             <span className="text-[10px] font-medium text-muted-foreground">{enr.progress}%</span>

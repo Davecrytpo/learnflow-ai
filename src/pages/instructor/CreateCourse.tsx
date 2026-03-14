@@ -1,13 +1,12 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
+import api from "@/lib/api";
 import { useAuth } from "@/hooks/useAuth";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import InstructorSidebar from "@/components/dashboard/InstructorSidebar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
@@ -39,17 +38,18 @@ const CreateCourse = () => {
   useEffect(() => {
     if (!user) return;
     const checkLimit = async () => {
-      const { count } = await (supabase
-        .from("courses") as any)
-        .select("*", { count: "exact", head: true })
-        .eq("author_id", user.id);
-      setCourseCount(count || 0);
+      try {
+        const response = await api.get("/instructor/courses");
+        setCourseCount(response.data.length);
+      } catch (err) {
+        console.error("Limit check error:", err);
+      }
     };
     checkLimit();
   }, [user]);
 
   const handleAIAssist = async () => {
-    if (courseCount >= 10) { // Limit increased for institutional use
+    if (courseCount >= 10) {
       toast({ title: "Course Limit Reached", description: "Standard institutional accounts are limited to 10 active drafts.", variant: "destructive" });
       return;
     }
@@ -86,33 +86,29 @@ const CreateCourse = () => {
 
     const slug = form.title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") + "-" + Math.random().toString(36).substring(2, 7);
 
-    const { data, error } = await supabase.from("courses").insert({
-      title: form.title, 
-      description: form.description, 
-      summary: form.summary,
-      category: form.category || null, 
-      level: form.level,
-      credits: form.credits,
-      duration: form.duration,
-      price_cents: 0, 
-      slug, 
-      author_id: user.id, 
-      published: false,
-      status: 'pending',
-      cover_image_url: form.cover_image_url || null,
-    }).select("id").single();
-
-    setLoading(false);
-    if (error) {
-      console.error("Course creation error detail:", error);
-      toast({ 
-        title: "Course Creation Failed", 
-        description: error.message || "Something went wrong. Please check if all required fields are met and database columns exist.", 
-        variant: "destructive" 
+    try {
+      const response = await api.post("/courses", {
+        title: form.title, 
+        description: form.description, 
+        summary: form.summary,
+        category: form.category || null, 
+        level: form.level,
+        credits: form.credits,
+        duration: form.duration,
+        price_cents: 0, 
+        slug, 
+        published: false,
+        status: 'pending',
+        cover_image_url: form.cover_image_url || null,
       });
-    } else {
+
       toast({ title: "Course created!", description: "Now add modules, lessons, and assessments." });
-      navigate(`/instructor/courses/${data.id}`);
+      navigate(`/instructor/courses/${response.data._id}`);
+    } catch (error: any) {
+      const message = error.response?.data?.error || "Course creation failed.";
+      toast({ title: "Error", description: message, variant: "destructive" });
+    } finally {
+      setLoading(false);
     }
   };
 

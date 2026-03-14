@@ -3,7 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Menu, X, Search, BookOpen, GraduationCap, ArrowRight, Loader2, ChevronDown, FileText } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { supabase } from "@/integrations/supabase/client";
+import api from "@/lib/api";
 import { Input } from "@/components/ui/input";
 import {
   NavigationMenu,
@@ -101,18 +101,21 @@ const Navbar = () => {
         page.description.toLowerCase().includes(searchQuery.toLowerCase())
       ).map(p => ({ ...p, type: 'page' })).slice(0, 3);
 
-      // 2. Search Courses
-      const { data: courseData } = await supabase
-        .from("courses")
-        .select("id, title, category, slug")
-        .ilike("title", `%${searchQuery}%`)
-        .limit(3);
-      
-      const courseResults = (courseData || []).map((c: any) => ({ ...c, type: 'course' }));
-
-      setSuggestions([...pageResults, ...courseResults]);
-      setIsSearching(false);
-      setShowSuggestions(true);
+      try {
+        // 2. Search Courses via MongoDB API
+        const { data } = await api.get("/courses", {
+          params: { search: searchQuery }
+        });
+        
+        const courseResults = (data || []).map((c: any) => ({ ...c, type: 'course' })).slice(0, 3);
+        setSuggestions([...pageResults, ...courseResults]);
+        setShowSuggestions(true);
+      } catch (err) {
+        console.error("Navbar Search Error:", err);
+        setSuggestions(pageResults);
+      } finally {
+        setIsSearching(false);
+      }
     };
 
     const timer = setTimeout(fetchSuggestions, 300);
@@ -308,9 +311,9 @@ const Navbar = () => {
                   <div className="max-h-64 overflow-auto">
                     {suggestions.map((s, i) => (
                       <button
-                        key={`${s.type}-${s.id || s.title}-${i}`}
+                        key={`${s.type}-${s._id || s.title}-${i}`}
                         onClick={() => {
-                          navigate(s.type === 'course' ? `/course/${s.id}` : s.href);
+                          navigate(s.type === 'course' ? `/course/${s._id}` : s.href);
                           setShowSuggestions(false);
                         }}
                         className="flex w-full items-center gap-3 px-4 py-3 text-left hover:bg-secondary/50 transition-colors border-b border-border/40 last:border-0"

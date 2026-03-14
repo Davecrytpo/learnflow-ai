@@ -6,7 +6,7 @@
 
 @layer base {
   :root {
-    /* Learnflow AI - Civic Brass Theme (Light) */
+    /* Global University Institute - Civic Brass Theme (Light) */
     --background: 36 33% 97%;
     --foreground: 210 30% 12%;
 
@@ -55,7 +55,7 @@
   }
 
   .dark {
-    /* Learnflow AI - Civic Brass Theme (Dark) */
+    /* Global University Institute - Civic Brass Theme (Dark) */
     --background: 210 24% 9%;
     --foreground: 36 20% 96%;
 

@@ -86,53 +86,29 @@ const CourseLearning = () => {
     const fetchAll = async () => {
       setLoading(true);
       try {
-        // 1. Strict Enrollment Verification
-        const { data: enrollment, error: enrollErr } = await supabase
-          .from("enrollments")
-          .select("*")
-          .eq("course_id", courseId)
-          .eq("student_id", user.id)
-          .maybeSingle();
+        const response = await api.get(`/courses/${courseId}/learning-data`);
+        const data = response.data;
 
-        if (!enrollment) {
-          toast({ 
-            title: "Access Denied", 
-            description: "Your enrollment is pending administrator verification of tuition payment.", 
-            variant: "destructive" 
-          });
-          navigate("/dashboard");
-          return;
-        }
-
-        const [courseRes, modRes, lessonRes, quizRes, assignRes, resRes, progressRes, attemptsRes, subRes] = await Promise.all([
-          supabase.from("courses").select("*").eq("id", courseId).single(),
-          supabase.from("modules").select("*").eq("course_id", courseId).order("order"),
-          supabase.from("lessons").select("*").eq("course_id", courseId).eq("published", true).order("order"),
-          supabase.from("quizzes").select("*").eq("course_id", courseId).eq("published", true).order("order"),
-          supabase.from("assignments").select("*").eq("course_id", courseId).order("created_at"),
-          (supabase.from as any)("course_resources").select("*").eq("course_id", courseId).order("created_at"),
-          supabase.from("lesson_progress").select("lesson_id").eq("user_id", user.id).eq("course_id", courseId).eq("completed", true),
-          supabase.from("quiz_attempts").select("*").eq("user_id", user.id),
-          supabase.from("submissions").select("*").eq("student_id", user.id),
-        ]);
-
-        setCourse(courseRes.data);
-        setModules(modRes.data || []);
-        setLessons(lessonRes.data || []);
-        setQuizzes(quizRes.data || []);
-        setAssignments(assignRes.data || []);
-        setResources(resRes.data || []);
-        setSubmissions(subRes.data || []);
-        setCompletedLessons(new Set((progressRes.data || []).map((p: any) => p.lesson_id)));
-        setQuizAttempts(attemptsRes.data || []);
+        setCourse(data.course);
+        setModules(data.modules || []);
+        setLessons(data.lessons || []);
+        setQuizzes(data.quizzes || []);
+        setAssignments(data.assignments || []);
+        setSubmissions(data.submissions || []);
+        setCompletedLessons(new Set((data.progress || []).map((p: any) => p.lesson_id)));
+        setQuizAttempts(data.attempts || []);
 
         // Set first incomplete lesson as active
-        const completed = new Set((progressRes.data || []).map((p: any) => p.lesson_id));
-        const firstIncomplete = (lessonRes.data || []).find((l: any) => !completed.has(l.id));
+        const completed = new Set((data.progress || []).map((p: any) => p.lesson_id));
+        const firstIncomplete = (data.lessons || []).find((l: any) => !completed.has(l._id));
         if (firstIncomplete) setActiveLesson(firstIncomplete);
-        else if (lessonRes.data?.[0]) setActiveLesson(lessonRes.data[0]);
+        else if (data.lessons?.[0]) setActiveLesson(data.lessons[0]);
       } catch (err: any) {
         console.error("Course learning fetch error:", err);
+        if (err.response?.status === 403) {
+          toast({ title: "Access Denied", description: "Not enrolled in this course.", variant: "destructive" });
+          navigate("/dashboard");
+        }
       } finally {
         setLoading(false);
       }
@@ -143,23 +119,25 @@ const CourseLearning = () => {
   const markLessonComplete = async (lessonId: string) => {
     if (!user || !courseId) return;
     setMarkingComplete(true);
-    await supabase.from("lesson_progress").upsert({
-      user_id: user.id,
-      lesson_id: lessonId,
-      course_id: courseId,
-      completed: true,
-      completed_at: new Date().toISOString(),
-    }, { onConflict: "user_id,lesson_id" });
+    try {
+      await api.post("/lesson-progress", {
+        lesson_id: lessonId,
+        course_id: courseId,
+      });
 
-    setCompletedLessons((prev) => new Set([...prev, lessonId]));
-    setMarkingComplete(false);
-
-    // Auto advance to next lesson
-    const idx = lessons.findIndex((l) => l.id === lessonId);
-    if (idx < lessons.length - 1) {
-      setActiveLesson(lessons[idx + 1]);
+      setCompletedLessons((prev) => new Set([...prev, lessonId]));
+      
+      // Auto advance to next lesson
+      const idx = lessons.findIndex((l) => l._id === lessonId);
+      if (idx < lessons.length - 1) {
+        setActiveLesson(lessons[idx + 1]);
+      }
+      toast({ title: "Lesson completed!" });
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setMarkingComplete(false);
     }
-    toast({ title: "Lesson completed!" });
   };
 
   const startQuiz = async (quiz: any) => {
@@ -172,12 +150,12 @@ const CourseLearning = () => {
       setTimeLeft(null);
     }
     setQuizAnswers({});
-    const { data } = await supabase
-      .from("quiz_questions")
-      .select("*")
-      .eq("quiz_id", quiz.id)
-      .order("order");
-    setQuizQuestions(data || []);
+    try {
+      const response = await api.get(`/quizzes/${quiz._id}/questions`);
+      setQuizQuestions(response.data || []);
+    } catch (err) {
+      console.error(err);
+    }
   };
 
   const submitQuiz = async () => {
@@ -188,49 +166,51 @@ const CourseLearning = () => {
     let total = 0;
     quizQuestions.forEach((q) => {
       total += q.points;
-      if (quizAnswers[q.id]?.trim().toLowerCase() === q.correct_answer.trim().toLowerCase()) {
+      if (quizAnswers[q._id]?.trim().toLowerCase() === q.correct_answer.trim().toLowerCase()) {
         score += q.points;
       }
     });
 
     const passed = total > 0 ? (score / total) * 100 >= activeQuiz.passing_score : false;
 
-    const { data } = await supabase.from("quiz_attempts").insert({
-      quiz_id: activeQuiz.id,
-      user_id: user.id,
-      score,
-      total_points: total,
-      passed,
-      answers: quizAnswers,
-      completed_at: new Date().toISOString(),
-    }).select().single();
+    try {
+      const response = await api.post("/quiz-attempts", {
+        quiz_id: activeQuiz._id,
+        score,
+        total_points: total,
+        passed,
+        answers: quizAnswers,
+      });
 
-    setQuizAttempts((prev) => [...prev, data]);
-    setQuizResult({ score, total, passed });
-    setSubmittingQuiz(false);
+      setQuizAttempts((prev) => [...prev, response.data]);
+      setQuizResult({ score, total, passed });
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setSubmittingQuiz(false);
+    }
   };
 
   const submitAssignment = async () => {
     if (!activeAssignment || !user) return;
     setSubmittingAssignment(true);
 
-    const { data, error } = await supabase.from("submissions").insert({
-      assignment_id: activeAssignment.id,
-      student_id: user.id,
-      content: submissionContent,
-      file_url: submissionFileUrl || null,
-      submitted_at: new Date().toISOString(),
-    }).select().single();
+    try {
+      const response = await api.post("/submissions", {
+        assignment_id: activeAssignment._id,
+        content: submissionContent,
+        file_url: submissionFileUrl || null,
+      });
 
-    if (error) {
-      toast({ title: "Error", description: error.message, variant: "destructive" });
-    } else {
       toast({ title: "Assignment submitted!", description: "Your instructor will grade it soon." });
-      setSubmissions((prev) => [...prev, data]);
+      setSubmissions((prev) => [...prev, response.data]);
       setSubmissionContent("");
       setSubmissionFileUrl("");
+    } catch (error: any) {
+      toast({ title: "Error", description: error.response?.data?.error || "Submission failed", variant: "destructive" });
+    } finally {
+      setSubmittingAssignment(false);
     }
-    setSubmittingAssignment(false);
   };
 
   const totalLessons = lessons.length;
@@ -241,36 +221,18 @@ const CourseLearning = () => {
   const allLessonsComplete = totalLessons > 0 && completedCount === totalLessons;
   const requiredQuizzes = quizzes.filter((q) => q.quiz_type === "exam" || q.quiz_type === "test");
   const allRequiredPassed = requiredQuizzes.every((q) =>
-    quizAttempts.some((a) => a.quiz_id === q.id && a.passed)
+    quizAttempts.some((a) => a.quiz_id === q._id && a.passed)
   );
   const canGetCertificate = allLessonsComplete && (requiredQuizzes.length === 0 || allRequiredPassed);
 
   const earnCertificate = async () => {
     if (!user || !courseId) return;
-    // Check if already has certificate
-    const { data: existing } = await supabase
-      .from("certificates")
-      .select("id")
-      .eq("user_id", user.id)
-      .eq("course_id", courseId)
-      .maybeSingle();
-
-    if (existing) {
-      toast({ title: "Certificate already earned!" });
-      return;
+    try {
+      const response = await api.post("/certificates", { course_id: courseId });
+      toast({ title: "Certificate earned!", description: "Congratulations on completing the course!" });
+    } catch (err: any) {
+      toast({ title: "Error", description: err.response?.data?.error || "Failed to issue certificate", variant: "destructive" });
     }
-
-    await supabase.from("certificates").insert({
-      user_id: user.id,
-      course_id: courseId,
-    });
-
-    // Mark enrollment as completed
-    await supabase.from("enrollments").update({ completed_at: new Date().toISOString() })
-      .eq("student_id", user.id)
-      .eq("course_id", courseId);
-
-    toast({ title: "Certificate earned!", description: "Congratulations on completing the course!" });
   };
 
   if (loading) {

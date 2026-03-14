@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
+import api from "@/lib/api";
 import Navbar from "@/components/landing/Navbar";
 import Footer from "@/components/landing/Footer";
 import { Input } from "@/components/ui/input";
@@ -8,107 +8,51 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Skeleton } from "@/components/ui/skeleton";
 import { 
-  Search, BookOpen, Sparkles, GraduationCap, Filter, 
-  Clock, Calendar, Award, ChevronDown, Check, ArrowRight
+  Search, BookOpen, GraduationCap, Filter, 
+  Clock, Award, ArrowRight, Check
 } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
-import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from "@/components/ui/sheet";
+import { motion } from "framer-motion";
 import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const categories = ["All", "Technology", "Science", "Mathematics", "Business", "Arts", "Health", "Engineering", "Humanities"];
 const levels = ["All", "Undergraduate", "Graduate", "Doctoral", "Certificate", "Online"];
 
-const categoryColors: Record<string, string> = {
-  Technology: "from-blue-600 to-cyan-500",
-  Science: "from-emerald-600 to-teal-500",
-  Mathematics: "from-indigo-600 to-purple-500",
-  Business: "from-slate-700 to-slate-500",
-  Arts: "from-rose-500 to-orange-400",
-  Health: "from-red-500 to-pink-500",
-  Engineering: "from-orange-500 to-amber-500",
-  Humanities: "from-yellow-500 to-amber-400",
-};
-
-const degreePaths = [
-  { 
-    title: "School of Engineering", 
-    desc: "Innovative programs in CS, AI, and Robotics.", 
-    icon: GraduationCap,
-    color: "bg-blue-600"
-  },
-  { 
-    title: "Business & Management", 
-    desc: "Leadership and entrepreneurship for the global economy.", 
-    icon: Award,
-    color: "bg-emerald-600"
-  },
-  { 
-    title: "Health Sciences", 
-    desc: "Advancing medicine and public health globally.", 
-    icon: Check,
-    color: "bg-rose-600"
-  },
-  { 
-    title: "Arts & Humanities", 
-    desc: "Critical thinking and creative expression.", 
-    icon: BookOpen,
-    color: "bg-amber-600"
-  }
-];
-
 const CourseCatalog = () => {
   const [searchParams, setSearchParams] = useSearchParams();
-  const initialSearch = searchParams.get("search") || "";
   const [courses, setCourses] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [search, setSearch] = useState(initialSearch);
-  const [selectedCategory, setSelectedCategory] = useState("All");
-  const [selectedLevel, setSelectedLevel] = useState("All");
-  const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
+  const [search, setSearch] = useState(searchParams.get("search") || "");
+  const [selectedCategory, setSelectedCategory] = useState(searchParams.get("category") || "All");
+  const [selectedLevel, setSelectedLevel] = useState(searchParams.get("level") || "All");
 
   useEffect(() => {
-    const fetch = async () => {
+    const fetchCourses = async () => {
       setLoading(true);
       try {
-        const { data, error } = await supabase
-          .from("courses")
-          .select("id, title, slug, summary, cover_image_url, category, author_id, level, duration, credits, profiles:author_id(display_name)")
-          .eq("published", true)
-          .order("created_at", { ascending: false });
-        
-        if (error) throw error;
-        setCourses(data || []);
+        const params: any = {};
+        if (search) params.search = search;
+        if (selectedCategory !== "All") params.category = selectedCategory;
+        if (selectedLevel !== "All") params.level = selectedLevel;
+
+        const response = await api.get("/courses", { params });
+        setCourses(response.data);
       } catch (err: any) {
         console.error("Course catalog fetch error:", err);
       } finally {
         setLoading(false);
       }
     };
-    fetch();
-  }, []);
+
+    fetchCourses();
+  }, [search, selectedCategory, selectedLevel]);
 
   useEffect(() => {
-    if (search) {
-      setSearchParams({ search });
-    } else {
-      setSearchParams({});
-    }
-  }, [search, setSearchParams]);
-
-  const filtered = courses.filter((c) => {
-    const matchesSearch = c.title.toLowerCase().includes(search.toLowerCase()) || (c.summary || "").toLowerCase().includes(search.toLowerCase());
-    const matchesCat = selectedCategory === "All" || (c.category || "").toLowerCase() === selectedCategory.toLowerCase();
-    const matchesLevel = selectedLevel === "All" || (c.level || "Undergraduate").toLowerCase() === selectedLevel.toLowerCase();
-    return matchesSearch && matchesCat && matchesLevel;
-  });
+    const newParams: any = {};
+    if (search) newParams.search = search;
+    if (selectedCategory !== "All") newParams.category = selectedCategory;
+    if (selectedLevel !== "All") newParams.level = selectedLevel;
+    setSearchParams(newParams);
+  }, [search, selectedCategory, selectedLevel, setSearchParams]);
 
   const clearFilters = () => {
     setSearch("");

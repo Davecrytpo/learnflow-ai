@@ -3,12 +3,13 @@ import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Loader2, Eye, EyeOff, ArrowRight, GraduationCap } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
+import { Loader2, Eye, EyeOff, GraduationCap } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { motion } from "framer-motion";
 import Navbar from "@/components/landing/Navbar";
 import Footer from "@/components/landing/Footer";
+import api from "@/lib/api";
+import { useAuthContext } from "@/contexts/AuthContext";
 
 const Login = () => {
   const [email, setEmail] = useState("");
@@ -17,21 +18,24 @@ const Login = () => {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { refreshUser } = useAuthContext();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-      if (error) throw error;
-
-      if (data.user) {
-        // Redirect to student dashboard
-        navigate("/dashboard");
-      }
+      const response = await api.post("/auth/login", { email, password });
+      const { token } = response.data;
+      
+      localStorage.setItem("gui_auth_token", token);
+      await refreshUser();
+      
+      toast({ title: "Welcome back!", description: "Successfully logged in to your account." });
+      navigate("/dashboard");
     } catch (error: any) {
-      toast({ title: "Login failed", description: error.message, variant: "destructive" });
+      const message = error.response?.data?.error || "Login failed. Please check your credentials.";
+      toast({ title: "Login failed", description: message, variant: "destructive" });
     } finally {
       setLoading(false);
     }

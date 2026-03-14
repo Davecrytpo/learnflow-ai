@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import api from "@/lib/api";
 import { useAuth } from "@/hooks/useAuth";
 import { useNavigate, Link } from "react-router-dom";
 import Navbar from "@/components/landing/Navbar";
@@ -28,25 +28,14 @@ const Academy = () => {
   const [verifyId, setVerifyId] = useState("");
   const [verifying, setVerifying] = useState(false);
 
-  const pathways = [
-    { id: "educator", title: "Educator Pathway", desc: "Master course design and student engagement.", icon: Lightbulb, color: "text-amber-500", bg: "bg-amber-50" },
-    { id: "admin", title: "Administrator Pathway", desc: "Learn to manage institutions and compliance.", icon: LayoutDashboard, color: "text-blue-500", bg: "bg-blue-50" },
-    { id: "developer", title: "Developer Pathway", desc: "Build plugins and integrate with our API.", icon: Code, color: "text-emerald-500", bg: "bg-emerald-50" },
-  ];
-
   useEffect(() => {
     const fetch = async () => {
       setLoading(true);
       try {
-        const { data, error } = await supabase
-          .from("courses")
-          .select("*, profiles:author_id(display_name)")
-          .eq("category", "Academy")
-          .eq("published", true)
-          .order("created_at", { ascending: false });
-        
-        if (error) throw error;
-        setCourses(data || []);
+        const response = await api.get("/courses", {
+          params: { category: "Academy" }
+        });
+        setCourses(response.data);
       } catch (err: any) {
         console.error("Academy fetch error:", err);
       } finally {
@@ -59,12 +48,25 @@ const Academy = () => {
   const handleStartLearning = async (courseId: string) => {
     if (!user) { navigate("/login"); return; }
     setEnrolling(courseId);
-    const { data: existing } = await supabase.from("enrollments").select("id").eq("course_id", courseId).eq("student_id", user.id).maybeSingle();
-    if (existing) { navigate(`/course/${courseId}/learn`); return; }
-    const { error } = await supabase.from("enrollments").insert({ course_id: courseId, student_id: user.id });
-    setEnrolling(null);
-    if (error) toast({ title: "Error", description: error.message, variant: "destructive" });
-    else { toast({ title: "Enrolled in Academy Course!" }); navigate(`/course/${courseId}/learn`); }
+    try {
+      // Check for existing enrollment
+      const enrollRes = await api.get("/enrollments/me");
+      const existing = enrollRes.data.find((e: any) => e.course_id._id === courseId);
+      
+      if (existing) {
+        navigate(`/course/${courseId}/learn`);
+        return;
+      }
+
+      await api.post("/enrollments", { course_id: courseId });
+      toast({ title: "Enrolled in Academy Course!" });
+      navigate(`/course/${courseId}/learn`);
+    } catch (error: any) {
+      const message = error.response?.data?.error || "Enrollment failed.";
+      toast({ title: "Error", description: message, variant: "destructive" });
+    } finally {
+      setEnrolling(null);
+    }
   };
 
   const handleVerify = async () => {
@@ -72,7 +74,7 @@ const Academy = () => {
     setVerifying(true);
     await new Promise(r => setTimeout(r, 1500));
     setVerifying(false);
-    toast({ title: "Certificate Verified", description: "This is a valid Learnflow Academy credential issued to Alex Rivera." });
+    toast({ title: "Certificate Verified", description: "This is a valid Global University Institute Academy credential issued to Alex Rivera." });
   };
 
   return (
@@ -90,10 +92,10 @@ const Academy = () => {
                   Official Moodle-Grade Training
                 </Badge>
                 <h1 className="font-display text-5xl font-bold tracking-tight sm:text-7xl">
-                  Learnflow <span className="text-emerald-400 font-serif italic">Academy</span>
+                  Global University Institute <span className="text-emerald-400 font-serif italic">Academy</span>
                 </h1>
                 <p className="mt-8 text-xl leading-relaxed text-slate-300 max-w-2xl mx-auto">
-                  The home of professional learning for the Learnflow community. 
+                  The home of professional learning for the Global University Institute community. 
                   Get certified, join webinars, and master modern pedagogy.
                 </p>
                 <div className="mt-12 flex flex-wrap justify-center gap-4">
@@ -220,7 +222,7 @@ const Academy = () => {
                     <img src="https://images.unsplash.com/photo-1488190211105-8b0e65b80b4e?auto=format&fit=crop&q=80&w=1000" className="h-64 w-full object-cover" />
                     <CardHeader>
                       <CardTitle>Academy v2.0 Release: New Developer Paths</CardTitle>
-                      <CardDescription>We've launched three new tracks for Learnflow plugin developers...</CardDescription>
+                      <CardDescription>We've launched three new tracks for Global University Institute plugin developers...</CardDescription>
                     </CardHeader>
                     <CardContent><Button variant="link" className="p-0">Read full story →</Button></CardContent>
                   </Card>
@@ -245,7 +247,7 @@ const Academy = () => {
                   <CardContent className="space-y-4">
                     <div className="flex gap-2">
                       <Input 
-                        placeholder="e.g. LF-ACAD-9982-X" 
+                        placeholder="e.g. GUI-ACAD-9982-X" 
                         value={verifyId} 
                         onChange={(e) => setVerifyId(e.target.value)}
                         className="bg-white dark:bg-slate-800"
@@ -256,7 +258,7 @@ const Academy = () => {
                     </div>
                     <div className="rounded-lg border border-border bg-white/50 p-4 text-xs text-muted-foreground flex items-start gap-2">
                       <ShieldCheck className="h-4 w-4 text-emerald-500 shrink-0 mt-0.5" />
-                      <span>Learnflow Academy credentials are cryptographically signed and stored on our secure registry for institutional verification.</span>
+                      <span>Global University Institute Academy credentials are cryptographically signed and stored on our secure registry for institutional verification.</span>
                     </div>
                   </CardContent>
                 </Card>
@@ -269,11 +271,11 @@ const Academy = () => {
         <section className="py-24 container mx-auto px-4">
           <div className="grid gap-12 lg:grid-cols-2 items-center">
             <div>
-              <h2 className="font-display text-4xl font-bold mb-6">Why get certified with <br/><span className="text-primary">Learnflow Academy?</span></h2>
+              <h2 className="font-display text-4xl font-bold mb-6">Why get certified with <br/><span className="text-primary">Global University Institute Academy?</span></h2>
               <div className="space-y-6">
                 {[
                   { t: "Global Recognition", d: "Join a network of certified educators recognized by institutions worldwide.", i: CheckCircle2 },
-                  { t: "Career Acceleration", d: "Boost your professional profile with verifiable mastery of the Learnflow ecosystem.", i: Trophy },
+                  { t: "Career Acceleration", d: "Boost your professional profile with verifiable mastery of the Global University Institute ecosystem.", i: Trophy },
                   { t: "Exclusive Resources", d: "Access premium course templates, pedagogical research, and beta features.", i: Sparkles },
                 ].map((item) => (
                   <div key={item.t} className="flex gap-4">
