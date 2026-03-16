@@ -13,7 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/hooks/use-toast";
 import RichTextEditor from "@/components/ui/rich-text-editor";
 import { Loader2, Sparkles } from "lucide-react";
-import { generateCourseDraft } from "@/lib/anthropic";
+import { generateCourseDraft } from "@/lib/ai-service";
 
 const categories = ["Technology", "Science", "Mathematics", "Business", "Arts", "Health", "Engineering", "Humanities"];
 const levels = ["Undergraduate", "Graduate", "Doctoral", "Certificate", "Online"];

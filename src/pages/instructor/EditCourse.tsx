@@ -18,7 +18,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { generateCurriculumOutline, generateLessonContent } from "@/lib/anthropic";
+import { generateCurriculumOutline, generateLessonContent } from "@/lib/ai-service";
 import RichTextEditor from "@/components/ui/rich-text-editor";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogTrigger } from "@/components/ui/dialog";
 
