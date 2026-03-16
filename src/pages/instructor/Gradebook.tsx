@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
-import api from "@/lib/api";
+import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import InstructorSidebar from "@/components/dashboard/InstructorSidebar";
@@ -10,15 +10,26 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Loader2, ArrowLeft, Download, Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import { Tables } from "@/integrations/supabase/types";
+
+interface GradebookStudent {
+  student_id: string;
+  profiles: {
+    display_name: string | null;
+    avatar_url: string | null;
+  };
+}
 
 const Gradebook = () => {
   const { courseId } = useParams<{ courseId: string }>();
   const { user } = useAuth();
   
-  const [courseTitle, setCourseTitle] = useState("");
-  const [students, setStudents] = useState<any[]>([]);
-  const [assignments, setAssignments] = useState<any[]>([]);
-  const [submissions, setSubmissions] = useState<any[]>([]);
+  const [course, setCourse] = useState<Tables<"courses"> | null>(null);
+  const [students, setStudents] = useState<GradebookStudent[]>([]);
+  const [assignments, setAssignments] = useState<Tables<"assignments">[]>([]);
+  const [quizzes, setQuizzes] = useState<Tables<"quizzes">[]>([]);
+  const [submissions, setSubmissions] = useState<Tables<"submissions">[]>([]);
+  const [quizAttempts, setQuizAttempts] = useState<Tables<"quiz_attempts">[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
 
@@ -29,53 +40,91 @@ const Gradebook = () => {
 
   const fetchGradebookData = async () => {
     setLoading(true);
-    try {
-      const response = await api.get(`/courses/${courseId}/gradebook`);
-      const { enrollments, assignments, submissions } = response.data;
-      
-      setStudents(enrollments);
-      setAssignments(assignments);
-      setSubmissions(submissions);
-      
-      if (enrollments.length > 0 && enrollments[0].course_id) {
-        setCourseTitle(enrollments[0].course_id.title);
-      } else {
-        const cRes = await api.get(`/courses/${courseId}`);
-        setCourseTitle(cRes.data.title);
-      }
-    } catch (err: any) {
-      console.error(err);
-    } finally {
-      setLoading(false);
+    
+    // Fetch course details
+    const { data: courseData } = await supabase.from("courses").select("*").eq("id", courseId).single();
+    setCourse(courseData);
+
+    // Fetch all enrolled students
+    const { data: enrollmentData } = await supabase
+      .from("enrollments")
+      .select("student_id, profiles!inner(display_name, avatar_url)")
+      .eq("course_id", courseId);
+    
+    setStudents((enrollmentData as unknown) as GradebookStudent[]);
+
+    // Fetch all assignments for this course
+    const { data: assignData } = await supabase
+      .from("assignments")
+      .select("*")
+      .eq("course_id", courseId)
+      .order("created_at");
+    setAssignments(assignData || []);
+
+    // Fetch all quizzes for this course
+    const { data: quizData } = await supabase
+      .from("quizzes")
+      .select("*")
+      .eq("course_id", courseId)
+      .order("order");
+    setQuizzes(quizData || []);
+
+    // Fetch all submissions for these assignments
+    if (assignData && assignData.length > 0) {
+      const { data: subData } = await supabase
+        .from("submissions")
+        .select("*")
+        .in("assignment_id", assignData.map(a => a.id));
+      setSubmissions(subData || []);
+    }
+
+    // Fetch all quiz attempts for these quizzes
+    if (quizData && quizData.length > 0) {
+      const { data: attemptData } = await supabase
+        .from("quiz_attempts")
+        .select("*")
+        .in("quiz_id", quizData.map(q => q.id));
+      setQuizAttempts(attemptData || []);
+    }
+
+    setLoading(false);
+  };
+
+  const getStudentGrade = (studentId: string, itemId: string, type: 'assignment' | 'quiz') => {
+    if (type === 'assignment') {
+      const sub = submissions.find(s => s.student_id === studentId && s.assignment_id === itemId);
+      return sub ? (sub.score !== null ? sub.score : "Ungraded") : "-";
+    } else {
+      const attempts = quizAttempts.filter(a => a.user_id === studentId && a.quiz_id === itemId);
+      if (attempts.length === 0) return "-";
+      // Get highest score
+      const maxScore = Math.max(...attempts.map(a => a.score || 0));
+      return maxScore;
     }
   };
 
-  const getStudentGrade = (studentId: string, itemId: string) => {
-    const sub = submissions.find(s => s.student_id === studentId && s.assignment_id === itemId);
-    return sub ? (sub.score !== undefined ? sub.score : "Ungraded") : "-";
-  };
-
   const filteredStudents = students.filter(s => 
-    s.student_id?.display_name?.toLowerCase().includes(searchTerm.toLowerCase())
+    s.profiles.display_name?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const exportGrades = () => {
     // Basic CSV export logic
-    const headers = ["Student", ...assignments.map(a => a.title)];
+    const headers = ["Student", ...assignments.map(a => a.title), ...quizzes.map(q => q.title)];
     const rows = filteredStudents.map(s => {
       return [
-        s.student_id?.display_name || "Unknown",
-        ...assignments.map(a => getStudentGrade(s.student_id?._id, a._id))
+        s.profiles.display_name,
+        ...assignments.map(a => getStudentGrade(s.student_id, a.id, 'assignment')),
+        ...quizzes.map(q => getStudentGrade(s.student_id, q.id, 'quiz'))
       ];
     });
 
-    const csvContent = [headers, ...rows].map(e => e.join(",")).join("\n");
+        const csvContent = [headers, ...rows].map(e => e.join(",")).join("\n");
     
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement("a");
     const url = URL.createObjectURL(blob);
     link.setAttribute("href", url);
-    link.setAttribute("download", `${courseTitle}_grades.csv`);
+    link.setAttribute("download", `${course?.title}_grades.csv`);
     link.style.visibility = 'hidden';
     document.body.appendChild(link);
     link.click();
@@ -106,7 +155,7 @@ const Gradebook = () => {
                 </Link>
               </Button>
               <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary">Gradebook</p>
-              <h1 className="mt-2 font-display text-3xl font-bold text-foreground">{courseTitle}</h1>
+              <h1 className="mt-2 font-display text-3xl font-bold text-foreground">{course?.title}</h1>
               <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
                 Review performance by assignment and quiz, and export results anytime.
               </p>
@@ -140,9 +189,15 @@ const Gradebook = () => {
                   <TableRow>
                     <TableHead className="w-[200px] sticky left-0 bg-card z-10">Student</TableHead>
                     {assignments.map(a => (
-                      <TableHead key={a._id} className="text-center min-w-[120px]">
+                      <TableHead key={a.id} className="text-center min-w-[120px]">
                         <div className="text-xs font-medium">{a.title}</div>
                         <div className="text-[10px] text-muted-foreground">Max: {a.max_score}</div>
+                      </TableHead>
+                    ))}
+                    {quizzes.map(q => (
+                      <TableHead key={q.id} className="text-center min-w-[120px]">
+                        <div className="text-xs font-medium">{q.title}</div>
+                        <div className="text-[10px] text-muted-foreground">{q.quiz_type}</div>
                       </TableHead>
                     ))}
                   </TableRow>
@@ -150,23 +205,36 @@ const Gradebook = () => {
                 <TableBody>
                   {filteredStudents.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={1 + assignments.length} className="h-24 text-center">
+                      <TableCell colSpan={1 + assignments.length + quizzes.length} className="h-24 text-center">
                         No students found.
                       </TableCell>
                     </TableRow>
                   ) : (
                     filteredStudents.map(s => (
-                      <TableRow key={s.student_id?._id}>
+                      <TableRow key={s.student_id}>
                         <TableCell className="font-medium sticky left-0 bg-card z-10 border-r">
-                          {s.student_id?.display_name || "Unknown Scholar"}
+                          {s.profiles.display_name}
                         </TableCell>
                         {assignments.map(a => {
-                          const grade = getStudentGrade(s.student_id?._id, a._id);
+                          const grade = getStudentGrade(s.student_id, a.id, 'assignment');
                           return (
-                            <TableCell key={a._id} className="text-center">
-                              {/* grade logic */}
+                            <TableCell key={a.id} className="text-center">
                               {typeof grade === 'number' ? (
                                 <Badge variant="secondary">{grade}</Badge>
+                              ) : (
+                                <span className="text-xs text-muted-foreground">{grade}</span>
+                              )}
+                            </TableCell>
+                          );
+                        })}
+                        {quizzes.map(q => {
+                          const grade = getStudentGrade(s.student_id, q.id, 'quiz');
+                          return (
+                            <TableCell key={q.id} className="text-center">
+                              {typeof grade === 'number' ? (
+                                <Badge variant={grade >= q.passing_score ? "secondary" : "destructive"}>
+                                  {grade}%
+                                </Badge>
                               ) : (
                                 <span className="text-xs text-muted-foreground">{grade}</span>
                               )}

@@ -1,12 +1,12 @@
 import { useEffect, useState } from "react";
 import { useSearchParams, Link } from "react-router-dom";
-import api from "@/lib/api";
+import { supabase } from "@/integrations/supabase/client";
 import Navbar from "@/components/landing/Navbar";
 import Footer from "@/components/landing/Footer";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ShieldCheck, Award, User, BookOpen, Calendar, CheckCircle2, XCircle } from "lucide-react";
+import { ShieldCheck, ShieldAlert, Award, User, BookOpen, Calendar, CheckCircle2, XCircle } from "lucide-react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 
@@ -22,21 +22,24 @@ const VerificationPage = () => {
 
     const verifyCert = async () => {
       setLoading(true);
-      try {
-        const response = await api.get("/certificates/verify", {
-          params: { code: certId }
-        });
-        
-        if (!response.data) {
-          setError("Invalid Certificate ID. This credential could not be found in our secure registry.");
-        } else {
-          setCertificate(response.data);
-        }
-      } catch (err: any) {
+      const { data, error } = await (supabase as any)
+        .from("certificates")
+        .select(`
+          *,
+          courses(title, author_id, profiles:author_id(display_name)),
+          profiles:user_id(display_name)
+        `)
+        .eq("verification_code", certId)
+        .maybeSingle();
+
+      if (error) {
         setError("Error connecting to verification registry.");
-      } finally {
-        setLoading(false);
+      } else if (!data) {
+        setError("Invalid Certificate ID. This credential could not be found in our secure registry.");
+      } else {
+        setCertificate(data);
       }
+      setLoading(false);
     };
 
     verifyCert();
@@ -52,7 +55,7 @@ const VerificationPage = () => {
               Credential <span className="gradient-text">Verification</span>
             </h1>
             <p className="mt-4 text-muted-foreground">
-              Verify the authenticity of Global University Institute Academy certificates.
+              Verify the authenticity of Learnflow Academy certificates.
             </p>
           </div>
 
@@ -94,15 +97,15 @@ const VerificationPage = () => {
                     Verified Credential
                   </Badge>
                   <CardTitle className="text-3xl font-display mt-2">Authenticity Confirmed</CardTitle>
-                  <CardDescription>Issued by Global University Institute Academy Registry</CardDescription>
+                  <CardDescription>Issued by Learnflow Academy Registry</CardDescription>
                 </CardHeader>
                 <CardContent className="p-8 space-y-8 bg-white dark:bg-slate-900">
                   <div className="grid gap-6 sm:grid-cols-2">
                     <div className="space-y-1">
-                      <p className="text-xs font-bold uppercase tracking widest text-muted-foreground">Recipient Name</p>
+                      <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Recipient Name</p>
                       <div className="flex items-center gap-2">
                         <User className="h-4 w-4 text-primary" />
-                        <p className="text-lg font-semibold">{certificate.user_id?.display_name || "N/A"}</p>
+                        <p className="text-lg font-semibold">{certificate.profiles?.display_name || "N/A"}</p>
                       </div>
                     </div>
                     <div className="space-y-1">
@@ -116,12 +119,12 @@ const VerificationPage = () => {
                       <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Course / Program</p>
                       <div className="flex items-center gap-2">
                         <BookOpen className="h-4 w-4 text-primary" />
-                        <p className="text-xl font-bold">{certificate.course_id?.title}</p>
+                        <p className="text-xl font-bold">{certificate.courses?.title}</p>
                       </div>
                     </div>
                     <div className="space-y-1 sm:col-span-2">
                       <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Authorized Instructor</p>
-                      <p className="font-medium text-muted-foreground">{certificate.course_id?.author_id?.display_name || "Academy Core"}</p>
+                      <p className="font-medium text-muted-foreground">{certificate.courses?.profiles?.display_name || "Academy Core"}</p>
                     </div>
                   </div>
 
@@ -140,7 +143,7 @@ const VerificationPage = () => {
               </Card>
               <div className="mt-8 text-center">
                 <p className="text-sm text-muted-foreground">
-                  Global University Institute Academy uses a decentralized registry to ensure academic records are tamper-proof and verifiable worldwide.
+                  Learnflow Academy uses a decentralized registry to ensure academic records are tamper-proof and verifiable worldwide.
                 </p>
               </div>
             </motion.div>

@@ -1,12 +1,12 @@
 import { useEffect, useState } from "react";
-import api from "@/lib/api";
+import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import StudentSidebar from "@/components/dashboard/StudentSidebar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Calendar as CalendarUI } from "@/components/ui/calendar";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, Clock } from "lucide-react";
+import { Loader2, Calendar as CalendarIcon, Clock } from "lucide-react";
 
 const CalendarPage = () => {
   const { user } = useAuth();
@@ -21,22 +21,23 @@ const CalendarPage = () => {
 
   const fetchDeadlines = async () => {
     setLoading(true);
-    try {
-      const enrollRes = await api.get("/enrollments/me");
-      const courseIds = (enrollRes.data || []).map((e: any) => e.course_id?._id);
+    // Get enrolled course IDs
+    const { data: enrollments } = await supabase
+      .from("enrollments")
+      .select("course_id")
+      .eq("student_id", user?.id);
+    
+    if (enrollments && enrollments.length > 0) {
+      const courseIds = enrollments.map(e => e.course_id);
+      const { data: assignments } = await supabase
+        .from("assignments")
+        .select("*, courses(title)")
+        .in("course_id", courseIds)
+        .not("due_date", "is", null);
       
-      if (courseIds.length > 0) {
-        const asgnRes = await api.get("/assignments");
-        const filteredAsgns = (asgnRes.data || []).filter((a: any) => 
-          courseIds.includes(a.course_id) && a.due_date
-        );
-        setDeadlines(filteredAsgns);
-      }
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setLoading(false);
+      setDeadlines(assignments || []);
     }
+    setLoading(false);
   };
 
   const selectedDateDeadlines = deadlines.filter(d => {
@@ -94,8 +95,9 @@ const CalendarPage = () => {
                 ) : (
                   <div className="space-y-3">
                     {selectedDateDeadlines.map(d => (
-                      <div key={d._id} className="rounded-lg border border-border p-3 space-y-1">
+                      <div key={d.id} className="rounded-lg border border-border p-3 space-y-1">
                         <p className="font-semibold text-sm">{d.title}</p>
+                        <p className="text-xs text-muted-foreground">{d.courses?.title}</p>
                         <Badge variant="outline" className="text-[10px] mt-1">Assignment</Badge>
                       </div>
                     ))}

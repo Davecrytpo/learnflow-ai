@@ -1,11 +1,11 @@
 import { useEffect, useState } from "react";
-import api from "@/lib/api";
+import { supabase } from "@/integrations/supabase/client";
 import Navbar from "@/components/landing/Navbar";
 import Footer from "@/components/landing/Footer";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Video, Calendar, Clock, PlayCircle } from "lucide-react";
+import { Video, Calendar, Clock, User, ArrowRight, PlayCircle } from "lucide-react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
@@ -19,8 +19,12 @@ const WebinarsPage = () => {
     const fetchWebinars = async () => {
       setLoading(true);
       try {
-        const response = await api.get("/webinars");
-        setWebinars(response.data || []);
+        const { data, error } = await (supabase
+          .from as any)("webinars")
+          .select("*")
+          .order("start_time", { ascending: true });
+        if (error) throw error;
+        setWebinars(data || []);
       } catch (err: any) {
         console.error("Webinars fetch error:", err);
       } finally {
@@ -62,7 +66,7 @@ const WebinarsPage = () => {
             ) : (
               webinars.map((w, i) => (
                 <motion.div
-                  key={w._id}
+                  key={w.id}
                   initial={{ opacity: 0, scale: 0.95 }}
                   animate={{ opacity: 1, scale: 1 }}
                   transition={{ delay: i * 0.1 }}
@@ -82,11 +86,11 @@ const WebinarsPage = () => {
                       <div className="space-y-2 text-sm text-muted-foreground">
                         <div className="flex items-center gap-2">
                           <Calendar className="h-4 w-4" />
-                          <span>{new Date(w.date).toLocaleDateString()}</span>
+                          <span>{new Date(w.start_time).toLocaleDateString()}</span>
                         </div>
                         <div className="flex items-center gap-2">
                           <Clock className="h-4 w-4" />
-                          <span>{new Date(w.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                          <span>{new Date(w.start_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
                         </div>
                       </div>
                       <Button 

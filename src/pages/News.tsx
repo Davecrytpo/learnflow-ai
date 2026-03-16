@@ -1,11 +1,11 @@
 import { useEffect, useState } from "react";
-import api from "@/lib/api";
+import { supabase } from "@/integrations/supabase/client";
 import Navbar from "@/components/landing/Navbar";
 import Footer from "@/components/landing/Footer";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Newspaper, ArrowRight } from "lucide-react";
+import { Newspaper, Calendar, ArrowRight, Bell } from "lucide-react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 
@@ -17,8 +17,12 @@ const NewsPage = () => {
     const fetchNews = async () => {
       setLoading(true);
       try {
-        const response = await api.get("/news");
-        setNews(response.data || []);
+        const { data, error } = await (supabase
+          .from as any)("news")
+          .select("*")
+          .order("created_at", { ascending: false });
+        if (error) throw error;
+        setNews(data || []);
       } catch (err: any) {
         console.error("News fetch error:", err);
       } finally {
@@ -38,7 +42,7 @@ const NewsPage = () => {
               Academic <span className="gradient-text">News</span>
             </h1>
             <p className="mt-4 text-lg text-muted-foreground">
-              Stay updated with the latest from the Global University Institute community.
+              Stay updated with the latest from the Learnflow community.
             </p>
           </div>
 
@@ -53,7 +57,7 @@ const NewsPage = () => {
             ) : (
               news.map((item, i) => (
                 <motion.div
-                  key={item._id}
+                  key={item.id}
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: i * 0.1 }}

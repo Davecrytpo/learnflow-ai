@@ -1,21 +1,22 @@
 import { useEffect, useState } from "react";
-import api from "@/lib/api";
+import { supabase } from "@/integrations/supabase/client";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import AdminSidebar from "@/components/dashboard/AdminSidebar";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { 
-  Users, BookOpen, GraduationCap, Search, 
-  Trash2, Eye, CheckCircle, XCircle, 
+  Users, BookOpen, GraduationCap, Award, Search, 
+  Shield, Trash2, Eye, CheckCircle, XCircle, 
   UserPlus, Mail, Loader2, Sparkles, TrendingUp
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogTrigger } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
+import { Link } from "react-router-dom";
 import { useAuthContext } from "@/contexts/AuthContext";
 import { motion } from "framer-motion";
 import { generateInstitutionalReport } from "@/lib/anthropic";
@@ -24,14 +25,18 @@ const AdminDashboard = () => {
   const { user } = useAuthContext();
   const { toast } = useToast();
   const [loading, setLoading] = useState(true);
-  const [stats, setStats] = useState({ users: 0, courses: 0, enrollments: 0, pendingCourses: 0, activeInstructors: 0 });
+  const [stats, setStats] = useState({ users: 0, courses: 0, enrollments: 0, pendingCourses: 0, pendingEnr: 0, activeInstructors: 0 });
   
-  const [allCourses, setAllCourses] = useState<any[]>([]);
-  const [allUsers, setAllUsers] = useState<any[]>([]);
+  const [pendingCourses, setPendingCourses] = useState<any[]>([]);
+  const [pendingEnrollments, setPendingEnrollments] = useState<any[]>([]);
+  const [pendingInstructors, setPendingInstructors] = useState<any[]>([]);
+  const [instructors, setInstructors] = useState<any[]>([]);
 
+  // AI Reporting
   const [aiReport, setAiReport] = useState<string | null>(null);
   const [generatingReport, setGeneratingReport] = useState(false);
 
+  // Add Instructor State
   const [isAddingInstructor, setIsAddingInstructor] = useState(false);
   const [newInstructor, setNewInstructor] = useState({ name: "", email: "" });
   const [isInstructorModalOpen, setIsInstructorModalOpen] = useState(false);
@@ -39,15 +44,39 @@ const AdminDashboard = () => {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const [metricsRes, coursesRes, usersRes] = await Promise.all([
-        api.get("/metrics/overview"),
-        api.get("/courses"),
-        api.get("/admin/users")
+      const [coursesRes, enrollRes, usersRes, rolesRes] = await Promise.all([
+        supabase.from("courses").select("*, profiles:author_id(display_name)"),
+        supabase.from("enrollments").select("*, courses(title), profiles:student_id(display_name)"),
+        supabase.from("profiles").select("*"),
+        supabase.from("user_roles").select("*")
       ]);
 
-      setStats(metricsRes.data);
-      setAllCourses(coursesRes.data);
-      setAllUsers(usersRes.data);
+      const allCourses = coursesRes.data || [];
+      const allEnrollments = enrollRes.data || [];
+      const allUsers = usersRes.data || [];
+      const allRoles = rolesRes.data || [];
+      
+      setPendingCourses(allCourses.filter((c: any) => c.status === 'pending'));
+      setPendingEnrollments(allEnrollments.filter((e: any) => e.status === 'pending'));
+      
+      const instructorIds = allRoles.filter(r => r.role === 'instructor').map(r => r.user_id);
+      const studentIds = allRoles.filter(r => r.role === 'student').map(r => r.user_id);
+
+      const faculty = allUsers.filter(u => instructorIds.includes(u.user_id));
+      
+      // Real status check: Profiles with status 'pending' are applicants
+      setPendingInstructors(faculty.filter((f: any) => f.status === 'pending'));
+      setInstructors(faculty.filter((f: any) => f.status === 'approved' || !f.status));
+
+      setStats({
+        users: studentIds.length,
+        courses: allCourses.length,
+        enrollments: allEnrollments.length,
+        pendingCourses: allCourses.filter((c: any) => c.status === 'pending').length,
+        pendingEnr: allEnrollments.filter((e: any) => e.status === 'pending').length,
+        activeInstructors: instructorIds.length
+      });
+
     } catch (err: any) {
       toast({ title: "Sync Error", description: err.message, variant: "destructive" });
     } finally {
@@ -59,39 +88,13 @@ const AdminDashboard = () => {
     fetchData();
   }, []);
 
-  const pendingCourses = allCourses.filter(c => c.status === "pending" || !c.published);
-  const instructors = allUsers.filter(u => u.role === "instructor");
-  const pendingInstructors = allUsers.filter(u => u.role === "instructor" && u.status === "pending");
-
-  const handleCourseAction = async (id: string, action: "approve" | "reject") => {
-    try {
-      await api.patch(`/admin/courses/${id}/status`, {
-        status: action === "approve" ? "approved" : "rejected",
-        published: action === "approve"
-      });
-      toast({ title: action === "approve" ? "Course Accredited" : "Course Rejected" });
-      fetchData();
-    } catch (err: any) {
-      toast({ title: "Operation Failed", description: err.message, variant: "destructive" });
-    }
-  };
-
-  const handleUserStatus = async (userId: string, status: string) => {
-    try {
-      await api.patch(`/admin/users/${userId}`, { status });
-      toast({ title: `User ${status}` });
-      fetchData();
-    } catch (err: any) {
-      toast({ title: "Error", description: err.message, variant: "destructive" });
-    }
-  };
-
   const handleGenerateReport = async () => {
     setGeneratingReport(true);
     try {
       const systemData = {
         stats,
         recentCourses: pendingCourses.length,
+        recentEnrollments: pendingEnrollments.length,
         instructorCount: instructors.length
       };
       const report = await generateInstitutionalReport(systemData);
@@ -108,47 +111,60 @@ const AdminDashboard = () => {
     setIsAddingInstructor(true);
     
     try {
-      // In MongoDB version, we use the signup endpoint or a specific admin-staff endpoint
-      await api.post("/auth/signup", {
+      const { data, error } = await supabase.auth.signUp({
         email: newInstructor.email,
         password: "TempPassword123!", 
-        role: "instructor",
-        display_name: newInstructor.name
+        options: {
+          data: { 
+            full_name: newInstructor.name,
+            role: 'instructor'
+          }
+        }
       });
+
+      if (error) throw error;
 
       toast({ 
         title: "Staff Account Created", 
-        description: `Credentials set for ${newInstructor.email}.` 
+        description: `Credentials sent to ${newInstructor.email}.` 
       });
       
       setIsInstructorModalOpen(false);
       setNewInstructor({ name: "", email: "" });
       fetchData();
     } catch (err: any) {
-      toast({ title: "Operation Failed", description: err.response?.data?.error || err.message, variant: "destructive" });
+      toast({ title: "Operation Failed", description: err.message, variant: "destructive" });
     } finally {
       setIsAddingInstructor(false);
     }
   };
 
-  const removeInstructor = async (userId: string) => {
-    if (!confirm("Are you sure? This will revoke all teaching privileges.")) return;
-    try {
-      await api.patch(`/admin/users/${userId}`, { role: "student" });
-      toast({ title: "Privileges Revoked" });
+  const handleCourseAction = async (id: string, status: 'approved' | 'rejected') => {
+    const { error } = await (supabase.from("courses") as any).update({ 
+      published: status === 'approved',
+      status: status
+    }).eq("id", id);
+    
+    if (error) {
+      toast({ title: "Accreditation Failed", description: error.message, variant: "destructive" });
+    } else {
+      toast({ title: status === 'approved' ? "Course Accredited" : "Course Rejected" });
       fetchData();
-    } catch (err: any) {
-      toast({ title: "Error", description: err.message, variant: "destructive" });
     }
   };
 
-  if (loading) {
-    return (
-      <DashboardLayout allowedRoles={["admin"]} sidebar={<AdminSidebar />}>
-        <div className="flex justify-center py-20"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>
-      </DashboardLayout>
-    );
-  }
+  const handleEnrollAction = async (id: string, status: 'approved' | 'rejected') => {
+    const { error } = await (supabase.from as any)("enrollments").update({ status }).eq("id", id);
+    if (error) toast({ title: "Error", variant: "destructive" });
+    else { toast({ title: `Enrollment ${status}` }); fetchData(); }
+  };
+
+  const removeInstructor = async (userId: string) => {
+    if (!confirm("Are you sure? This will revoke all teaching privileges.")) return;
+    await supabase.from("user_roles").delete().eq("user_id", userId).eq("role", "instructor");
+    toast({ title: "Privileges Revoked" });
+    fetchData();
+  };
 
   return (
     <DashboardLayout allowedRoles={["admin"]} sidebar={<AdminSidebar />}>
@@ -161,7 +177,7 @@ const AdminDashboard = () => {
               Institutional Command Center
             </h1>
             <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
-              Welcome back, Administrator. Managing {stats.users} students and {stats.activeInstructors} faculty.
+              Welcome back, {user?.user_metadata?.full_name || "Administrator"}. Managing {stats.users} students and {stats.activeInstructors} faculty.
             </p>
           </div>
         </section>
@@ -174,6 +190,14 @@ const AdminDashboard = () => {
             </CardHeader>
             <CardContent>
               <p className="text-3xl font-bold text-primary">{stats.pendingCourses}</p>
+            </CardContent>
+          </Card>
+          <Card className="border-accent/20 bg-accent/5">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-[10px] font-bold uppercase text-accent tracking-widest">Admissions Waiting</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-3xl font-bold text-accent">{stats.pendingEnr}</p>
             </CardContent>
           </Card>
           <Card>
@@ -237,6 +261,7 @@ const AdminDashboard = () => {
           <TabsList className="bg-muted/50 p-1">
             <TabsTrigger value="course-approvals">Course Accreditation ({stats.pendingCourses})</TabsTrigger>
             <TabsTrigger value="faculty-apps">Faculty Applications ({pendingInstructors.length})</TabsTrigger>
+            <TabsTrigger value="enrollments">Tuition Verification ({stats.pendingEnr})</TabsTrigger>
             <TabsTrigger value="instructors">Active Faculty</TabsTrigger>
           </TabsList>
 
@@ -254,25 +279,29 @@ const AdminDashboard = () => {
                   </div>
                 ) : (
                   pendingInstructors.map(i => (
-                    <div key={i._id} className="group flex flex-col md:flex-row md:items-center justify-between p-5 rounded-2xl border border-slate-200 bg-white hover:border-primary/30 transition-all gap-4">
+                    <div key={i.id} className="group flex flex-col md:flex-row md:items-center justify-between p-5 rounded-2xl border border-slate-200 bg-white hover:border-primary/30 transition-all gap-4">
                       <div className="flex items-start gap-4">
                         <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-lg shrink-0 group-hover:bg-primary group-hover:text-white transition-colors">
                           {i.display_name?.[0] || "?"}
                         </div>
                         <div className="space-y-1">
                           <p className="font-bold text-slate-900 text-lg leading-tight">{i.display_name}</p>
-                          <p className="text-sm text-slate-500">{i.email}</p>
+                          <p className="text-sm text-slate-500">{i.email || "applicant@institution.edu"}</p>
                         </div>
                       </div>
                       <div className="flex items-center gap-2">
                         <Button 
                           size="sm" 
                           className="bg-primary text-white font-bold h-10 px-6 rounded-xl"
-                          onClick={() => handleUserStatus(i._id, 'active')}
+                          onClick={async () => {
+                            const { error } = await (supabase.from("profiles") as any).update({ status: 'approved' }).eq("user_id", i.user_id);
+                            if (error) toast({ title: "Error", description: error.message });
+                            else { toast({ title: "Faculty Approved" }); fetchData(); }
+                          }}
                         >
                           Approve Faculty
                         </Button>
-                        <Button size="sm" variant="ghost" className="text-destructive font-bold h-10 px-6 rounded-xl hover:bg-destructive/5" onClick={() => handleUserStatus(i._id, 'rejected')}>Reject</Button>
+                        <Button size="sm" variant="ghost" className="text-destructive font-bold h-10 px-6 rounded-xl hover:bg-destructive/5">Reject</Button>
                       </div>
                     </div>
                   ))
@@ -295,21 +324,21 @@ const AdminDashboard = () => {
                   </div>
                 ) : (
                   pendingCourses.map(c => (
-                    <div key={c._id} className="group flex flex-col md:flex-row md:items-center justify-between p-5 rounded-2xl border border-slate-200 bg-white hover:border-primary/30 transition-all gap-4">
+                    <div key={c.id} className="group flex flex-col md:flex-row md:items-center justify-between p-5 rounded-2xl border border-slate-200 bg-white hover:border-primary/30 transition-all gap-4">
                       <div className="flex items-start gap-4">
                         <div className="h-12 w-12 rounded-xl bg-primary/5 flex items-center justify-center text-primary shrink-0 group-hover:bg-primary group-hover:text-white transition-colors">
                           <BookOpen className="h-6 w-6" />
                         </div>
                         <div className="space-y-1">
                           <p className="font-bold text-slate-900 text-lg leading-tight">{c.title}</p>
-                          <p className="text-xs text-slate-500 font-medium">Instructor: {c.author_id?.display_name || "Faculty"}</p>
+                          <p className="text-xs text-slate-500 font-medium">Instructor: {c.profiles?.display_name}</p>
                         </div>
                       </div>
                       <div className="flex items-center gap-2 shrink-0">
                         <Button 
                           size="sm" 
                           className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold h-10 px-5 rounded-xl" 
-                          onClick={() => handleCourseAction(c._id, 'approve')}
+                          onClick={() => handleCourseAction(c.id, 'approved')}
                         >
                           <CheckCircle className="mr-2 h-4 w-4" /> Approve
                         </Button>
@@ -317,9 +346,45 @@ const AdminDashboard = () => {
                           size="sm" 
                           variant="ghost" 
                           className="text-rose-600 hover:bg-rose-50 font-bold h-10 px-5 rounded-xl" 
-                          onClick={() => handleCourseAction(c._id, 'reject')}
+                          onClick={() => handleCourseAction(c.id, 'rejected')}
                         >
                           <XCircle className="mr-2 h-4 w-4" /> Reject
+                        </Button>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="enrollments">
+            <Card>
+              <CardHeader>
+                <CardTitle>Admissions & Tuition</CardTitle>
+                <CardDescription>Grant course access after financial verification.</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {pendingEnrollments.length === 0 ? (
+                  <p className="text-sm text-muted-foreground italic text-center py-12 border-2 border-dashed rounded-2xl">No pending student admissions.</p>
+                ) : (
+                  pendingEnrollments.map(e => (
+                    <div key={e.id} className="flex items-center justify-between p-4 rounded-xl border border-border bg-card/50">
+                      <div className="flex items-center gap-4">
+                        <div className="h-10 w-10 rounded-lg bg-accent/10 flex items-center justify-center text-accent">
+                          <GraduationCap className="h-5 w-5" />
+                        </div>
+                        <div>
+                          <p className="font-bold text-foreground">{e.profiles?.display_name || "Student"}</p>
+                          <p className="text-xs text-muted-foreground line-clamp-1">Enrollment for: {e.courses?.title}</p>
+                        </div>
+                      </div>
+                      <div className="flex gap-2">
+                        <Button size="sm" variant="outline" className="border-primary text-primary hover:bg-primary/5" onClick={() => handleEnrollAction(e.id, 'approved')}>
+                          Verify & Admit
+                        </Button>
+                        <Button size="sm" variant="ghost" className="text-destructive" onClick={() => handleEnrollAction(e.id, 'rejected')}>
+                          Reject
                         </Button>
                       </div>
                     </div>
@@ -379,7 +444,7 @@ const AdminDashboard = () => {
               <CardContent>
                 <div className="space-y-3">
                   {instructors.map(i => (
-                    <div key={i._id} className="flex items-center justify-between p-4 rounded-xl border border-border bg-card/50 hover:bg-muted/30 transition-all">
+                    <div key={i.id} className="flex items-center justify-between p-4 rounded-xl border border-border bg-card/50 hover:bg-muted/30 transition-all">
                       <div className="flex items-center gap-4">
                         <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-lg border-2 border-primary/20">
                           {i.display_name?.[0] || "?"}
@@ -388,12 +453,12 @@ const AdminDashboard = () => {
                           <p className="font-bold text-foreground">{i.display_name}</p>
                           <div className="flex items-center gap-2 text-xs text-muted-foreground mt-1">
                             <Mail className="h-3 w-3" />
-                            {i.email}
+                            {i.email || "staff@institution.edu"}
                           </div>
                         </div>
                       </div>
                       <div className="flex items-center gap-2">
-                        <Button size="icon" variant="ghost" className="h-8 w-8 text-destructive hover:bg-destructive/10" onClick={() => removeInstructor(i._id)}>
+                        <Button size="icon" variant="ghost" className="h-8 w-8 text-destructive hover:bg-destructive/10" onClick={() => removeInstructor(i.user_id)}>
                           <Trash2 className="h-4 w-4" />
                         </Button>
                       </div>

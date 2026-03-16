@@ -4,12 +4,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { GraduationCap, Loader2 } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import Navbar from "@/components/landing/Navbar";
 import Footer from "@/components/landing/Footer";
 import { motion } from "framer-motion";
-import api from "@/lib/api";
-import { useAuthContext } from "@/contexts/AuthContext";
 
 const Signup = () => {
   const [name, setName] = useState("");
@@ -19,7 +18,6 @@ const Signup = () => {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { refreshUser } = useAuthContext();
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -33,25 +31,31 @@ const Signup = () => {
     }
     setLoading(true);
 
-    try {
-      const response = await api.post("/auth/signup", {
-        email,
-        password,
-        role: "student",
-        display_name: name
-      });
-      
-      const { token } = response.data;
-      localStorage.setItem("gui_auth_token", token);
-      await refreshUser();
+    const { data: authData, error: authError } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: { 
+          full_name: name,
+          role: 'student' // Strictly Student
+        },
+        emailRedirectTo: window.location.origin,
+      },
+    });
 
-      toast({ title: "Account created!", description: "Welcome to Global University Institute." });
-      navigate("/dashboard");
-    } catch (error: any) {
-      const message = error.response?.data?.error || "Signup failed. Please try again.";
-      toast({ title: "Signup failed", description: message, variant: "destructive" });
-    } finally {
+    if (authError) {
+      toast({ title: "Signup failed", description: authError.message, variant: "destructive" });
       setLoading(false);
+      return;
+    }
+
+    if (authData.user && authData.session) {
+      setLoading(false);
+      navigate("/dashboard");
+    } else {
+      setLoading(false);
+      toast({ title: "Verification required", description: "Please check your email to verify your student account." });
+      navigate("/login");
     }
   };
 

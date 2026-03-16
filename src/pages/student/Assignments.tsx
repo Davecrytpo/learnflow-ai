@@ -1,13 +1,13 @@
 import { useEffect, useState } from "react";
-import api from "@/lib/api";
+import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import StudentSidebar from "@/components/dashboard/StudentSidebar";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { Calendar, Loader2, Search, FileText } from "lucide-react";
+import { Calendar, FileCheck2, UploadCloud, Loader2, Search, FileText } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 
@@ -23,18 +23,22 @@ const StudentAssignments = () => {
     if (!user) return;
     setLoading(true);
     try {
-      const enrollRes = await api.get("/enrollments/me");
-      const courseIds = (enrollRes.data || []).map((e: any) => e.course_id?._id);
+      // 1. Fetch approved enrollments
+      const { data: enrolls } = await supabase
+        .from("enrollments")
+        .select("course_id")
+        .eq("student_id", user.id);
+      
+      const courseIds = (enrolls || []).map(e => e.course_id);
 
       if (courseIds.length > 0) {
+        // 2. Fetch assignments and existing submissions in parallel
         const [asgnRes, subRes] = await Promise.all([
-          api.get("/assignments"),
-          api.get("/submissions", { params: { student_id: user.id } })
+          supabase.from("assignments").select("*, courses:course_id(title)").in("course_id", courseIds).order('due_date', { ascending: true }),
+          supabase.from("submissions").select("*").eq("student_id", user.id)
         ]);
 
-        // Filter assignments for enrolled courses
-        const filteredAsgns = (asgnRes.data || []).filter((a: any) => courseIds.includes(a.course_id));
-        setAssignments(filteredAsgns);
+        setAssignments(asgnRes.data || []);
         setSubmissions(subRes.data || []);
       }
     } catch (err: any) {
@@ -50,18 +54,19 @@ const StudentAssignments = () => {
 
   const getStatus = (assignmentId: string, dueDate: string | null) => {
     const sub = submissions.find(s => s.assignment_id === assignmentId);
-    if (sub) return sub.score !== null && sub.score !== undefined ? "Graded" : "Submitted";
+    if (sub) return sub.score !== null ? "Graded" : "Submitted";
     if (dueDate && new Date(dueDate) < new Date()) return "Overdue";
     return "Open";
   };
 
   const filtered = assignments.filter(a => 
-    a.title.toLowerCase().includes(search.toLowerCase())
+    a.title.toLowerCase().includes(search.toLowerCase()) || 
+    a.courses?.title?.toLowerCase().includes(search.toLowerCase())
   );
 
-  const upcoming = filtered.filter(a => getStatus(a._id, a.due_date) === "Open");
-  const completed = filtered.filter(a => ["Submitted", "Graded"].includes(getStatus(a._id, a.due_date)));
-  const overdue = filtered.filter(a => getStatus(a._id, a.due_date) === "Overdue");
+  const upcoming = filtered.filter(a => getStatus(a.id, a.due_date) === "Open");
+  const completed = filtered.filter(a => ["Submitted", "Graded"].includes(getStatus(a.id, a.due_date)));
+  const overdue = filtered.filter(a => getStatus(a.id, a.due_date) === "Overdue");
 
   return (
     <DashboardLayout allowedRoles={["student"]} sidebar={<StudentSidebar />}>
@@ -148,11 +153,11 @@ const AssignmentList = ({ list, loading, submissions, getStatus }: any) => {
   return (
     <div className="space-y-3">
       {list.map((a: any) => {
-        const status = getStatus(a._id, a.due_date);
-        const sub = submissions.find((s: any) => s.assignment_id === a._id);
+        const status = getStatus(a.id, a.due_date);
+        const sub = submissions.find((s: any) => s.assignment_id === a.id);
         
         return (
-          <Card key={a._id} className="group hover:border-primary/30 transition-all">
+          <Card key={a.id} className="group hover:border-primary/30 transition-all">
             <CardContent className="p-4 sm:p-5 flex flex-wrap items-center justify-between gap-4">
               <div className="flex items-center gap-4">
                 <div className="h-10 w-10 rounded-xl bg-primary/5 flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
@@ -160,7 +165,7 @@ const AssignmentList = ({ list, loading, submissions, getStatus }: any) => {
                 </div>
                 <div>
                   <h3 className="font-semibold text-foreground">{a.title}</h3>
-                  <p className="text-xs text-muted-foreground">Course Assignment</p>
+                  <p className="text-xs text-muted-foreground">{a.courses?.title}</p>
                 </div>
               </div>
               

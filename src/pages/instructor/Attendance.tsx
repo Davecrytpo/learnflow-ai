@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import api from "@/lib/api";
+import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import InstructorSidebar from "@/components/dashboard/InstructorSidebar";
@@ -29,10 +29,10 @@ const Attendance = () => {
     const fetchCourses = async () => {
       setLoading(true);
       try {
-        const response = await api.get("/instructor/courses");
-        const data = response.data;
+        const { data, error } = await supabase.from("courses").select("id, title").eq("author_id", user.id);
+        if (error) throw error;
         setCourses(data || []);
-        if (data && data.length > 0) setSelectedCourse(data[0]._id);
+        if (data && data.length > 0) setSelectedCourse(data[0].id);
       } catch (err: any) {
         console.error("Attendance fetch error:", err);
       } finally {
@@ -45,14 +45,10 @@ const Attendance = () => {
   useEffect(() => {
     if (!selectedCourse) return;
     const fetchSessions = async () => {
-      try {
-        const response = await api.get("/attendance/sessions", { params: { course_id: selectedCourse } });
-        setSessions(response.data || []);
-        if (response.data && response.data.length > 0) setSelectedSession(response.data[0]._id);
-        else setSelectedSession("");
-      } catch (err) {
-        console.error(err);
-      }
+      const { data } = await (supabase.from as any)("attendance_sessions").select("*").eq("course_id", selectedCourse).order("date", { ascending: false });
+      setSessions(data || []);
+      if (data && data.length > 0) setSelectedSession(data[0].id);
+      else setSelectedSession("");
     };
     fetchSessions();
   }, [selectedCourse]);
@@ -63,18 +59,14 @@ const Attendance = () => {
       return;
     }
     const fetchAttendance = async () => {
-      try {
-        const [enrollRes, recordRes] = await Promise.all([
-          api.get(`/courses/${selectedCourse}/gradebook`), // Reusing this to get students
-          api.get("/attendance/records", { params: { session_id: selectedSession } })
-        ]);
-        setStudents(enrollRes.data.enrollments || []);
-        const map: Record<string, string> = {};
-        recordRes.data?.forEach((r: any) => map[r.student_id] = r.status);
-        setAttendanceMap(map);
-      } catch (err) {
-        console.error(err);
-      }
+      const [enrollRes, recordRes] = await Promise.all([
+        supabase.from("enrollments").select("student_id, profiles(display_name, avatar_url)").eq("course_id", selectedCourse),
+        (supabase.from as any)("attendance_records").select("student_id, status").eq("session_id", selectedSession)
+      ]);
+      setStudents(enrollRes.data || []);
+      const map: Record<string, string> = {};
+      recordRes.data?.forEach((r: any) => map[r.student_id] = r.status);
+      setAttendanceMap(map);
     };
     fetchAttendance();
   }, [selectedSession, selectedCourse]);
@@ -82,52 +74,43 @@ const Attendance = () => {
   const createSession = async () => {
     if (!newDate || !selectedCourse) return;
     setCreating(true);
-    try {
-      const response = await api.post("/attendance/sessions", {
-        course_id: selectedCourse,
-        date: newDate
-      });
-      const data = response.data;
-      setSessions([data, ...sessions]);
-      setSelectedSession(data._id);
-      toast({ title: "Session created" });
-    } catch (error: any) {
+    const { data, error } = await (supabase.from as any)("attendance_sessions").insert({
+      course_id: selectedCourse,
+      date: newDate
+    }).select().single();
+    
+    if (error) {
       toast({ title: "Error", description: error.message, variant: "destructive" });
-    } finally {
-      setCreating(false);
+    } else {
+      setSessions([data, ...sessions]);
+      setSelectedSession(data.id);
+      toast({ title: "Session created" });
     }
+    setCreating(false);
   };
 
   const markAttendance = async (studentId: string, status: string) => {
     setAttendanceMap(prev => ({ ...prev, [studentId]: status }));
-    try {
-      await api.post("/attendance/records/upsert", {
-        session_id: selectedSession,
-        student_id: studentId,
-        status
-      });
-    } catch (err) {
-      console.error(err);
-    }
+    await (supabase.from as any)("attendance_records").upsert({
+      session_id: selectedSession,
+      student_id: studentId,
+      status
+    }, { onConflict: "session_id,student_id" });
   };
 
   const markAll = async (status: string) => {
     const updates = students.map(s => ({
       session_id: selectedSession,
-      student_id: s.student_id._id,
+      student_id: s.student_id,
       status
     }));
     
     const newMap = { ...attendanceMap };
-    students.forEach(s => newMap[s.student_id._id] = status);
+    students.forEach(s => newMap[s.student_id] = status);
     setAttendanceMap(newMap);
 
-    try {
-      await api.post("/attendance/records/bulk-upsert", { updates });
-      toast({ title: `Marked all as ${status}` });
-    } catch (err) {
-      console.error(err);
-    }
+    await (supabase.from as any)("attendance_records").upsert(updates, { onConflict: "session_id,student_id" });
+    toast({ title: `Marked all as ${status}` });
   };
 
   if (loading) return <DashboardLayout allowedRoles={["instructor"]} sidebar={<InstructorSidebar />}><Loader2 className="mx-auto mt-20 animate-spin" /></DashboardLayout>;
@@ -152,7 +135,7 @@ const Attendance = () => {
             <label className="text-sm font-medium">Select Course</label>
             <Select value={selectedCourse} onValueChange={setSelectedCourse}>
               <SelectTrigger><SelectValue placeholder="Select course" /></SelectTrigger>
-              <SelectContent>{courses.map(c => <SelectItem key={c._id} value={c._id}>{c.title}</SelectItem>)}</SelectContent>
+              <SelectContent>{courses.map(c => <SelectItem key={c.id} value={c.id}>{c.title}</SelectItem>)}</SelectContent>
             </Select>
           </div>
           <div className="space-y-2 flex-1">
@@ -170,12 +153,12 @@ const Attendance = () => {
           <Card className="overflow-hidden">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-lg">
-                Session: <span className="text-primary">{sessions.find(s => s._id === selectedSession)?.date}</span>
+                Session: <span className="text-primary">{sessions.find(s => s.id === selectedSession)?.date}</span>
               </CardTitle>
               <div className="flex gap-2">
                 <Select value={selectedSession} onValueChange={setSelectedSession}>
                   <SelectTrigger className="w-[180px]"><SelectValue /></SelectTrigger>
-                  <SelectContent>{sessions.map(s => <SelectItem key={s._id} value={s._id}>{s.date}</SelectItem>)}</SelectContent>
+                  <SelectContent>{sessions.map(s => <SelectItem key={s.id} value={s.id}>{s.date}</SelectItem>)}</SelectContent>
                 </Select>
                 <Button size="sm" variant="outline" onClick={() => markAll('present')}>Mark All Present</Button>
               </div>
@@ -191,31 +174,31 @@ const Attendance = () => {
                 </TableHeader>
                 <TableBody>
                   {students.map(s => (
-                    <TableRow key={s.student_id?._id}>
-                      <TableCell className="font-medium">{s.student_id?.display_name || "Unknown Scholar"}</TableCell>
+                    <TableRow key={s.student_id}>
+                      <TableCell className="font-medium">{s.profiles?.display_name}</TableCell>
                       <TableCell className="text-center">
-                        {attendanceMap[s.student_id?._id] ? (
+                        {attendanceMap[s.student_id] ? (
                           <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs uppercase font-bold ${
-                            attendanceMap[s.student_id._id] === 'present' ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' :
-                            attendanceMap[s.student_id._id] === 'absent' ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400' :
+                            attendanceMap[s.student_id] === 'present' ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' :
+                            attendanceMap[s.student_id] === 'absent' ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400' :
                             'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400'
                           }`}>
-                            {attendanceMap[s.student_id._id]}
+                            {attendanceMap[s.student_id]}
                           </span>
                         ) : <span className="text-muted-foreground">-</span>}
                       </TableCell>
                       <TableCell className="text-right">
                         <div className="flex justify-end gap-1">
-                          <Button size="icon" variant="ghost" className="h-8 w-8 text-green-600 hover:text-green-700 hover:bg-green-50" onClick={() => markAttendance(s.student_id._id, 'present')} title="Present">
+                          <Button size="icon" variant="ghost" className="h-8 w-8 text-green-600 hover:text-green-700 hover:bg-green-50" onClick={() => markAttendance(s.student_id, 'present')} title="Present">
                             <Check className="h-4 w-4" />
                           </Button>
-                          <Button size="icon" variant="ghost" className="h-8 w-8 text-yellow-600 hover:text-yellow-700 hover:bg-yellow-50" onClick={() => markAttendance(s.student_id._id, 'late')} title="Late">
+                          <Button size="icon" variant="ghost" className="h-8 w-8 text-yellow-600 hover:text-yellow-700 hover:bg-yellow-50" onClick={() => markAttendance(s.student_id, 'late')} title="Late">
                             <Clock className="h-4 w-4" />
                           </Button>
-                          <Button size="icon" variant="ghost" className="h-8 w-8 text-blue-600 hover:text-blue-700 hover:bg-blue-50" onClick={() => markAttendance(s.student_id._id, 'excused')} title="Excused">
+                          <Button size="icon" variant="ghost" className="h-8 w-8 text-blue-600 hover:text-blue-700 hover:bg-blue-50" onClick={() => markAttendance(s.student_id, 'excused')} title="Excused">
                             <AlertCircle className="h-4 w-4" />
                           </Button>
-                          <Button size="icon" variant="ghost" className="h-8 w-8 text-red-600 hover:text-red-700 hover:bg-red-50" onClick={() => markAttendance(s.student_id._id, 'absent')} title="Absent">
+                          <Button size="icon" variant="ghost" className="h-8 w-8 text-red-600 hover:text-red-700 hover:bg-red-50" onClick={() => markAttendance(s.student_id, 'absent')} title="Absent">
                             <X className="h-4 w-4" />
                           </Button>
                         </div>

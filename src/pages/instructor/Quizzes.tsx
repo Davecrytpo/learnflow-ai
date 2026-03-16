@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import api from "@/lib/api";
+import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import InstructorSidebar from "@/components/dashboard/InstructorSidebar";
@@ -30,14 +30,20 @@ const InstructorQuizzes = () => {
     if (!user) return;
     setLoading(true);
     try {
-      const { data: myCourses } = await api.get("/instructor/courses");
+      const { data: myCourses } = await supabase.from("courses").select("id, title").eq("author_id", user.id);
       setCourses(myCourses || []);
 
-      const { data: quizData } = await api.get("/quizzes");
-      // Filter for quizzes belonging to my courses
-      const myCourseIds = (myCourses || []).map((c: any) => c._id);
-      const filteredQuizzes = (quizData || []).filter((q: any) => myCourseIds.includes(q.course_id));
-      setQuizzes(filteredQuizzes);
+      if (myCourses && myCourses.length > 0) {
+        const cIds = myCourses.map(c => c.id);
+        const { data: quizData, error } = await supabase
+          .from("quizzes")
+          .select("*, courses:course_id(title)")
+          .in("course_id", cIds)
+          .order("created_at", { ascending: false });
+        
+        if (error) throw error;
+        setQuizzes(quizData || []);
+      }
     } catch (err: any) {
       toast({ title: "Load failed", description: err.message, variant: "destructive" });
     } finally {
@@ -54,11 +60,12 @@ const InstructorQuizzes = () => {
     if (!newQuiz.title || !newQuiz.course_id) return;
     setSaving(true);
     try {
-      await api.post("/quizzes", {
+      const { error } = await supabase.from("quizzes").insert({
         title: newQuiz.title,
         course_id: newQuiz.course_id,
         time_limit_minutes: parseInt(newQuiz.time_limit)
       });
+      if (error) throw error;
       toast({ title: "Quiz created", description: "You can now add questions in the editor." });
       setOpen(false);
       setNewQuiz({ title: "", course_id: "", time_limit: "30" });
@@ -72,17 +79,14 @@ const InstructorQuizzes = () => {
 
   const deleteQuiz = async (id: string) => {
     if (!confirm("Delete this quiz?")) return;
-    try {
-      await api.delete(`/quizzes/${id}`);
-      toast({ title: "Quiz removed" });
-      fetchData();
-    } catch (err: any) {
-      toast({ title: "Error", description: err.message, variant: "destructive" });
-    }
+    const { error } = await supabase.from("quizzes").delete().eq("id", id);
+    if (error) toast({ title: "Error", description: error.message, variant: "destructive" });
+    else { toast({ title: "Quiz removed" }); fetchData(); }
   };
 
   const filtered = quizzes.filter(q => 
-    q.title.toLowerCase().includes(search.toLowerCase())
+    q.title.toLowerCase().includes(search.toLowerCase()) || 
+    q.courses?.title?.toLowerCase().includes(search.toLowerCase())
   );
 
   return (
@@ -112,7 +116,7 @@ const InstructorQuizzes = () => {
                     <Select value={newQuiz.course_id} onValueChange={(v) => setNewQuiz({...newQuiz, course_id: v})}>
                       <SelectTrigger><SelectValue placeholder="Select course" /></SelectTrigger>
                       <SelectContent>
-                        {courses.map(c => <SelectItem key={c._id} value={c._id}>{c.title}</SelectItem>)}
+                        {courses.map(c => <SelectItem key={c.id} value={c.id}>{c.title}</SelectItem>)}
                       </SelectContent>
                     </Select>
                   </div>
@@ -162,14 +166,14 @@ const InstructorQuizzes = () => {
             ) : (
               <div className="space-y-3">
                 {filtered.map(q => (
-                  <div key={q._id} className="flex items-center justify-between p-4 rounded-xl border border-border bg-card/50 hover:bg-accent/5 transition-all">
+                  <div key={q.id} className="flex items-center justify-between p-4 rounded-xl border border-border bg-card/50 hover:bg-accent/5 transition-all">
                     <div className="flex items-center gap-4">
                       <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
                         <Timer className="h-5 w-5" />
                       </div>
                       <div>
                         <p className="font-semibold text-sm">{q.title}</p>
-                        <p className="text-xs text-muted-foreground">{courses.find(c => c._id === q.course_id)?.title || "Course"}</p>
+                        <p className="text-xs text-muted-foreground">{q.courses?.title}</p>
                       </div>
                     </div>
                     <div className="flex items-center gap-4">
@@ -181,7 +185,7 @@ const InstructorQuizzes = () => {
                         <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground">
                           <Layout className="h-4 w-4" />
                         </Button>
-                        <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:bg-destructive/10" onClick={() => deleteQuiz(q._id)}>
+                        <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:bg-destructive/10" onClick={() => deleteQuiz(q.id)}>
                           <Trash2 className="h-4 w-4" />
                         </Button>
                       </div>

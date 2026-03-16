@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import api from "@/lib/api";
+import { supabase } from "@/integrations/supabase/client";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import AdminSidebar from "@/components/dashboard/AdminSidebar";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -8,13 +8,14 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Palette, UploadCloud, Save, Loader2, Layout } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { Badge } from "@/components/ui/badge";
 
 const AdminBranding = () => {
   const { toast } = useToast();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [theme, setTheme] = useState({
-    site_name: "Global University Institute",
+    site_name: "Learnflow AI",
     primary_color: "#0f172a",
     logo_url: "",
     landing_hero_text: "Enterprise LMS for modern education."
@@ -23,34 +24,37 @@ const AdminBranding = () => {
   useEffect(() => {
     const fetchTheme = async () => {
       setLoading(true);
-      try {
-        const response = await api.get("/admin/settings/appearance_config");
-        if (response.data?.value) {
-          setTheme({ ...theme, ...response.data.value });
-        }
-      } catch (err) {
-        console.error(err);
-      } finally {
-        setLoading(false);
+      const { data } = await (supabase
+        .from as any)("system_settings")
+        .select("value")
+        .eq("key", "appearance_config")
+        .single();
+      
+      if (data) {
+        setTheme({ ...theme, ...(data as any).value });
       }
+      setLoading(false);
     };
     fetchTheme();
   }, []);
 
   const handleSave = async () => {
     setSaving(true);
-    try {
-      await api.post("/admin/settings", {
-        key: "appearance_config",
+    const { error } = await (supabase
+      .from as any)("system_settings")
+      .upsert({ 
+        key: "appearance_config", 
         value: theme,
         description: "Site appearance and branding"
       });
+
+    if (error) {
+      toast({ title: "Save failed", description: error.message, variant: "destructive" });
+    } else {
       toast({ title: "Branding updated", description: "Visual changes will be reflected shortly." });
-    } catch (err: any) {
-      toast({ title: "Save failed", description: err.message, variant: "destructive" });
-    } finally {
-      setSaving(false);
+      // In a real app, we might trigger a context refresh here
     }
+    setSaving(false);
   };
 
   return (

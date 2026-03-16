@@ -1,57 +1,67 @@
 import { useState, useEffect } from "react";
-import api from "@/lib/api";
+import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Send } from "lucide-react";
+import { Loader2, Send, MessageSquare } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Discussion, DiscussionReply } from "@/types/discussion";
 
 interface DiscussionThreadProps {
-  discussion: any;
+  discussion: Discussion;
 }
 
 const DiscussionThread = ({ discussion }: DiscussionThreadProps) => {
   const { user } = useAuth();
   const { toast } = useToast();
-  const [replies, setReplies] = useState<any[]>([]);
+  const [replies, setReplies] = useState<DiscussionReply[]>([]);
   const [loading, setLoading] = useState(true);
   const [replyContent, setReplyContent] = useState("");
   const [sending, setSending] = useState(false);
 
   useEffect(() => {
     fetchReplies();
-  }, [discussion._id]);
+  }, [discussion.id]);
 
   const fetchReplies = async () => {
     setLoading(true);
-    try {
-      const response = await api.get("/replies", { params: { discussion_id: discussion._id } });
-      setReplies(response.data || []);
-    } catch (error) {
+    const { data, error } = await (supabase
+      .from as any)("discussion_replies")
+      .select("*, profiles(display_name, avatar_url)")
+      .eq("discussion_id", discussion.id)
+      .order("created_at", { ascending: true });
+
+    if (error) {
       console.error(error);
-    } finally {
-      setLoading(false);
+    } else {
+      setReplies((data as unknown) as DiscussionReply[]);
     }
+    setLoading(false);
   };
 
   const submitReply = async () => {
     if (!user || !replyContent.trim()) return;
     setSending(true);
-    try {
-      await api.post("/replies", {
-        discussion_id: discussion._id,
+    const { data, error } = await (supabase
+      .from as any)("discussion_replies")
+      .insert({
+        discussion_id: discussion.id,
+        user_id: user.id,
         content: replyContent,
-      });
+      })
+      .select()
+      .single();
+
+    if (error) {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    } else {
       toast({ title: "Reply posted!" });
       setReplyContent("");
       fetchReplies();
-    } catch (error: any) {
-      toast({ title: "Error", description: error.response?.data?.error || "Failed to post reply", variant: "destructive" });
-    } finally {
-      setSending(false);
     }
+    setSending(false);
   };
 
   return (

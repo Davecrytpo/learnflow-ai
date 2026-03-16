@@ -50,14 +50,14 @@ describe("LMS Core Pages", () => {
 
   it("renders Login page correctly", () => {
     renderWithRouter(<Login />);
-    expect(screen.getByRole("heading", { name: /Sign In/i })).toBeInTheDocument();
-    expect(screen.getByLabelText(/Student Email/i)).toBeInTheDocument();
-    expect(screen.getByLabelText(/Security Key/i)).toBeInTheDocument();
+    expect(screen.getByText(/Sign in to Learnflow AI/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/Email/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/Password/i)).toBeInTheDocument();
   });
 
   it("renders Course Catalog page correctly", async () => {
     renderWithRouter(<CourseCatalog />);
-    expect(screen.getByText(/Empowering Global Minds/i)).toBeInTheDocument();
-    expect(screen.getByPlaceholderText(/Search by degree, major, or course name.../i)).toBeInTheDocument();
+    expect(screen.getByText(/Explore All Courses/i)).toBeInTheDocument();
+    expect(screen.getByPlaceholderText(/Search courses, topics, instructors.../i)).toBeInTheDocument();
   });
 });

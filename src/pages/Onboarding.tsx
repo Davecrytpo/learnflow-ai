@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { GraduationCap, BookOpen, Users, Loader2 } from "lucide-react";
-import api from "@/lib/api";
+import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useAuthContext } from "@/contexts/AuthContext";
 import { motion } from "framer-motion";
@@ -27,30 +27,34 @@ const Onboarding = () => {
   const [saving, setSaving] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { user, role, loading, refreshUser } = useAuthContext();
+  const { user, role, loading, refreshRole } = useAuthContext();
 
   // Redirect logic - runs only when the single shared state is fully loaded
   useEffect(() => {
     if (loading) return;
     if (!user) { navigate("/login", { replace: true }); return; }
     if (role === "student") { navigate("/dashboard/student", { replace: true }); return; }
-    if (role === "instructor") { navigate("/instructor/dashboard", { replace: true }); return; }
-    if (role === "admin") { navigate("/admin/dashboard", { replace: true }); return; }
+    if (role === "instructor") { navigate("/instructor", { replace: true }); return; }
+    if (role === "admin") { navigate("/admin", { replace: true }); return; }
   }, [user, role, loading, navigate]);
 
   const handleContinue = async () => {
     if (!selected || !user) return;
     setSaving(true);
 
-    try {
-      await api.patch("/profiles/me", { role: selected });
-      // Refresh shared context so redirect useEffect fires with the new role
-      await refreshUser();
-    } catch (error: any) {
-      toast({ title: "Error", description: error.response?.data?.error || "Failed to update role", variant: "destructive" });
-    } finally {
+    const { error } = await supabase
+      .from("user_roles")
+      .insert({ user_id: user.id, role: selected });
+
+    if (error) {
       setSaving(false);
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+      return;
     }
+
+    // Refresh shared context so redirect useEffect fires with the new role
+    await refreshRole();
+    setSaving(false);
   };
 
   if (loading) {
@@ -70,7 +74,7 @@ const Onboarding = () => {
         <div className="mx-auto mb-6 flex h-14 w-14 items-center justify-center rounded-xl bg-primary">
           <GraduationCap className="h-7 w-7 text-primary-foreground" />
         </div>
-        <h1 className="text-2xl font-bold text-foreground">How will you use Global University Institute?</h1>
+        <h1 className="text-2xl font-bold text-foreground">How will you use Learnflow AI?</h1>
         <p className="mt-2 text-muted-foreground">Select your role to personalize your experience.</p>
 
         <div className="mt-10 grid gap-4 sm:grid-cols-2">

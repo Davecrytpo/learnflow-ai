@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import api from "@/lib/api";
+import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import StudentSidebar from "@/components/dashboard/StudentSidebar";
@@ -24,40 +24,32 @@ const Profile = () => {
   useEffect(() => {
     if (!user) return;
     const fetchProfile = async () => {
-      setLoading(true);
-      try {
-        const [profRes, enrollRes] = await Promise.all([
-          api.get("/auth/me"),
-          api.get("/enrollments/me")
-        ]);
-        setProfile(profRes.data);
-        // Map enrollments to some mocked certificates for now if they are completed
-        const completed = enrollRes.data.filter((e: any) => e.status === "completed");
-        setCertificates(completed);
-      } catch (err) {
-        console.error(err);
-      } finally {
-        setLoading(false);
-      }
+      const [profRes, certRes] = await Promise.all([
+        supabase.from("profiles").select("*").eq("user_id", user.id).single(),
+        supabase.from("certificates").select("*, courses(title)").eq("user_id", user.id)
+      ]);
+      setProfile(profRes.data);
+      setCertificates(certRes.data || []);
+      setLoading(false);
     };
     fetchProfile();
   }, [user]);
 
   const handleSave = async () => {
     setSaving(true);
-    try {
-      await api.patch("/profiles/me", {
-        display_name: profile.display_name,
-        bio: profile.bio,
-        city: profile.city,
-        institution: profile.institution,
-      });
+    const { error } = await supabase.from("profiles").update({
+      display_name: profile.display_name,
+      bio: profile.bio,
+      city: profile.city,
+      institution: profile.institution,
+    }).eq("user_id", user?.id);
+
+    if (error) {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    } else {
       toast({ title: "Profile updated!" });
-    } catch (error: any) {
-      toast({ title: "Error", description: error.response?.data?.error || "Failed to update profile", variant: "destructive" });
-    } finally {
-      setSaving(false);
     }
+    setSaving(false);
   };
 
   if (loading) {
@@ -107,11 +99,11 @@ const Profile = () => {
                 ) : (
                   <div className="space-y-3">
                     {certificates.map(c => (
-                      <div key={c._id} className="flex items-center gap-3 rounded-lg border p-3">
+                      <div key={c.id} className="flex items-center gap-3 rounded-lg border p-3">
                         <Award className="h-8 w-8 text-accent" />
                         <div>
-                          <p className="text-sm font-semibold line-clamp-1">{c.course_id?.title}</p>
-                          <p className="text-[10px] text-muted-foreground">{new Date(c.completed_at || c.enrolled_at).toLocaleDateString()}</p>
+                          <p className="text-sm font-semibold line-clamp-1">{c.courses?.title}</p>
+                          <p className="text-[10px] text-muted-foreground">{new Date(c.issued_at).toLocaleDateString()}</p>
                         </div>
                       </div>
                     ))}

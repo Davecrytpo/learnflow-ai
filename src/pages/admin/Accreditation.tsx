@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import api from "@/lib/api";
+import { supabase } from "@/integrations/supabase/client";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import AdminSidebar from "@/components/dashboard/AdminSidebar";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -26,14 +26,17 @@ const AdminAccreditation = () => {
 
   const fetchAccreditations = async () => {
     setLoading(true);
-    try {
-      const response = await api.get("/accreditations");
-      setAccreditations(response.data || []);
-    } catch (err: any) {
-      toast({ title: "Load failed", description: err.message, variant: "destructive" });
-    } finally {
-      setLoading(false);
+    const { data, error } = await (supabase
+      .from as any)("accreditations")
+      .select("*")
+      .order("created_at", { ascending: false });
+    
+    if (error) {
+      toast({ title: "Load failed", description: error.message, variant: "destructive" });
+    } else {
+      setAccreditations(data || []);
     }
+    setLoading(false);
   };
 
   useEffect(() => {
@@ -44,33 +47,28 @@ const AdminAccreditation = () => {
     e.preventDefault();
     setSaving(true);
     
-    try {
-      await api.post("/accreditations", {
-        agency: newAccreditation.agency,
-        status: newAccreditation.status,
-        renewal_date: newAccreditation.renewal_date || null
-      });
+    const { error } = await (supabase.from as any)("accreditations").insert({
+      agency: newAccreditation.agency,
+      status: newAccreditation.status,
+      renewal_date: newAccreditation.renewal_date || null
+    });
 
+    if (error) {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    } else {
       toast({ title: "Accreditation added", description: "Record successfully updated." });
       setOpen(false);
       setNewAccreditation({ agency: "", status: "active", renewal_date: "" });
       fetchAccreditations();
-    } catch (err: any) {
-      toast({ title: "Error", description: err.message, variant: "destructive" });
-    } finally {
-      setSaving(false);
     }
+    setSaving(false);
   };
 
   const handleDelete = async (id: string) => {
     if (!confirm("Delete this accreditation record?")) return;
-    try {
-      await api.delete(`/accreditations/${id}`);
-      toast({ title: "Record deleted" });
-      fetchAccreditations();
-    } catch (err: any) {
-      toast({ title: "Error", description: err.message, variant: "destructive" });
-    }
+    await (supabase.from as any)("accreditations").delete().eq("id", id);
+    toast({ title: "Record deleted" });
+    fetchAccreditations();
   };
 
   const badgeFor = (status: string) => {
@@ -197,7 +195,7 @@ const AdminAccreditation = () => {
             ) : (
               <div className="space-y-3">
                 {accreditations.map((item) => (
-                  <div key={item._id} className="flex items-center justify-between p-4 rounded-xl border border-border bg-card/50 hover:bg-accent/5 transition-all">
+                  <div key={item.id} className="flex items-center justify-between p-4 rounded-xl border border-border bg-card/50 hover:bg-accent/5 transition-all">
                     <div className="flex items-center gap-4">
                       <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center text-primary font-bold text-lg">
                         {item.agency.charAt(0)}
@@ -212,7 +210,7 @@ const AdminAccreditation = () => {
                     </div>
                     <div className="flex items-center gap-4">
                       <Badge className={badgeFor(item.status)} variant="secondary">{item.status.toUpperCase()}</Badge>
-                      <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:bg-destructive/10" onClick={() => handleDelete(item._id)}>
+                      <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:bg-destructive/10" onClick={() => handleDelete(item.id)}>
                         <Trash2 className="h-4 w-4" />
                       </Button>
                     </div>

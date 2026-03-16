@@ -1,69 +1,95 @@
 import { createContext, useContext, useEffect, useState, useCallback, ReactNode } from "react";
-import api from "@/lib/api";
+import { supabase } from "@/integrations/supabase/client";
+import type { User } from "@supabase/supabase-js";
 
 export type AppRole = "admin" | "instructor" | "student";
-
-interface User {
-  id: string;
-  email: string;
-  role: AppRole;
-  display_name?: string;
-  avatar_url?: string;
-}
 
 interface AuthContextType {
   user: User | null;
   role: AppRole | null;
   loading: boolean;
-  refreshUser: () => Promise<void>;
-  logout: () => void;
+  refreshRole: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType>({
   user: null,
   role: null,
   loading: true,
-  refreshUser: async () => {},
-  logout: () => {},
+  refreshRole: async () => {},
 });
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [role, setRole] = useState<AppRole | null>(null);
+  const [authLoading, setAuthLoading] = useState(true);
+  const [roleLoading, setRoleLoading] = useState(false);
 
-  const fetchUser = useCallback(async () => {
-    const token = localStorage.getItem("gui_auth_token");
-    if (!token) {
-      setUser(null);
-      setLoading(false);
-      return;
-    }
-
+  const fetchRole = useCallback(async (userId: string, email?: string) => {
+    setRoleLoading(true);
     try {
-      const response = await api.get("/auth/me");
-      setUser(response.data);
+      // 1. Admin Overrides
+      if (email === "admin@globaluniversityinstitute.com") {
+        setRole("admin");
+        return;
+      }
+
+      // 2. Check Database Role
+      const { data, error } = await supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", userId)
+        .maybeSingle();
+      
+      if (error) throw error;
+
+      if (data?.role) {
+        setRole(data.role as AppRole);
+      } else {
+        // 3. Fallback: no role in DB, default to null (will trigger onboarding)
+        setRole(null);
+      }
     } catch (err) {
-      console.error("Auth: Failed to fetch user profile", err);
-      localStorage.removeItem("gui_auth_token");
-      setUser(null);
+      console.error("Auth: Role fetch failed, defaulting to student.", err);
+      setRole("student");
     } finally {
-      setLoading(false);
+      setRoleLoading(false);
     }
   }, []);
+
+  const refreshRole = useCallback(async () => {
+    if (!user) return;
+    await fetchRole(user.id, user.email);
+  }, [user, fetchRole]);
 
   useEffect(() => {
-    fetchUser();
-  }, [fetchUser]);
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
+      const currentUser = session?.user ?? null;
+      setUser(currentUser);
+      if (currentUser) {
+        await fetchRole(currentUser.id, currentUser.email);
+      } else {
+        setRole(null);
+      }
+      setAuthLoading(false);
+    });
 
-  const logout = useCallback(() => {
-    localStorage.removeItem("gui_auth_token");
-    setUser(null);
-  }, []);
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
+      const currentUser = session?.user ?? null;
+      setUser(currentUser);
+      if (currentUser) {
+        await fetchRole(currentUser.id, currentUser.email);
+      }
+      setAuthLoading(false);
+    });
 
-  const role = user?.role || null;
+    return () => subscription.unsubscribe();
+  }, [fetchRole]);
+
+  // If we have a user but no role yet, we are still loading
+  const loading = authLoading || (user && !role && roleLoading);
 
   return (
-    <AuthContext.Provider value={{ user, role, loading, refreshUser: fetchUser, logout }}>
+    <AuthContext.Provider value={{ user, role, loading, refreshRole }}>
       {children}
     </AuthContext.Provider>
   );

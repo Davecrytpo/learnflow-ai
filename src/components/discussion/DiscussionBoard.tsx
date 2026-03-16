@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import api from "@/lib/api";
+import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -8,6 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, MessageSquare, Plus, ArrowLeft } from "lucide-react";
 import DiscussionThread from "./DiscussionThread";
+import { Discussion } from "@/types/discussion";
 
 interface DiscussionBoardProps {
   courseId: string;
@@ -16,12 +17,12 @@ interface DiscussionBoardProps {
 const DiscussionBoard = ({ courseId }: DiscussionBoardProps) => {
   const { user } = useAuth();
   const { toast } = useToast();
-  const [discussions, setDiscussions] = useState<any[]>([]);
+  const [discussions, setDiscussions] = useState<Discussion[]>([]);
   const [loading, setLoading] = useState(true);
   const [creating, setCreating] = useState(false);
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
-  const [selectedDiscussion, setSelectedDiscussion] = useState<any | null>(null);
+  const [selectedDiscussion, setSelectedDiscussion] = useState<Discussion | null>(null);
 
   useEffect(() => {
     fetchDiscussions();
@@ -29,31 +30,43 @@ const DiscussionBoard = ({ courseId }: DiscussionBoardProps) => {
 
   const fetchDiscussions = async () => {
     setLoading(true);
-    try {
-      const response = await api.get("/discussions", { params: { course_id: courseId } });
-      setDiscussions(response.data || []);
-    } catch (error) {
+    const { data, error } = await (supabase
+      .from as any)("discussions")
+      .select("*, profiles(display_name, avatar_url)")
+      .eq("course_id", courseId)
+      .order("created_at", { ascending: false });
+
+    if (error) {
+      // toast({ title: "Error fetching discussions", description: error.message, variant: "destructive" });
       console.error(error);
-    } finally {
-      setLoading(false);
+    } else {
+      // Cast the data to Discussion[] because TypeScript doesn't know about the new table yet from Supabase types
+      setDiscussions((data as unknown) as Discussion[]);
     }
+    setLoading(false);
   };
 
   const createDiscussion = async () => {
     if (!user) return;
-    try {
-      await api.post("/discussions", {
+    const { data, error } = await (supabase
+      .from as any)("discussions")
+      .insert({
         course_id: courseId,
+        user_id: user.id,
         title,
         content,
-      });
+      })
+      .select()
+      .single();
+
+    if (error) {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    } else {
       toast({ title: "Discussion created!" });
       setCreating(false);
       setTitle("");
       setContent("");
       fetchDiscussions();
-    } catch (error: any) {
-      toast({ title: "Error", description: error.response?.data?.error || "Failed to create discussion", variant: "destructive" });
     }
   };
 

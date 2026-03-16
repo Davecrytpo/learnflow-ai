@@ -1,14 +1,7 @@
-import { useAuthContext, AppRole } from "@/contexts/AuthContext";
+import { useAuthContext } from "@/contexts/AuthContext";
+import type { User } from "@supabase/supabase-js";
 
-interface User {
-  id: string;
-  email: string;
-  role: AppRole;
-  display_name?: string;
-  avatar_url?: string;
-}
-
-export function useAuth(): { user: User | null; role: AppRole | null; loading: boolean } {
-  const { user, role, loading } = useAuthContext();
-  return { user, role, loading };
+export function useAuth(): { user: User | null; loading: boolean } {
+  const { user, loading } = useAuthContext();
+  return { user, loading };
 }

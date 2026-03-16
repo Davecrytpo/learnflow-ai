@@ -232,7 +232,7 @@ const Hero = () => {
                 <div className="h-3 w-3 rounded-full bg-primary/70" />
               </div>
               <div className="mx-auto w-64 rounded-md bg-secondary/60 px-3 py-1 text-center text-xs text-muted-foreground">
-                globaluniversityinstitute.com/dashboard/student
+                learnflow.ai/dashboard/student
               </div>
             </div>
 

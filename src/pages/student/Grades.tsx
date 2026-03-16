@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import api from "@/lib/api";
+import { supabase } from "@/integrations/supabase/client";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import StudentSidebar from "@/components/dashboard/StudentSidebar";
 import { useAuth } from "@/hooks/useAuth";
@@ -15,19 +15,19 @@ const StudentGrades = () => {
   useEffect(() => {
     if (!user) return;
     const fetch = async () => {
-      setLoading(true);
-      try {
-        const [subRes, attemptRes] = await Promise.all([
-          api.get("/submissions", { params: { student_id: user.id } }),
-          api.get("/quiz-attempts") // This needs to be scoped to user in backend or filtered
-        ]);
-        setSubmissions(subRes.data || []);
-        setAttempts(attemptRes.data || []);
-      } catch (err) {
-        console.error(err);
-      } finally {
-        setLoading(false);
-      }
+      const { data: subs } = await supabase
+        .from("submissions")
+        .select("*, assignments(title)")
+        .eq("student_id", user.id)
+        .order("submitted_at", { ascending: false });
+      const { data: quizAttempts } = await supabase
+        .from("quiz_attempts")
+        .select("*, quizzes(title)")
+        .eq("user_id", user.id)
+        .order("completed_at", { ascending: false });
+      setSubmissions(subs || []);
+      setAttempts(quizAttempts || []);
+      setLoading(false);
     };
     fetch();
   }, [user]);
@@ -58,8 +58,8 @@ const StudentGrades = () => {
             ) : (
               <div className="space-y-2">
                 {submissions.map(s => (
-                  <div key={s._id} className="rounded-xl border border-border p-3 text-sm">
-                    <p className="font-medium text-foreground">Assignment Submission</p>
+                  <div key={s.id} className="rounded-xl border border-border p-3 text-sm">
+                    <p className="font-medium text-foreground">{s.assignments?.title}</p>
                     <p className="text-xs text-muted-foreground">Score: {s.score ?? "Ungraded"}</p>
                   </div>
                 ))}
@@ -81,8 +81,8 @@ const StudentGrades = () => {
             ) : (
               <div className="space-y-2">
                 {attempts.map(a => (
-                  <div key={a._id} className="rounded-xl border border-border p-3 text-sm">
-                    <p className="font-medium text-foreground">Quiz Attempt</p>
+                  <div key={a.id} className="rounded-xl border border-border p-3 text-sm">
+                    <p className="font-medium text-foreground">{a.quizzes?.title}</p>
                     <p className="text-xs text-muted-foreground">Score: {a.score ?? "Pending"}</p>
                   </div>
                 ))}

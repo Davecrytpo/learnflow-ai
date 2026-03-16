@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import api from "@/lib/api";
-import { useAuthContext } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import InstructorSidebar from "@/components/dashboard/InstructorSidebar";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -18,7 +18,7 @@ import { useToast } from "@/hooks/use-toast";
 import { analyzeStudentPerformance } from "@/lib/anthropic";
 
 const InstructorDashboard = () => {
-  const { user } = useAuthContext();
+  const { user } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
   const [courses, setCourses] = useState<any[]>([]);
@@ -36,21 +36,41 @@ const InstructorDashboard = () => {
     if (!user) return;
     setLoading(true);
     try {
-      const { data: myCourses } = await api.get("/instructor/courses");
+      const { data: coursesData } = await supabase
+        .from("courses")
+        .select("*")
+        .eq("author_id", user.id);
+      
+      const myCourses = coursesData || [];
       setCourses(myCourses);
       
-      // Calculate revenue from courses
+      const courseIds = myCourses.map(c => c.id);
+      
+      // Fetch Real Students Count
+      const { count: studentCount } = await supabase
+        .from("enrollments")
+        .select("*", { count: 'exact', head: true })
+        .in("course_id", courseIds);
+
+      // Fetch Real Revenue
+      // Assuming enrollment record has a price or we use course price
+      // For simplicity, sum of price_cents from courses for each approved enrollment
+      const { data: enrollments } = await supabase
+        .from("enrollments")
+        .select("course_id")
+        .in("course_id", courseIds);
+
       let totalRevenue = 0;
-      // In a real app, we'd fetch actual enrollment counts per course
-      myCourses.forEach((c: any) => {
-        totalRevenue += (c.price_cents || 0) * 10; // Mocking 10 students per course for now
+      enrollments?.forEach(enr => {
+        const course = myCourses.find(c => c.id === enr.course_id);
+        if (course) totalRevenue += (course.price_cents || 0);
       });
 
       setStats({
-        students: myCourses.length * 10, 
+        students: studentCount || 0, 
         revenue: totalRevenue / 100,
-        rating: 4.9,
-        activeCourses: myCourses.filter((c: any) => c.published).length
+        rating: 4.9, // This would need a reviews table
+        activeCourses: myCourses.filter(c => c.published).length
       });
     } catch (err) {
       console.error(err);
@@ -66,12 +86,18 @@ const InstructorDashboard = () => {
   const handleAiAnalysis = async () => {
     setAnalyzing(true);
     try {
-      const courseIds = courses.map(c => c._id);
-      // Mocking data summary for AI since we don't have full stats endpoints yet
+      // Gather data for AI: attendance, grades, submissions
+      const courseIds = courses.map(c => c.id);
+      const [attendanceRes, gradesRes] = await Promise.all([
+        supabase.from("attendance").select("status").in("course_id", courseIds),
+        supabase.from("submissions").select("score, assignment_id"),
+      ]);
+
       const dataSummary = {
         totalStudents: stats.students,
-        courseCount: courses.length,
-        courses: courses.map(c => ({ title: c.title, students: 10 }))
+        attendanceStats: attendanceRes.data,
+        gradeStats: gradesRes.data,
+        courseCount: courses.length
       };
 
       const analysis = await analyzeStudentPerformance(dataSummary);
