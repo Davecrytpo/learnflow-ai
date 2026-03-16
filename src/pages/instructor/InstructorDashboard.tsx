@@ -15,7 +15,7 @@ import {
 import { motion } from "framer-motion";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { analyzeStudentPerformance } from "@/lib/anthropic";
+import { analyzeStudentPerformance } from "@/lib/ai-service";
 
 const InstructorDashboard = () => {
   const { user } = useAuth();

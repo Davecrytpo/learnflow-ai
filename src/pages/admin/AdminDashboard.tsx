@@ -19,7 +19,7 @@ import { Label } from "@/components/ui/label";
 import { Link } from "react-router-dom";
 import { useAuthContext } from "@/contexts/AuthContext";
 import { motion } from "framer-motion";
-import { generateInstitutionalReport } from "@/lib/anthropic";
+import { generateInstitutionalReport } from "@/lib/ai-service";
 
 const AdminDashboard = () => {
   const { user } = useAuthContext();
