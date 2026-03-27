@@ -12,6 +12,8 @@ WORKDIR /app
 COPY package*.json ./
 RUN npm install --omit=dev --legacy-peer-deps
 COPY . .
+# Ensure dist exists even if builder fails
+RUN mkdir -p dist
 # Copy the built frontend from the previous stage
 COPY --from=frontend-builder /app/dist ./dist
 
