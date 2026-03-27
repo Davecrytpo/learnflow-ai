@@ -910,6 +910,8 @@ app.get("/courses/:id", async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
+
+app.get("/courses/:id/learning-data", authenticate, async (req, res) => {
   try {
     const courseId = req.params.id;
     const userId = req.user.id;
