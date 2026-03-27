@@ -7,6 +7,7 @@ import mongoose from "mongoose";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
 import crypto from "crypto";
+import sgMail from "@sendgrid/mail";
 
 import path from "path";
 import { fileURLToPath } from "url";
@@ -558,53 +559,60 @@ app.patch("/profiles/me", authenticate, async (req, res) => {
 const SENDGRID_API_KEY = process.env.SENDGRID_API_KEY;
 const SENDGRID_SENDER_EMAIL = process.env.SENDGRID_SENDER_EMAIL || "noreply@globaluniversityinstitute.com";
 
+if (SENDGRID_API_KEY) {
+  sgMail.setApiKey(SENDGRID_API_KEY);
+}
+
 const sendEmail = async ({ to, subject, htmlContent }) => {
   if (!SENDGRID_API_KEY) {
     console.error("SENDGRID_API_KEY is not set. Skipping email.");
     return { success: false, error: "SENDGRID_API_KEY is not set." };
   }
-  if (!SENDGRID_SENDER_EMAIL) {
-    console.error("SENDGRID_SENDER_EMAIL is not set. Skipping email.");
-    return { success: false, error: "SENDGRID_SENDER_EMAIL is not set." };
-  }
-  if (typeof fetch !== "function") {
-    console.error("Fetch API is not available. Use Node.js 18+ or provide a fetch polyfill.");
-    return { success: false, error: "Fetch API is not available." };
-  }
+
+  const msg = {
+    to,
+    from: {
+      email: SENDGRID_SENDER_EMAIL,
+      name: "Global University Institute"
+    },
+    subject,
+    html: htmlContent,
+  };
+
   try {
-    const response = await fetch("https://api.sendgrid.com/v3/mail/send", {
-      method: "POST",
-      headers: {
-        "Authorization": `Bearer ${SENDGRID_API_KEY}`,
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        personalizations: [{
-          to: [{ email: to }]
-        }],
-        from: { email: SENDGRID_SENDER_EMAIL, name: "Global University Institute" },
-        subject,
-        content: [{
-          type: "text/html",
-          value: htmlContent
-        }]
-      })
-    });
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error("SendGrid API error:", {
-        status: response.status,
-        statusText: response.statusText,
-        body: errorText
-      });
-      return { success: false, error: "SendGrid rejected the request.", status: response.status };
-    }
+    await sgMail.send(msg);
+    console.log(`Email sent successfully to ${to}`);
     return { success: true };
   } catch (error) {
-    console.error("SendGrid Email Error:", error);
+    console.error("SendGrid Email Error:");
+    if (error.response) {
+      console.error(error.response.body);
+    } else {
+      console.error(error);
+    }
     return { success: false, error: error.message };
   }
 };
+
+// Test route for diagnostics
+app.get("/auth/test-email", async (req, res) => {
+  const testEmail = req.query.email || "test@example.com";
+  const result = await sendEmail({
+    to: testEmail,
+    subject: "Diagnostic Test - Global University Institute",
+    htmlContent: "<h1>Success</h1><p>Your institutional email system is configured correctly.</p>"
+  });
+  
+  if (result.success) {
+    res.json({ message: `Test email sent to ${testEmail}. Please check your inbox/spam.` });
+  } else {
+    res.status(500).json({ 
+      error: "Email system failed.", 
+      details: result.error,
+      hint: "Ensure SENDGRID_SENDER_EMAIL is a 'Verified Sender' in your SendGrid dashboard."
+    });
+  }
+});
 
 const normalizeEmail = (email) => email?.trim().toLowerCase();
 const generateToken = () => crypto.randomBytes(32).toString("hex");
