@@ -1,5 +1,4 @@
-import { useAuthContext } from "@/contexts/AuthContext";
-import type { User } from "@supabase/supabase-js";
+import { useAuthContext, type User } from "@/contexts/AuthContext";
 
 export function useAuth(): { user: User | null; loading: boolean } {
   const { user, loading } = useAuthContext();

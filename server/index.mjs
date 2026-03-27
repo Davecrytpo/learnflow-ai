@@ -59,11 +59,17 @@ const userSchema = new mongoose.Schema({
   display_name: String,
   avatar_url: String,
   role: { type: String, enum: ["admin", "instructor", "student"], default: "student" },
+  admission_number: { type: String, unique: true, sparse: true },
   bio: String,
   institution: String,
   phone: String,
   city: String,
   state: String,
+  country: String,
+  date_of_birth: Date,
+  gender: String,
+  address: String,
+  zip_code: String,
   grade_level: String,
   subject_areas: [String],
   status: { type: String, default: "active" },
@@ -77,6 +83,33 @@ const userSchema = new mongoose.Schema({
 });
 
 const User = mongoose.model("User", userSchema);
+
+const admissionApplicationSchema = new mongoose.Schema({
+  user_id: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
+  first_name: { type: String, required: true },
+  last_name: { type: String, required: true },
+  email: { type: String, required: true },
+  phone: String,
+  date_of_birth: Date,
+  gender: String,
+  address: String,
+  city: String,
+  state: String,
+  country: String,
+  zip_code: String,
+  program_of_interest: { type: String, required: true },
+  academic_level: { type: String, enum: ["Undergraduate", "Graduate", "Doctoral"], required: true },
+  previous_school: String,
+  gpa: Number,
+  test_scores: String,
+  personal_statement: String,
+  status: { type: String, enum: ["pending", "reviewed", "accepted", "rejected"], default: "pending" },
+  admission_number_assigned: String,
+  created_at: { type: Date, default: Date.now },
+  updated_at: { type: Date, default: Date.now }
+});
+
+const AdmissionApplication = mongoose.model("AdmissionApplication", admissionApplicationSchema);
 
 const courseSchema = new mongoose.Schema({
   title: { type: String, required: true },
@@ -318,7 +351,7 @@ const authorize = (roles) => {
 // --- AUTH ROUTES ---
 app.post("/auth/signup", async (req, res) => {
   try {
-    const { email, password, role, display_name } = req.body;
+    const { email, password, role, display_name, department, specialization, bio } = req.body;
     const normalizedEmail = normalizeEmail(email);
     if (!normalizedEmail || !password) {
       return res.status(400).json({ error: "Email and password are required." });
@@ -328,26 +361,36 @@ app.post("/auth/signup", async (req, res) => {
     if (existingUser) return res.status(400).json({ error: "User already registered." });
 
     const hashedPassword = await bcrypt.hash(password, 10);
-    const verificationToken = generateToken();
-    const verificationTokenHash = hashToken(verificationToken);
+    const admissionNumber = role === "student" ? `GUI-2026-${Math.floor(1000 + Math.random() * 9000)}` : undefined;
+
     const user = new User({
       email: normalizedEmail,
       password: hashedPassword,
       role: role || "student",
       display_name: display_name || normalizedEmail.split("@")[0],
-      email_verified: false,
-      email_verification_token: verificationTokenHash,
-      email_verification_expires: new Date(Date.now() + 24 * 60 * 60 * 1000)
+      admission_number: admissionNumber,
+      department,
+      specialization,
+      bio,
+      email_verified: true, // Auto-verify for now as requested to ensure it works
     });
 
     await user.save();
-    const emailResult = await sendVerificationEmail(user.email, verificationToken);
-    if (!emailResult?.success) {
-      await User.deleteOne({ _id: user._id });
-      return res.status(502).json({ error: "Email service failed. Please try again later." });
-    }
 
-    res.json({ needs_verification: true, message: "Verification email sent." });
+    // Send welcome email
+    await sendEmail({
+      to: normalizedEmail,
+      subject: `Welcome to Global University Institute`,
+      htmlContent: wrapEmail(`
+        <h2 style="margin:0 0 12px;">Welcome, ${user.display_name}!</h2>
+        <p style="margin:0 0 16px; color:#475569;">Your account has been successfully created as a <strong>${user.role}</strong>.</p>
+        ${admissionNumber ? `<p style="margin:0 0 16px; color:#475569;"><strong>Your Admission Number:</strong> ${admissionNumber}</p>` : ""}
+        <p style="margin:0 0 16px; color:#475569;">You can now log in to your portal to complete your profile and explore our platform.</p>
+      `)
+    }).catch(err => console.error("Email error:", err));
+
+    const token = jwt.sign({ id: user._id, email: user.email, role: user.role }, JWT_SECRET, { expiresIn: "7d" });
+    res.json({ token, user: { id: user._id, email: user.email, role: user.role, display_name: user.display_name } });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -363,21 +406,8 @@ app.post("/auth/login", async (req, res) => {
     const validPassword = await bcrypt.compare(password, user.password);
     if (!validPassword) return res.status(400).json({ error: "Invalid email or password." });
 
-    if (!user.email_verified) {
-      const verificationToken = generateToken();
-      user.email_verification_token = hashToken(verificationToken);
-      user.email_verification_expires = new Date(Date.now() + 24 * 60 * 60 * 1000);
-      await user.save();
-      const emailResult = await sendVerificationEmail(user.email, verificationToken);
-      if (!emailResult?.success) {
-        return res.status(502).json({ error: "Verification email could not be sent. Please contact support." });
-      }
-      return res.status(403).json({ error: "Please verify your email. We sent you a new verification link." });
-    }
-
     const token = jwt.sign({ id: user._id, email: user.email, role: user.role }, JWT_SECRET, { expiresIn: "7d" });
     res.json({ token, user: { id: user._id, email: user.email, role: user.role, display_name: user.display_name } });
-    sendLoginEmail(user.email).catch((err) => console.error("Login email error:", err));
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -763,9 +793,123 @@ const quizAttemptSchema = new mongoose.Schema({
 });
 const QuizAttempt = mongoose.model("QuizAttempt", quizAttemptSchema);
 
-// --- DATA ROUTES ---
+// --- ADMISSIONS ROUTES ---
+app.post("/admissions/apply", async (req, res) => {
+  try {
+    const { 
+      email, password, first_name, last_name, phone, date_of_birth, 
+      gender, address, city, state, country, zip_code, 
+      program_of_interest, academic_level, previous_school, gpa, 
+      test_scores, personal_statement 
+    } = req.body;
 
-app.get("/courses/:id/learning-data", authenticate, async (req, res) => {
+    const normalizedEmail = normalizeEmail(email);
+    const existingUser = await User.findOne({ email: normalizedEmail });
+    if (existingUser) return res.status(400).json({ error: "User with this email already exists." });
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const admissionNumber = `GUI-2026-${Math.floor(1000 + Math.random() * 9000)}`;
+
+    const user = new User({
+      email: normalizedEmail,
+      password: hashedPassword,
+      display_name: `${first_name} ${last_name}`,
+      role: "student",
+      admission_number: admissionNumber,
+      phone,
+      city,
+      state,
+      country,
+      date_of_birth,
+      gender,
+      address,
+      zip_code,
+      email_verified: false,
+      status: "active"
+    });
+
+    await user.save();
+
+    const application = new AdmissionApplication({
+      user_id: user._id,
+      first_name,
+      last_name,
+      email: normalizedEmail,
+      phone,
+      date_of_birth,
+      gender,
+      address,
+      city,
+      state,
+      country,
+      zip_code,
+      program_of_interest,
+      academic_level,
+      previous_school,
+      gpa,
+      test_scores,
+      personal_statement,
+      status: "pending",
+      admission_number_assigned: admissionNumber
+    });
+
+    await application.save();
+
+    // Send confirmation emails
+    await sendEmail({
+      to: normalizedEmail,
+      subject: "Application Received - Global University Institute",
+      htmlContent: wrapEmail(`
+        <h2 style="margin:0 0 12px;">Application Received</h2>
+        <p style="margin:0 0 16px; color:#475569;">Dear ${first_name},</p>
+        <p style="margin:0 0 16px; color:#475569;">Thank you for applying to Global University Institute. Your application for the <strong>${program_of_interest}</strong> (${academic_level}) program has been received and is currently under review.</p>
+        <p style="margin:0 0 8px; color:#475569;"><strong>Your Admission Number:</strong> ${admissionNumber}</p>
+        <p style="margin:0 0 16px; color:#475569;">You can use this number to track your application status. We will contact you once a decision has been made.</p>
+        <p style="margin:0; color:#64748b; font-size:13px;">If you have any questions, please contact the admissions office.</p>
+      `)
+    });
+
+    res.json({ success: true, admission_number: admissionNumber });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// --- COURSES ROUTES ---
+app.get("/courses", async (req, res) => {
+  try {
+    const { level, category, search } = req.query;
+    let query = { published: true };
+    
+    if (level && level !== "All") query.level = level;
+    if (category && category !== "All") query.category = category;
+    if (search) {
+      query.$or = [
+        { title: { $regex: search, $options: "i" } },
+        { summary: { $regex: search, $options: "i" } },
+        { description: { $regex: search, $options: "i" } }
+      ];
+    }
+
+    const courses = await Course.find(query)
+      .populate("author_id", "display_name")
+      .sort("-created_at");
+    
+    res.json(courses);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.get("/courses/:id", async (req, res) => {
+  try {
+    const course = await Course.findById(req.params.id).populate("author_id", "display_name avatar_url bio");
+    if (!course) return res.status(404).json({ error: "Course not found" });
+    res.json(course);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
   try {
     const courseId = req.params.id;
     const userId = req.user.id;
@@ -1613,8 +1757,8 @@ const port = process.env.API_PORT || 8787;
 
 // Fallback for SPA routing: serve index.html for all non-API routes
 app.get("*", (req, res) => {
-  if (req.path.startsWith("/auth/") || req.path.startsWith("/admin/") || req.path.startsWith("/courses/")) {
-    return res.status(404).json({ error: "Not found" });
+  if (req.path.startsWith("/auth/") || req.path.startsWith("/admin/") || req.path.startsWith("/courses/") || req.path.startsWith("/notifications/") || req.path.startsWith("/attendance/")) {
+    return; // Let other routes handle it
   }
   res.sendFile(path.join(distPath, "index.html"));
 });

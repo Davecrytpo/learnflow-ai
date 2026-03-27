@@ -7,6 +7,7 @@ import { Loader2, Eye, EyeOff, BookOpen, School, ArrowLeft } from "lucide-react"
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { motion } from "framer-motion";
+import { apiClient } from "@/lib/api-client";
 import Navbar from "@/components/landing/Navbar";
 import Footer from "@/components/landing/Footer";
 
@@ -23,36 +24,13 @@ const InstructorLogin = () => {
     setLoading(true);
     
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-      if (error) throw error;
-
-      if (data.user) {
-        // Check if user has instructor role
-        const { data: roleData } = await supabase
-          .from("user_roles")
-          .select("role")
-          .eq("user_id", data.user.id)
-          .eq("role", "instructor")
-          .single();
-
-        if (roleData) {
-          navigate("/instructor");
-        } else {
-          // Check if admin (admins can access instructor portal too usually)
-          const { data: adminData } = await supabase
-            .from("user_roles")
-            .select("role")
-            .eq("user_id", data.user.id)
-            .eq("role", "admin")
-            .single();
-          
-          if (adminData) {
-            navigate("/instructor");
-          } else {
-            await supabase.auth.signOut();
-            throw new Error("Access Denied: Instructor privileges required.");
-          }
-        }
+      const data = await apiClient.auth.login({ email, password });
+      
+      if (data.user && (data.user.role === "instructor" || data.user.role === "admin")) {
+        navigate("/instructor");
+      } else {
+        apiClient.auth.logout();
+        throw new Error("Access Denied: Instructor privileges required.");
       }
     } catch (error: any) {
       toast({ title: "Portal Access Failed", description: error.message, variant: "destructive" });

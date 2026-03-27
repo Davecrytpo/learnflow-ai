@@ -157,6 +157,7 @@ const Apply = lazy(() => import("./pages/admissions/Apply"));
 const Tuition = lazy(() => import("./pages/admissions/Tuition"));
 const Visit = lazy(() => import("./pages/admissions/Visit"));
 const AdmissionsContact = lazy(() => import("./pages/admissions/Contact"));
+const ApplyForm = lazy(() => import("./pages/admissions/ApplyForm"));
 
 // Campus
 const Events = lazy(() => import("./pages/campus/Events"));
@@ -211,6 +212,7 @@ const App = () => (
                   <Route path="/admissions/tuition" element={<Tuition />} />
                   <Route path="/admissions/visit" element={<Visit />} />
                   <Route path="/admissions/contact" element={<AdmissionsContact />} />
+                  <Route path="/admissions/apply-form" element={<ApplyForm />} />
 
                   {/* Campus */}
                   <Route path="/campus/news" element={<News />} />

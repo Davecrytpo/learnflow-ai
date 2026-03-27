@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { GraduationCap, Loader2 } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
+import { apiClient } from "@/lib/api-client";
 import { useToast } from "@/hooks/use-toast";
 import Navbar from "@/components/landing/Navbar";
 import Footer from "@/components/landing/Footer";
@@ -31,31 +31,25 @@ const Signup = () => {
     }
     setLoading(true);
 
-    const { data: authData, error: authError } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: { 
-          full_name: name,
-          role: 'student' // Strictly Student
-        },
-        emailRedirectTo: window.location.origin,
-      },
-    });
+    try {
+      const data = await apiClient.auth.signup({
+        email,
+        password,
+        display_name: name,
+        role: 'student'
+      });
 
-    if (authError) {
-      toast({ title: "Signup failed", description: authError.message, variant: "destructive" });
       setLoading(false);
-      return;
-    }
-
-    if (authData.user && authData.session) {
+      if (data.needs_verification) {
+        toast({ title: "Verification required", description: "Please check your email to verify your student account." });
+        navigate("/login");
+      } else {
+        toast({ title: "Signup successful", description: "You can now log in." });
+        navigate("/login");
+      }
+    } catch (error: any) {
+      toast({ title: "Signup failed", description: error.message, variant: "destructive" });
       setLoading(false);
-      navigate("/dashboard");
-    } else {
-      setLoading(false);
-      toast({ title: "Verification required", description: "Please check your email to verify your student account." });
-      navigate("/login");
     }
   };
 

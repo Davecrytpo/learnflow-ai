@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { ArrowRight, Search, Loader2, BookOpen } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useState, useEffect, useRef } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { apiClient } from "@/lib/api-client";
 
 const HeroSection = () => {
   const navigate = useNavigate();
@@ -31,20 +31,25 @@ const HeroSection = () => {
       }
 
       setIsSearching(true);
-      const { data } = await supabase
-        .from("courses")
-        .select("id, title, category, slug")
-        .ilike("title", `%${searchQuery}%`)
-        .limit(5);
-      
-      setSuggestions(data || []);
-      setIsSearching(false);
-      setShowSuggestions(true);
+      try {
+        const data = await apiClient.fetch(`/courses?search=${encodeURIComponent(searchQuery)}&limit=5`);
+        setSuggestions(data || []);
+        setShowSuggestions(data?.length > 0);
+      } catch (err) {
+        console.error("Search error:", err);
+      } finally {
+        setIsSearching(false);
+      }
     };
 
     const timer = setTimeout(fetchSuggestions, 300);
     return () => clearTimeout(timer);
   }, [searchQuery]);
+
+  const handleSuggestionClick = (id: string) => {
+    navigate(`/course/${id}`);
+    setShowSuggestions(false);
+  };
 
   return (
     <section className="relative min-h-[100vh] flex items-center justify-center overflow-hidden">
@@ -166,7 +171,7 @@ const HeroSection = () => {
               size="lg"
               variant="outline"
               className="h-12 rounded-full border-white/25 px-8 text-white hover:bg-white/10 hover:text-white"
-              onClick={() => navigate("/signup")}
+              onClick={() => navigate("/admissions/apply-form")}
             >
               Apply Now
             </Button>
@@ -174,7 +179,7 @@ const HeroSection = () => {
               size="lg"
               variant="outline"
               className="h-12 rounded-full border-white/25 px-8 text-white hover:bg-white/10 hover:text-white"
-              onClick={() => navigate("/academics/catalog")}
+              onClick={() => navigate("/academics/undergraduate")}
             >
               Explore Programs
             </Button>

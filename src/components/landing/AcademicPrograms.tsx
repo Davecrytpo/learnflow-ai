@@ -122,7 +122,7 @@ const AcademicPrograms = () => (
               ))}
             </div>
             <Link
-              to="/courses"
+              to="/academics/undergraduate"
               className="inline-flex items-center gap-1 text-xs font-bold text-primary hover:underline group"
             >
               Explore Faculty <ChevronRight className="h-3 w-3 group-hover:translate-x-0.5 transition-transform" />

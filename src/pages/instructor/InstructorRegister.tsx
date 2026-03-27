@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { BookOpen, Loader2, CheckCircle, School } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
+import { apiClient } from "@/lib/api-client";
 import { useToast } from "@/hooks/use-toast";
 import Navbar from "@/components/landing/Navbar";
 import Footer from "@/components/landing/Footer";
@@ -62,33 +62,22 @@ const InstructorRegister = () => {
     setLoading(true);
 
     try {
-      const { data: authData, error: authError } = await supabase.auth.signUp({
+      const data = await apiClient.auth.signup({
         email: formData.email,
         password: formData.password,
-        options: {
-          data: { 
-            full_name: `${formData.firstName} ${formData.lastName}`,
-            // role: 'instructor', // Omitted: Role will be assigned by Admin after approval
-            department: formData.department,
-            specialization: formData.specialization,
-            is_faculty_applicant: true // Flag for admin filtering
-          },
-          emailRedirectTo: window.location.origin,
-        },
+        display_name: `${formData.firstName} ${formData.lastName}`,
+        role: 'instructor',
+        department: formData.department,
+        specialization: formData.specialization,
+        bio: formData.bio
       });
 
-      if (authError) throw authError;
-
-      if (authData.user) {
-        await supabase.from("profiles").update({
-          bio: formData.bio
-        }).eq("user_id", authData.user.id);
-
+      if (data) {
         toast({ 
           title: "Application Received", 
-          description: "Your faculty application is being reviewed by the Academic Board. You will be notified via email upon approval." 
+          description: "Your faculty application is being reviewed. You can now log in to access your portal." 
         });
-        navigate("/");
+        navigate("/instructor/login");
       }
     } catch (error: any) {
       toast({ title: "Registration failed", description: error.message, variant: "destructive" });
@@ -267,7 +256,7 @@ const InstructorRegister = () => {
               </form>
               
               <div className="mt-6 text-center text-sm text-slate-500">
-                Already a faculty member? <Link to="/login?role=instructor" className="text-primary font-bold hover:underline">Log in here</Link>
+                Already a faculty member? <Link to="/instructor/login" className="text-primary font-bold hover:underline">Log in here</Link>
               </div>
             </div>
           </motion.div>

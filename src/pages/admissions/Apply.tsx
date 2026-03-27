@@ -43,7 +43,7 @@ const Apply = () => {
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button size="lg" className="bg-gradient-brand text-primary-foreground" asChild>
-                <Link to="/signup">Start Application</Link>
+                <Link to="/admissions/apply-form">Start Application</Link>
               </Button>
               <Button size="lg" variant="outline" asChild>
                 <Link to="/admissions/contact">Contact Admissions</Link>

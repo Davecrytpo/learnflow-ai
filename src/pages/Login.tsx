@@ -3,8 +3,8 @@ import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Loader2, Eye, EyeOff, ArrowRight, GraduationCap } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
+import { Loader2, Eye, EyeOff, GraduationCap } from "lucide-react";
+import { apiClient } from "@/lib/api-client";
 import { useToast } from "@/hooks/use-toast";
 import { motion } from "framer-motion";
 import Navbar from "@/components/landing/Navbar";
@@ -23,10 +23,8 @@ const Login = () => {
     setLoading(true);
     
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-      if (error) throw error;
-
-      if (data.user) {
+      const data = await apiClient.auth.login({ email, password });
+      if (data.token) {
         // Redirect to student dashboard
         navigate("/dashboard");
       }

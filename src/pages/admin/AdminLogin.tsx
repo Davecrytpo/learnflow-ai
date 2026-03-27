@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Shield, Loader2, Lock, ArrowLeft } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
+import { apiClient } from "@/lib/api-client";
 import { useToast } from "@/hooks/use-toast";
 import { motion } from "framer-motion";
 
@@ -20,29 +20,14 @@ const AdminLogin = () => {
     setLoading(true);
 
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
-
-      if (error) throw error;
-
-      if (data.user) {
-        // Check if user is actually an admin
-        const { data: roleData } = await supabase
-          .from("user_roles")
-          .select("role")
-          .eq("user_id", data.user.id)
-          .eq("role", "admin")
-          .single();
-
-        if (roleData) {
-          toast({ title: "Authorized", description: "Welcome to the institutional command center." });
-          navigate("/admin/dashboard");
-        } else {
-          await supabase.auth.signOut();
-          throw new Error("Access Denied: Administrative privileges required.");
-        }
+      const data = await apiClient.auth.login({ email, password });
+      
+      if (data.user && data.user.role === "admin") {
+        toast({ title: "Authorized", description: "Welcome to the institutional command center." });
+        navigate("/admin/dashboard");
+      } else {
+        apiClient.auth.logout();
+        throw new Error("Access Denied: Administrative privileges required.");
       }
     } catch (error: any) {
       toast({ title: "Login Failed", description: error.message, variant: "destructive" });
