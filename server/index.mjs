@@ -407,6 +407,10 @@ app.post("/auth/login", async (req, res) => {
     if (!validPassword) return res.status(400).json({ error: "Invalid email or password." });
 
     const token = jwt.sign({ id: user._id, email: user.email, role: user.role }, JWT_SECRET, { expiresIn: "7d" });
+    
+    // Send login notification
+    sendLoginEmail(user.email).catch(err => console.error("Login email error:", err));
+
     res.json({ token, user: { id: user._id, email: user.email, role: user.role, display_name: user.display_name } });
   } catch (err) {
     res.status(500).json({ error: err.message });
