@@ -350,6 +350,38 @@ const authorize = (roles) => {
 };
 
 // --- AUTH ROUTES ---
+app.post("/auth/init-admin", async (req, res) => {
+  try {
+    const { email, password, key } = req.body;
+    
+    // Check if any admin exists
+    const adminExists = await User.findOne({ role: "admin" });
+    if (adminExists) {
+      return res.status(403).json({ error: "System already initialized." });
+    }
+
+    // Optional: Use JWT_SECRET as a simple 'key' to prevent random access
+    if (key !== JWT_SECRET) {
+      return res.status(403).json({ error: "Invalid initialization key." });
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const user = new User({
+      email: normalizeEmail(email),
+      password: hashedPassword,
+      role: "admin",
+      display_name: "System Administrator",
+      email_verified: true,
+      status: "active"
+    });
+
+    await user.save();
+    res.json({ success: true, message: "Admin account created successfully. You can now log in at /admin/login" });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 app.post("/auth/signup", async (req, res) => {
   try {
     const { email, password, role, display_name, department, specialization, bio } = req.body;
