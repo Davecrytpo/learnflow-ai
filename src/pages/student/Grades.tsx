@@ -96,6 +96,3 @@ const StudentGrades = () => {
 };
 
 export default StudentGrades;
-
-
-export default StudentGrades;
