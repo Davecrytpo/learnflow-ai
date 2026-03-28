@@ -4,7 +4,7 @@ import { useAuthContext } from "@/contexts/AuthContext";
 import { AppRole } from "@/hooks/useUserRole";
 import { Loader2, LogOut, Moon, Sun, Bell, Search, Settings, User, BookOpen, Award, Shield } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { supabase } from "@/integrations/supabase/client";
+import { apiClient } from "@/lib/api-client";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { useTheme } from "next-themes";
 import { Input } from "@/components/ui/input";
@@ -46,8 +46,8 @@ const DashboardLayout = ({ children, allowedRoles, sidebar }: DashboardLayoutPro
     );
   }
 
-  const handleLogout = async () => {
-    await supabase.auth.signOut();
+  const handleLogout = () => {
+    apiClient.auth.logout();
     navigate("/");
   };
 

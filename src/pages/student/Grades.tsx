@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { apiClient } from "@/lib/api-client";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import StudentSidebar from "@/components/dashboard/StudentSidebar";
 import { useAuth } from "@/hooks/useAuth";
@@ -14,22 +14,22 @@ const StudentGrades = () => {
 
   useEffect(() => {
     if (!user) return;
-    const fetch = async () => {
-      const { data: subs } = await supabase
-        .from("submissions")
-        .select("*, assignments(title)")
-        .eq("student_id", user.id)
-        .order("submitted_at", { ascending: false });
-      const { data: quizAttempts } = await supabase
-        .from("quiz_attempts")
-        .select("*, quizzes(title)")
-        .eq("user_id", user.id)
-        .order("completed_at", { ascending: false });
-      setSubmissions(subs || []);
-      setAttempts(quizAttempts || []);
-      setLoading(false);
+    const fetchGrades = async () => {
+      setLoading(true);
+      try {
+        const [subs, quizAttempts] = await Promise.all([
+          apiClient.fetch("/submissions/me"),
+          apiClient.fetch("/quiz-attempts/me")
+        ]);
+        setSubmissions(subs || []);
+        setAttempts(quizAttempts || []);
+      } catch (err) {
+        console.error("Failed to fetch grades", err);
+      } finally {
+        setLoading(false);
+      }
     };
-    fetch();
+    fetchGrades();
   }, [user]);
 
   return (
@@ -58,8 +58,8 @@ const StudentGrades = () => {
             ) : (
               <div className="space-y-2">
                 {submissions.map(s => (
-                  <div key={s.id} className="rounded-xl border border-border p-3 text-sm">
-                    <p className="font-medium text-foreground">{s.assignments?.title}</p>
+                  <div key={s._id} className="rounded-xl border border-border p-3 text-sm">
+                    <p className="font-medium text-foreground">{s.assignment_id?.title || "Untitled Assignment"}</p>
                     <p className="text-xs text-muted-foreground">Score: {s.score ?? "Ungraded"}</p>
                   </div>
                 ))}
@@ -81,8 +81,8 @@ const StudentGrades = () => {
             ) : (
               <div className="space-y-2">
                 {attempts.map(a => (
-                  <div key={a.id} className="rounded-xl border border-border p-3 text-sm">
-                    <p className="font-medium text-foreground">{a.quizzes?.title}</p>
+                  <div key={a._id} className="rounded-xl border border-border p-3 text-sm">
+                    <p className="font-medium text-foreground">{a.quiz_id?.title || "Untitled Quiz"}</p>
                     <p className="text-xs text-muted-foreground">Score: {a.score ?? "Pending"}</p>
                   </div>
                 ))}
@@ -94,5 +94,8 @@ const StudentGrades = () => {
     </DashboardLayout>
   );
 };
+
+export default StudentGrades;
+
 
 export default StudentGrades;

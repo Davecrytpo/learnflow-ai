@@ -534,6 +534,89 @@ app.post("/auth/reset-password", async (req, res) => {
   }
 });
 
+// Admin: Institutional Stats
+app.get("/admin/stats", authenticate, authorize(["admin"]), async (req, res) => {
+  try {
+    const [usersCount, coursesCount, enrollmentsCount, pendingCoursesCount, pendingEnrCount, instructorsCount] = await Promise.all([
+      User.countDocuments({ role: "student" }),
+      Course.countDocuments({}),
+      Enrollment.countDocuments({}),
+      Course.countDocuments({ status: "pending" }),
+      Enrollment.countDocuments({ status: "pending" }),
+      User.countDocuments({ role: "instructor" })
+    ]);
+
+    res.json({
+      users: usersCount,
+      courses: coursesCount,
+      enrollments: enrollmentsCount,
+      pendingCourses: pendingCoursesCount,
+      pendingEnr: pendingEnrCount,
+      activeInstructors: instructorsCount
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.get("/admin/faculty-apps", authenticate, authorize(["admin"]), async (req, res) => {
+  try {
+    const apps = await User.find({ role: "instructor", status: "pending" }).sort("-created_at");
+    res.json(apps);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.get("/admin/pending-courses", authenticate, authorize(["admin"]), async (req, res) => {
+  try {
+    const courses = await Course.find({ status: "pending" }).populate("author_id", "display_name").sort("-created_at");
+    res.json(courses);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.get("/admin/pending-enrollments", authenticate, authorize(["admin"]), async (req, res) => {
+  try {
+    const enrolls = await Enrollment.find({ status: "pending" })
+      .populate("student_id", "display_name")
+      .populate("course_id", "title")
+      .sort("-enrolled_at");
+    res.json(enrolls);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.get("/admin/instructors", authenticate, authorize(["admin"]), async (req, res) => {
+  try {
+    const instructors = await User.find({ role: "instructor", status: { $ne: "pending" } }).sort("-created_at");
+    res.json(instructors);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.patch("/admin/enrollments/:id", authenticate, authorize(["admin"]), async (req, res) => {
+  try {
+    const { status } = req.body;
+    const enr = await Enrollment.findByIdAndUpdate(req.params.id, { $set: { status } }, { new: true });
+    res.json(enr);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.delete("/admin/instructors/:id", authenticate, authorize(["admin"]), async (req, res) => {
+  try {
+    await User.findByIdAndDelete(req.params.id);
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // Admin: Manage Users/Instructors
 app.get("/admin/users", authenticate, authorize(["admin"]), async (req, res) => {
   try {
@@ -1039,6 +1122,34 @@ app.post("/certificates", authenticate, async (req, res) => {
   }
 });
 
+// Assignments
+app.get("/assignments/me", authenticate, async (req, res) => {
+  try {
+    const enrollments = await Enrollment.find({ student_id: req.user.id });
+    const courseIds = enrollments.map(e => e.course_id);
+    const assignments = await Assignment.find({ course_id: { $in: courseIds } })
+      .populate("course_id", "title")
+      .sort("due_date");
+    res.json(assignments);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Submissions
+app.get("/submissions/me", authenticate, async (req, res) => {
+  try {
+    const submissions = await Submission.find({ student_id: req.user.id })
+      .populate({
+        path: "assignment_id",
+        select: "title"
+      });
+    res.json(submissions);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // Announcements
 app.get("/announcements", authenticate, async (req, res) => {
   try {
@@ -1207,6 +1318,31 @@ app.delete("/quizzes/:id", authenticate, authorize(["instructor", "admin"]), asy
   }
 });
 
+// Quizzes
+app.get("/quizzes/me", authenticate, async (req, res) => {
+  try {
+    const enrollments = await Enrollment.find({ student_id: req.user.id });
+    const courseIds = enrollments.map(e => e.course_id);
+    const quizzes = await Quiz.find({ course_id: { $in: courseIds }, published: true })
+      .populate("course_id", "title")
+      .sort("-created_at");
+    res.json(quizzes);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.get("/quiz-attempts/me", authenticate, async (req, res) => {
+  try {
+    const attempts = await QuizAttempt.find({ user_id: req.user.id })
+      .populate("quiz_id", "title course_id")
+      .sort("-completed_at");
+    res.json(attempts);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // Resources
 app.get("/resources", authenticate, async (req, res) => {
   try {
@@ -1228,9 +1364,63 @@ app.post("/resources", authenticate, authorize(["instructor", "admin"]), async (
   }
 });
 
-// Health check
-app.get("/health", (_req, res) => {
-  res.json({ ok: true, service: "learnflow-api", ts: new Date().toISOString() });
+// --- INSTRUCTOR ROUTES ---
+app.get("/instructor/stats", authenticate, authorize(["instructor", "admin"]), async (req, res) => {
+  try {
+    const instructorId = req.user.id;
+    const courses = await Course.find({ author_id: instructorId });
+    const courseIds = courses.map(c => c._id);
+    
+    const enrollmentsCount = await Enrollment.countDocuments({ course_id: { $in: courseIds } });
+    
+    // Revenue calculation
+    const enrollments = await Enrollment.find({ course_id: { $in: courseIds } });
+    let totalRevenueCents = 0;
+    for (const enr of enrollments) {
+      const course = courses.find(c => c._id.toString() === enr.course_id.toString());
+      if (course) totalRevenueCents += (course.price_cents || 0);
+    }
+
+    res.json({
+      students: enrollmentsCount,
+      revenue: totalRevenueCents / 100,
+      rating: 4.9,
+      activeCourses: courses.filter(c => c.published).length
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.get("/instructor/courses", authenticate, authorize(["instructor", "admin"]), async (req, res) => {
+  try {
+    const courses = await Course.find({ author_id: req.user.id }).sort("-updated_at");
+    res.json(courses);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.get("/instructor/performance-data", authenticate, authorize(["instructor", "admin"]), async (req, res) => {
+  try {
+    const instructorId = req.user.id;
+    const courses = await Course.find({ author_id: instructorId });
+    const courseIds = courses.map(c => c._id);
+
+    const [attendance, submissions] = await Promise.all([
+      Attendance.find({ course_id: { $in: courseIds } }),
+      Submission.find({ assignment_id: { $in: await Assignment.find({ course_id: { $in: courseIds } }).distinct("_id") } })
+    ]);
+
+    res.json({
+      totalStudents: await Enrollment.countDocuments({ course_id: { $in: courseIds } }),
+      attendanceStats: attendance,
+      gradeStats: submissions,
+      courseCount: courses.length
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
 app.get("/metrics/overview", async (_req, res) => {
@@ -1500,6 +1690,18 @@ app.post("/admin/brand-themes", async (req, res) => {
   const { data, error } = await supabase.from("brand_themes").insert(parse.data).select("*").single();
   if (error) return res.status(400).json({ error: error.message });
   res.json(data);
+});
+
+// Enrollments
+app.get("/enrollments/me", authenticate, async (req, res) => {
+  try {
+    const enrollments = await Enrollment.find({ student_id: req.user.id })
+      .populate("course_id")
+      .sort("-enrolled_at");
+    res.json(enrollments);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
 app.post("/enrollments/bulk", async (req, res) => {

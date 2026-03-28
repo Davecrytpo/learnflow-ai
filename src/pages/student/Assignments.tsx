@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { apiClient } from "@/lib/api-client";
 import { useAuth } from "@/hooks/useAuth";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import StudentSidebar from "@/components/dashboard/StudentSidebar";
@@ -23,24 +23,27 @@ const StudentAssignments = () => {
     if (!user) return;
     setLoading(true);
     try {
-      // 1. Fetch approved enrollments
-      const { data: enrolls } = await supabase
-        .from("enrollments")
-        .select("course_id")
-        .eq("student_id", user.id);
-      
-      const courseIds = (enrolls || []).map(e => e.course_id);
+      // Fetch assignments and submissions in parallel using apiClient
+      const [asgnRes, subRes] = await Promise.all([
+        apiClient.fetch("/assignments/me"),
+        apiClient.fetch("/submissions/me")
+      ]);
 
-      if (courseIds.length > 0) {
-        // 2. Fetch assignments and existing submissions in parallel
-        const [asgnRes, subRes] = await Promise.all([
-          supabase.from("assignments").select("*, courses:course_id(title)").in("course_id", courseIds).order('due_date', { ascending: true }),
-          supabase.from("submissions").select("*").eq("student_id", user.id)
-        ]);
+      // Transform assignments to match component expectations
+      const transformedAssignments = asgnRes.map((a: any) => ({
+        ...a,
+        id: a._id,
+        courses: { title: a.course_id?.title || "Untitled Course" }
+      }));
 
-        setAssignments(asgnRes.data || []);
-        setSubmissions(subRes.data || []);
-      }
+      // Transform submissions to match component expectations
+      const transformedSubmissions = subRes.map((s: any) => ({
+        ...s,
+        id: s._id
+      }));
+
+      setAssignments(transformedAssignments);
+      setSubmissions(transformedSubmissions);
     } catch (err: any) {
       toast({ title: "Fetch failed", description: err.message, variant: "destructive" });
     } finally {

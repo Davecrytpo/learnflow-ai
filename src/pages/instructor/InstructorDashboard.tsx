@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import InstructorSidebar from "@/components/dashboard/InstructorSidebar";
@@ -16,6 +15,7 @@ import { motion } from "framer-motion";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { analyzeStudentPerformance } from "@/lib/ai-service";
+import { apiClient } from "@/lib/api-client";
 
 const InstructorDashboard = () => {
   const { user } = useAuth();
@@ -36,44 +36,17 @@ const InstructorDashboard = () => {
     if (!user) return;
     setLoading(true);
     try {
-      const { data: coursesData } = await supabase
-        .from("courses")
-        .select("*")
-        .eq("author_id", user.id);
+      // Fetch stats and courses from MongoDB via apiClient
+      const [statsData, coursesData] = await Promise.all([
+        apiClient.fetch("/instructor/stats"),
+        apiClient.fetch("/instructor/courses")
+      ]);
       
-      const myCourses = coursesData || [];
-      setCourses(myCourses);
-      
-      const courseIds = myCourses.map(c => c.id);
-      
-      // Fetch Real Students Count
-      const { count: studentCount } = await supabase
-        .from("enrollments")
-        .select("*", { count: 'exact', head: true })
-        .in("course_id", courseIds);
-
-      // Fetch Real Revenue
-      // Assuming enrollment record has a price or we use course price
-      // For simplicity, sum of price_cents from courses for each approved enrollment
-      const { data: enrollments } = await supabase
-        .from("enrollments")
-        .select("course_id")
-        .in("course_id", courseIds);
-
-      let totalRevenue = 0;
-      enrollments?.forEach(enr => {
-        const course = myCourses.find(c => c.id === enr.course_id);
-        if (course) totalRevenue += (course.price_cents || 0);
-      });
-
-      setStats({
-        students: studentCount || 0, 
-        revenue: totalRevenue / 100,
-        rating: 4.9, // This would need a reviews table
-        activeCourses: myCourses.filter(c => c.published).length
-      });
-    } catch (err) {
+      setStats(statsData);
+      setCourses(coursesData || []);
+    } catch (err: any) {
       console.error(err);
+      toast({ title: "Fetch failed", description: err.message, variant: "destructive" });
     } finally {
       setLoading(false);
     }
@@ -86,20 +59,7 @@ const InstructorDashboard = () => {
   const handleAiAnalysis = async () => {
     setAnalyzing(true);
     try {
-      // Gather data for AI: attendance, grades, submissions
-      const courseIds = courses.map(c => c.id);
-      const [attendanceRes, gradesRes] = await Promise.all([
-        supabase.from("attendance").select("status").in("course_id", courseIds),
-        supabase.from("submissions").select("score, assignment_id"),
-      ]);
-
-      const dataSummary = {
-        totalStudents: stats.students,
-        attendanceStats: attendanceRes.data,
-        gradeStats: gradesRes.data,
-        courseCount: courses.length
-      };
-
+      const dataSummary = await apiClient.fetch("/instructor/performance-data");
       const analysis = await analyzeStudentPerformance(dataSummary);
       setAiAnalysis(analysis);
     } catch (err: any) {
@@ -129,7 +89,7 @@ const InstructorDashboard = () => {
               <Award className="h-3.5 w-3.5" /> Faculty Portal
             </motion.div>
             <h1 className="text-3xl md:text-5xl font-display font-bold mb-4">
-              Welcome, Professor {user?.user_metadata?.full_name?.split(' ').pop() || "Educator"}
+              Welcome, Professor {user?.display_name?.split(' ').pop() || "Educator"}
             </h1>
             <p className="text-slate-400 max-w-2xl text-lg leading-relaxed">
               Manage your academic portfolio, track student progress, and develop world-class curriculum using our integrated AI tools.
@@ -246,7 +206,7 @@ const InstructorDashboard = () => {
             ) : (
               <div className="grid gap-4">
                 {courses.slice(0, 3).map((course) => (
-                  <Card key={course.id} className="border-none shadow-sm shadow-slate-200 hover:shadow-md transition-all group overflow-hidden">
+                  <Card key={course._id} className="border-none shadow-sm shadow-slate-200 hover:shadow-md transition-all group overflow-hidden">
                     <CardContent className="p-0">
                       <div className="flex flex-col sm:flex-row h-full">
                         <div className="w-full sm:w-48 h-32 sm:h-auto relative bg-slate-100 overflow-hidden shrink-0">
@@ -268,12 +228,12 @@ const InstructorDashboard = () => {
                             <div className="min-w-0">
                               <h3 className="font-bold text-lg text-slate-900 group-hover:text-primary transition-colors line-clamp-1">{course.title}</h3>
                               <div className="flex items-center gap-4 mt-2 text-sm text-slate-500">
-                                <span className="flex items-center gap-1.5"><Users className="h-3.5 w-3.5" /> Enrolled Students</span>
+                                <span className="flex items-center gap-1.5"><Users className="h-3.5 w-3.5" /> Course Resource Center</span>
                                 <span className="flex items-center gap-1.5"><Calendar className="h-3.5 w-3.5" /> Updated {new Date(course.updated_at).toLocaleDateString()}</span>
                               </div>
                             </div>
                             <Button variant="outline" size="sm" asChild className="rounded-xl font-bold shrink-0 ml-4">
-                              <Link to={`/instructor/courses/${course.id}`}>Manage</Link>
+                              <Link to={`/instructor/courses/${course._id}`}>Manage</Link>
                             </Button>
                           </div>
                         </div>
