@@ -317,11 +317,10 @@ const authorize = (roles) => {
 // --- AUTH ROUTES ---
 app.post("/auth/init-admin", async (req, res) => {
   try {
-    const { email, password, key } = req.body;
+    const { email, password } = req.body;
     const normalizedEmail = normalizeEmail(email);
     const adminExists = await User.findOne({ role: "admin" });
     if (adminExists) return res.status(403).json({ error: "System already initialized." });
-    if (key !== JWT_SECRET) return res.status(403).json({ error: "Invalid initialization key." });
     if (normalizedEmail !== ADMIN_BOOTSTRAP_EMAIL) {
       return res.status(403).json({ error: "Only the authorized institutional admin email can be initialized." });
     }

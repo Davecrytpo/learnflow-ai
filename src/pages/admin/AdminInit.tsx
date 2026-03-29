@@ -16,7 +16,6 @@ const AdminInit = () => {
   const [formData, setFormData] = useState({
     email: ADMIN_BOOTSTRAP_EMAIL,
     password: "",
-    key: "",
   });
   const [loading, setLoading] = useState(false);
 
@@ -27,7 +26,10 @@ const AdminInit = () => {
     try {
       await apiClient.fetch("/auth/init-admin", {
         method: "POST",
-        body: JSON.stringify(formData),
+        body: JSON.stringify({
+          email: formData.email,
+          password: formData.password,
+        }),
       });
       toast({ title: "Admin created", description: "The initial administrator account is ready." });
       navigate("/admin/login", { replace: true });
@@ -92,22 +94,6 @@ const AdminInit = () => {
                 />
               </div>
             </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="key" className="text-slate-300 ml-1">Initialization Key</Label>
-              <div className="relative">
-                <KeyRound className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
-                <Input
-                  id="key"
-                  type="password"
-                  required
-                  value={formData.key}
-                  onChange={(e) => setFormData((current) => ({ ...current, key: e.target.value }))}
-                  className="h-14 rounded-2xl border-slate-800 bg-slate-950/50 text-white pl-11"
-                />
-              </div>
-            </div>
-
             <Button type="submit" className="w-full h-14 rounded-2xl bg-white text-slate-950 hover:bg-slate-200 font-bold text-lg" disabled={loading}>
               {loading ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : "Create Administrator"}
             </Button>
