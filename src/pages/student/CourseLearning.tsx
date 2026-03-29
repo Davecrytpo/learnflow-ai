@@ -427,7 +427,7 @@ const CourseLearning = () => {
         )}
 
         {/* View earned certificate */}
-        {false && (
+        {isViewingCertificate && (
           <div className="border-t border-border p-4">
             <Button variant="outline" className="w-full gap-2 border-amber-200 bg-amber-50 text-amber-700 hover:bg-amber-100" onClick={() => setIsViewingCertificate(true)}>
               <Award className="h-4 w-4 text-amber-500" />

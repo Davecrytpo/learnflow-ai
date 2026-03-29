@@ -55,8 +55,9 @@ const Login = () => {
 
             <form onSubmit={handleLogin} className="space-y-6">
               <div className="space-y-2">
-                <Label className="font-bold ml-1">Institutional Email</Label>
+                <Label htmlFor="login-email" className="font-bold ml-1">Institutional Email</Label>
                 <Input 
+                  id="login-email"
                   type="email" 
                   required 
                   placeholder="name@globaluniversityinstitute.com" 
@@ -68,11 +69,12 @@ const Login = () => {
               
               <div className="space-y-2">
                 <div className="flex items-center justify-between px-1">
-                  <Label className="font-bold">Password</Label>
+                  <Label htmlFor="login-password" className="font-bold">Password</Label>
                   <Link to="/forgot-password" size="sm" className="text-xs text-primary font-bold hover:underline">Forgot password?</Link>
                 </div>
                 <div className="relative">
                   <Input 
+                    id="login-password"
                     type={showPass ? "text" : "password"} 
                     required 
                     placeholder="••••••••" 

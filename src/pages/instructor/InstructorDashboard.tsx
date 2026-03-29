@@ -188,7 +188,7 @@ const InstructorDashboard = () => {
             <div className="flex items-center justify-between">
               <h2 className="text-2xl font-display font-bold text-slate-900">Your Curriculum</h2>
               <Button variant="ghost" className="text-primary font-bold" asChild>
-                <Link to="/instructor/courses">View All <ArrowRight className="ml-2 h-4 w-4" /></Link>
+                <Link to="/instructor">View All <ArrowRight className="ml-2 h-4 w-4" /></Link>
               </Button>
             </div>
 
@@ -253,8 +253,8 @@ const InstructorDashboard = () => {
               <CardContent className="p-6 space-y-2">
                 {[
                   { label: "Gradebook", icon: ClipboardCheck, href: "/instructor/grading", color: "text-rose-600", bg: "bg-rose-50" },
-                  { label: "Syllabus Review", icon: FileText, href: "/instructor/courses", color: "text-amber-600", bg: "bg-amber-50" },
-                  { label: "Faculty Calendar", icon: Calendar, href: "/student/calendar", color: "text-blue-600", bg: "bg-blue-50" },
+                  { label: "Syllabus Review", icon: FileText, href: "/instructor", color: "text-amber-600", bg: "bg-amber-50" },
+                  { label: "Faculty Calendar", icon: Calendar, href: "/instructor/attendance", color: "text-blue-600", bg: "bg-blue-50" },
                   { label: "Discussion Forums", icon: MessageSquare, href: "/instructor/discussions", color: "text-emerald-600", bg: "bg-emerald-50" },
                 ].map((action, i) => (
                   <Link 

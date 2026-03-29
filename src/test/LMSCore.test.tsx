@@ -46,18 +46,25 @@ const renderWithRouter = (ui: React.ReactElement) => {
 describe("LMS Core Pages", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.stubGlobal("fetch", vi.fn(() =>
+      Promise.resolve({
+        ok: true,
+        text: () => Promise.resolve("[]"),
+      } as Response)
+    ));
   });
 
   it("renders Login page correctly", () => {
     renderWithRouter(<Login />);
-    expect(screen.getByText(/Sign in to Learnflow AI/i)).toBeInTheDocument();
-    expect(screen.getByLabelText(/Email/i)).toBeInTheDocument();
+    expect(screen.getByText(/University Login/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/Institutional Email/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/Password/i)).toBeInTheDocument();
   });
 
   it("renders Course Catalog page correctly", async () => {
     renderWithRouter(<CourseCatalog />);
-    expect(screen.getByText(/Explore All Courses/i)).toBeInTheDocument();
-    expect(screen.getByPlaceholderText(/Search courses, topics, instructors.../i)).toBeInTheDocument();
+    expect(screen.getByText(/Academic Catalog/i)).toBeInTheDocument();
+    expect(screen.getByPlaceholderText(/Search programs, majors, or keywords/i)).toBeInTheDocument();
+    await waitFor(() => expect(fetch).toHaveBeenCalled());
   });
 });

@@ -83,6 +83,7 @@ const StudentCapstoneTracker = lazy(() => import("./pages/student/CapstoneTracke
 const StudentEmployerConnections = lazy(() => import("./pages/student/EmployerConnections"));
 const StudentAlumniNetwork = lazy(() => import("./pages/student/AlumniNetwork"));
 const AdminUsers = lazy(() => import("./pages/admin/Users"));
+const AdminInit = lazy(() => import("./pages/admin/AdminInit"));
 const AdminLogin = lazy(() => import("./pages/admin/AdminLogin"));
 const AdminCourses = lazy(() => import("./pages/admin/Courses"));
 const AdminAnalytics = lazy(() => import("./pages/admin/Analytics"));
@@ -233,6 +234,7 @@ const App = () => (
                   <Route path="/instructor-portal" element={<InstructorPortal />} />
                   <Route path="/admin-portal" element={<AdminPortal />} />
                   <Route path="/setup-password" element={<SetupPassword />} />
+                  <Route path="/auth/init-admin" element={<AdminInit />} />
                   <Route path="/login" element={<Login />} />
                   <Route path="/instructor/login" element={<InstructorLogin />} />
                   <Route path="/signup" element={<Signup />} />
@@ -273,6 +275,7 @@ const App = () => (
                   <Route path="/course/:courseId" element={<CourseDetail />} />
                   <Route path="/course/:courseId/learn" element={<CourseLearning />} />
                   <Route path="/instructor" element={<InstructorDashboard />} />
+                  <Route path="/instructor/courses" element={<InstructorDashboard />} />
                   <Route path="/instructor/courses/new" element={<CreateCourse />} />
                   <Route path="/instructor/courses/:courseId" element={<EditCourse />} />
                   <Route path="/instructor/courses/:courseId/gradebook" element={<Gradebook />} />

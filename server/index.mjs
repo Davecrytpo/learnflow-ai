@@ -339,19 +339,24 @@ app.post("/auth/init-admin", async (req, res) => {
 app.post("/auth/signup", async (req, res) => {
   try {
     const { email, password, role, display_name } = req.body;
-    if (role && role !== "student") return res.status(403).json({ error: "Restricted registration." });
+    if (role && !["student", "instructor"].includes(role)) return res.status(403).json({ error: "Restricted registration." });
     
     const existingUser = await User.findOne({ email: normalizeEmail(email) });
     if (existingUser) return res.status(400).json({ error: "Already registered." });
 
     const admissionNumber = `GUI-2026-${Math.floor(1000 + Math.random() * 9000)}`;
+    const requestedRole = role === "instructor" ? "instructor" : "student";
     const user = new User({
       email: normalizeEmail(email),
       password: await bcrypt.hash(password, 10),
-      role: "student",
+      role: requestedRole,
       display_name: display_name || email.split("@")[0],
-      admission_number: admissionNumber,
+      admission_number: requestedRole === "student" ? admissionNumber : undefined,
+      department: req.body.department,
+      specialization: req.body.specialization,
+      bio: req.body.bio,
       email_verified: true,
+      status: requestedRole === "instructor" ? "pending" : "active"
     });
     await user.save();
     res.json({ success: true, token: jwt.sign({ id: user._id, role: user.role }, JWT_SECRET) });
@@ -367,11 +372,26 @@ app.post("/auth/login", async (req, res) => {
     if (!user || !(await bcrypt.compare(password, user.password))) {
       return res.status(400).json({ error: "Invalid credentials." });
     }
-    if (user.role === "admin" && user.email !== "globaluniversityinstitutes@gmail.com") {
-      return res.status(403).json({ error: "Unauthorized admin." });
-    }
     const token = jwt.sign({ id: user._id, email: user.email, role: user.role }, JWT_SECRET, { expiresIn: "7d" });
     res.json({ token, user: { id: user._id, email: user.email, role: user.role, display_name: user.display_name } });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.get("/auth/me", authenticate, async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id).select("-password");
+    if (!user) return res.status(404).json({ error: "User not found." });
+    res.json({
+      id: user._id,
+      email: user.email,
+      display_name: user.display_name,
+      role: user.role,
+      avatar_url: user.avatar_url,
+      email_verified: user.email_verified,
+      status: user.status
+    });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -397,6 +417,8 @@ app.post("/auth/setup-password", async (req, res) => {
 app.post("/admin/create-instructor", authenticate, authorize(["admin"]), async (req, res) => {
   try {
     const { email, name, department, specialization } = req.body;
+    const existingUser = await User.findOne({ email: normalizeEmail(email) });
+    if (existingUser) return res.status(400).json({ error: "Already registered." });
     const inviteToken = generateToken();
     const user = new User({
       email: normalizeEmail(email),
@@ -424,14 +446,16 @@ app.post("/admin/create-instructor", authenticate, authorize(["admin"]), async (
 
 app.get("/admin/stats", authenticate, authorize(["admin"]), async (req, res) => {
   try {
-    const [u, c, e, pi, pc] = await Promise.all([
+    const [u, c, e, pi, pc, pendingEnr, activeInstructors] = await Promise.all([
       User.countDocuments({ role: "student" }),
       Course.countDocuments({}),
       Enrollment.countDocuments({}),
       User.countDocuments({ role: "instructor", status: "pending" }),
-      Course.countDocuments({ status: "pending" })
+      Course.countDocuments({ status: "pending" }),
+      Enrollment.countDocuments({ status: "pending" }),
+      User.countDocuments({ role: "instructor", status: { $ne: "pending" } })
     ]);
-    res.json({ users: u, courses: c, enrollments: e, pendingInstructors: pi, pendingCourses: pc });
+    res.json({ users: u, courses: c, enrollments: e, pendingInstructors: pi, pendingCourses: pc, pendingEnr, activeInstructors });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -446,13 +470,201 @@ app.get("/admin/users", authenticate, authorize(["admin"]), async (req, res) => 
   }
 });
 
+app.get("/admin/pending-courses", authenticate, authorize(["admin"]), async (req, res) => {
+  try {
+    const courses = await Course.find({ status: "pending" }).populate("author_id", "display_name email");
+    res.json(courses);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.get("/admin/pending-enrollments", authenticate, authorize(["admin"]), async (req, res) => {
+  try {
+    const enrollments = await Enrollment.find({ status: "pending" })
+      .populate("student_id", "display_name email")
+      .populate("course_id", "title");
+    res.json(enrollments);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.get("/admin/faculty-apps", authenticate, authorize(["admin"]), async (req, res) => {
+  try {
+    const instructors = await User.find({ role: "instructor", status: "pending" }).select("-password");
+    res.json(instructors);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.get("/admin/instructors", authenticate, authorize(["admin"]), async (req, res) => {
+  try {
+    const instructors = await User.find({ role: "instructor" }).select("-password");
+    res.json(instructors);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.patch("/admin/courses/:id/status", authenticate, authorize(["admin"]), async (req, res) => {
+  try {
+    const course = await Course.findByIdAndUpdate(
+      req.params.id,
+      {
+        ...req.body,
+        updated_at: new Date()
+      },
+      { new: true }
+    );
+    if (!course) return res.status(404).json({ error: "Course not found." });
+    res.json(course);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.patch("/admin/enrollments/:id", authenticate, authorize(["admin"]), async (req, res) => {
+  try {
+    const enrollment = await Enrollment.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    if (!enrollment) return res.status(404).json({ error: "Enrollment not found." });
+    res.json(enrollment);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.patch("/admin/users/:id", authenticate, authorize(["admin"]), async (req, res) => {
+  try {
+    const user = await User.findByIdAndUpdate(
+      req.params.id,
+      { ...req.body, updated_at: new Date() },
+      { new: true }
+    ).select("-password");
+    if (!user) return res.status(404).json({ error: "User not found." });
+    res.json(user);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.delete("/admin/users/:id", authenticate, authorize(["admin"]), async (req, res) => {
+  try {
+    const user = await User.findByIdAndDelete(req.params.id);
+    if (!user) return res.status(404).json({ error: "User not found." });
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.delete("/admin/instructors/:id", authenticate, authorize(["admin"]), async (req, res) => {
+  try {
+    const instructor = await User.findOneAndDelete({ _id: req.params.id, role: "instructor" });
+    if (!instructor) return res.status(404).json({ error: "Instructor not found." });
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // --- INSTRUCTOR ROUTES ---
 app.get("/instructor/stats", authenticate, authorize(["instructor", "admin"]), async (req, res) => {
   try {
     const courses = await Course.find({ author_id: req.user.id });
     const cIds = courses.map(c => c._id);
     const count = await Enrollment.countDocuments({ course_id: { $in: cIds } });
-    res.json({ students: count, activeCourses: courses.length });
+    res.json({ students: count, activeCourses: courses.length, revenue: 0, rating: 4.8 });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.get("/instructor/courses", authenticate, authorize(["instructor", "admin"]), async (req, res) => {
+  try {
+    const query = req.user.role === "admin" ? {} : { author_id: req.user.id };
+    const courses = await Course.find(query).sort({ updated_at: -1 });
+    res.json(courses);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.get("/instructor/performance-data", authenticate, authorize(["instructor", "admin"]), async (req, res) => {
+  try {
+    const courses = await Course.find({ author_id: req.user.id }).select("_id title");
+    const courseIds = courses.map((course) => course._id);
+    const [students, submissions, attendance] = await Promise.all([
+      Enrollment.countDocuments({ course_id: { $in: courseIds }, status: { $in: ["approved", "active", "completed"] } }),
+      Submission.countDocuments({}),
+      Attendance.countDocuments({ course_id: { $in: courseIds }, status: "present" })
+    ]);
+    res.json({
+      courses: courses.length,
+      students,
+      submissions,
+      attendance,
+      courseTitles: courses.map((course) => course.title)
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.get("/enrollments/me", authenticate, authorize(["student", "admin"]), async (req, res) => {
+  try {
+    const enrollments = await Enrollment.find({ student_id: req.user.id, status: { $in: ["approved", "active", "completed"] } })
+      .populate("course_id", "title cover_image_url category updated_at");
+    res.json(enrollments);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.get("/announcements", authenticate, async (req, res) => {
+  try {
+    const limit = Number(req.query.limit) || 10;
+    const announcements = await Announcement.find({})
+      .sort({ created_at: -1 })
+      .limit(limit)
+      .populate("course_id", "title");
+    res.json(announcements);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.get("/assignments/me", authenticate, authorize(["student", "admin"]), async (req, res) => {
+  try {
+    const enrollments = await Enrollment.find({ student_id: req.user.id }).select("course_id");
+    const courseIds = enrollments.map((enrollment) => enrollment.course_id);
+    const assignments = await Assignment.find({ course_id: { $in: courseIds } })
+      .sort({ due_date: 1 })
+      .populate("course_id", "title");
+    res.json(assignments);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.get("/submissions/me", authenticate, authorize(["student", "admin"]), async (req, res) => {
+  try {
+    const submissions = await Submission.find({ student_id: req.user.id }).populate("assignment_id", "title max_score");
+    res.json(submissions);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.get("/quizzes/me", authenticate, authorize(["student", "admin"]), async (_req, res) => {
+  res.json([]);
+});
+
+app.get("/quiz-attempts/me", authenticate, authorize(["student", "admin"]), async (req, res) => {
+  try {
+    const attempts = await QuizAttempt.find({ user_id: req.user.id });
+    res.json(attempts);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -475,8 +687,10 @@ const distPath = path.join(__dirname, "../dist");
 app.use(express.static(distPath));
 
 app.get("*", (req, res) => {
-  const apiPrefixes = ["/auth/", "/admin/", "/instructor/", "/courses/", "/notifications/", "/attendance/"];
-  if (apiPrefixes.some(p => req.path.startsWith(p))) return;
+  const acceptsHtml = req.accepts(["html", "json"]) === "html";
+  if (!acceptsHtml) {
+    return res.status(404).json({ error: "Not found." });
+  }
   res.sendFile(path.join(distPath, "index.html"));
 });
 

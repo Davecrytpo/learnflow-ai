@@ -102,7 +102,7 @@ const StudentDashboard = () => {
           <div className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
             <div>
               <h1 className="text-3xl font-display font-bold text-foreground">
-                Welcome back, {user?.user_metadata?.full_name?.split(' ')[0] || "Scholar"}.
+                Welcome back, {user?.display_name?.split(" ")[0] || "Scholar"}.
               </h1>
               <p className="mt-2 text-muted-foreground">Continue your journey. You have {enrollments.length} active courses.</p>
             </div>
@@ -149,7 +149,7 @@ const StudentDashboard = () => {
             <div>
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-xl font-semibold">Jump Back In</h2>
-                <Link to="/student/courses" className="text-sm text-primary hover:underline">View All</Link>
+                <Link to="/courses" className="text-sm text-primary hover:underline">View All</Link>
               </div>
               {enrollments.length === 0 ? (
                 <div className="text-center py-12 border-2 border-dashed rounded-3xl bg-slate-50">
@@ -160,7 +160,7 @@ const StudentDashboard = () => {
               ) : (
                 <div className="grid gap-4 md:grid-cols-2">
                   {enrollments.slice(0, 4).map((enr) => (
-                    <Card key={enr.id} className="group hover:border-primary/30 transition-all cursor-pointer overflow-hidden" onClick={() => navigate(`/student/course/${enr.course_id}`)}>
+                    <Card key={enr.id} className="group hover:border-primary/30 transition-all cursor-pointer overflow-hidden" onClick={() => navigate(`/course/${enr.course_id}/learn`)}>
                       <CardContent className="p-5 flex gap-4">
                         <div className="h-16 w-16 rounded-lg bg-accent/10 flex items-center justify-center shrink-0 text-accent font-bold text-xl overflow-hidden">
                           {enr.courses.cover_image_url ? (
@@ -207,7 +207,7 @@ const StudentDashboard = () => {
                       <span className="text-sm font-medium">{goal}</span>
                     </div>
                   ))}
-                  <Button variant="ghost" size="sm" className="w-full text-xs mt-2 border-dashed border-2 rounded-xl">Edit Learning Plan</Button>
+                  <Button variant="ghost" size="sm" className="w-full text-xs mt-2 border-dashed border-2 rounded-xl" onClick={() => navigate("/dashboard/learning-plan")}>Edit Learning Plan</Button>
                 </div>
               </CardContent>
             </Card>
@@ -235,18 +235,18 @@ const StudentDashboard = () => {
                       </div>
                     ))
                   )}
-                  <Button variant="outline" size="sm" className="w-full rounded-xl">View Schedule</Button>
+                  <Button variant="outline" size="sm" className="w-full rounded-xl" onClick={() => navigate("/dashboard/calendar")}>View Schedule</Button>
                 </div>
               </CardContent>
             </Card>
 
             {/* Community & Achievements */}
             <div className="grid grid-cols-2 gap-4">
-              <Card className="flex flex-col items-center justify-center p-4 text-center hover:bg-accent/5 transition-colors cursor-pointer rounded-2xl border-none shadow-sm" onClick={() => navigate("/student/groups")}>
+              <Card className="flex flex-col items-center justify-center p-4 text-center hover:bg-accent/5 transition-colors cursor-pointer rounded-2xl border-none shadow-sm" onClick={() => navigate("/dashboard/groups")}>
                 <Users className="h-6 w-6 text-primary mb-2" />
                 <span className="text-xs font-bold uppercase tracking-tighter">Groups</span>
               </Card>
-              <Card className="flex flex-col items-center justify-center p-4 text-center hover:bg-accent/5 transition-colors cursor-pointer rounded-2xl border-none shadow-sm" onClick={() => navigate("/student/certificates")}>
+              <Card className="flex flex-col items-center justify-center p-4 text-center hover:bg-accent/5 transition-colors cursor-pointer rounded-2xl border-none shadow-sm" onClick={() => navigate("/dashboard/certificates")}>
                 <Award className="h-6 w-6 text-amber-500 mb-2" />
                 <span className="text-xs font-bold uppercase tracking-tighter">Certificates</span>
               </Card>

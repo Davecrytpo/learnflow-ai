@@ -19,7 +19,7 @@ const items = [
   { title: "Announcements", url: "/instructor/announcements", icon: Bell },
   { title: "Groups", url: "/instructor/groups", icon: Users },
   { title: "Grading Queue", url: "/instructor/grading", icon: ClipboardCheck },
-  { title: "Gradebook", url: "/instructor/gradebook", icon: ListPlus },
+  { title: "Gradebook", url: "/instructor/grading", icon: ListPlus },
   { title: "Attendance", url: "/instructor/attendance", icon: CalendarDays },
   { title: "Analytics", url: "/instructor/analytics", icon: BarChart },
   { title: "Resources", url: "/instructor/resources", icon: FileStack },

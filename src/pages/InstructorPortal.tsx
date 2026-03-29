@@ -19,10 +19,10 @@ const InstructorPortal = () => (
           </p>
           <div className="mt-6 flex flex-wrap gap-3">
             <Button asChild className="bg-gradient-brand text-primary-foreground">
-              <Link to="/signup?role=instructor">Create Instructor Account</Link>
+              <Link to="/instructor/register">Create Instructor Account</Link>
             </Button>
             <Button asChild variant="outline">
-              <Link to="/login?role=instructor">Instructor Login</Link>
+              <Link to="/instructor/login">Instructor Login</Link>
             </Button>
           </div>
         </div>

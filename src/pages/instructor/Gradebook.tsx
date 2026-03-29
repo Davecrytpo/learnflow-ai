@@ -150,7 +150,7 @@ const Gradebook = () => {
           <div className="relative flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
             <div>
               <Button variant="ghost" size="sm" asChild className="mb-2 -ml-2 gap-1 text-muted-foreground">
-                <Link to="/instructor/dashboard">
+                <Link to="/instructor">
                   <ArrowLeft className="h-4 w-4" /> Back
                 </Link>
               </Button>

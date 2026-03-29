@@ -1,5 +1,5 @@
 
-const API_URL = ''; // Use relative path since server serves both frontend and API
+const API_URL = typeof window !== "undefined" ? window.location.origin : "http://localhost:8787";
 
 export const apiClient = {
   async fetch(endpoint: string, options: RequestInit = {}) {
@@ -10,15 +10,21 @@ export const apiClient = {
       ...options.headers,
     };
 
-    const response = await fetch(`${API_URL}${endpoint}`, {
+    const response = await fetch(new URL(endpoint, API_URL).toString(), {
       ...options,
       headers,
     });
 
-    const data = await response.json();
+    const raw = await response.text();
+    let data = null;
+    try {
+      data = raw ? JSON.parse(raw) : null;
+    } catch {
+      data = { error: raw || 'Unexpected server response' };
+    }
 
     if (!response.ok) {
-      throw new Error(data.error || 'Something went wrong');
+      throw new Error(data?.error || 'Something went wrong');
     }
 
     return data;

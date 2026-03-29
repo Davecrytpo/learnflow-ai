@@ -85,18 +85,21 @@ const AdminDashboard = () => {
     setIsAddingInstructor(true);
     
     try {
-      await apiClient.auth.signup({
-        email: newInstructor.email,
-        password: "TempPassword123!", 
-        display_name: newInstructor.name,
-        role: 'instructor'
+      await apiClient.fetch("/admin/create-instructor", {
+        method: "POST",
+        body: JSON.stringify({
+          email: newInstructor.email,
+          name: newInstructor.name,
+          department: "General Faculty",
+          specialization: "Institutional Instruction"
+        })
       });
 
       toast({ 
-        title: "Staff Account Created", 
-        description: `Credentials sent to ${newInstructor.email}.` 
+        title: "Faculty invite sent", 
+        description: `A setup email was sent to ${newInstructor.email}.` 
       });
-      
+
       setIsInstructorModalOpen(false);
       setNewInstructor({ name: "", email: "" });
       fetchData();
