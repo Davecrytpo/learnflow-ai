@@ -59,8 +59,16 @@ const Academy = () => {
   const handleStartLearning = async (courseId: string) => {
     if (!user) { navigate("/login"); return; }
     setEnrolling(courseId);
-    const { data: existing } = await supabase.from("enrollments").select("id").eq("course_id", courseId).eq("student_id", user.id).maybeSingle();
-    if (existing) { navigate(`/course/${courseId}/learn`); return; }
+    const { data: existing } = await supabase.from("enrollments").select("*").eq("course_id", courseId).eq("student_id", user.id).maybeSingle();
+    if (existing) {
+      setEnrolling(null);
+      if (["active", "approved", "completed"].includes(existing.status || "")) {
+        navigate(`/course/${courseId}/learn`);
+      } else {
+        toast({ title: "Enrollment pending", description: "Your access is not active yet.", variant: "destructive" });
+      }
+      return;
+    }
     const { error } = await supabase.from("enrollments").insert({ course_id: courseId, student_id: user.id });
     setEnrolling(null);
     if (error) toast({ title: "Error", description: error.message, variant: "destructive" });
@@ -179,8 +187,9 @@ const Academy = () => {
                         </CardHeader>
                         <CardContent>
                           <p className="text-sm text-muted-foreground line-clamp-2">{course.summary}</p>
-                          <Button className="mt-6 w-full gap-2" onClick={() => handleStartLearning(course.id)}>
-                            <Play className="h-4 w-4" /> Enroll Now
+                          <Button className="mt-6 w-full gap-2" onClick={() => handleStartLearning(course.id)} disabled={enrolling === course.id}>
+                            {enrolling === course.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <Play className="h-4 w-4" />}
+                            Enroll and Start
                           </Button>
                         </CardContent>
                       </Card>

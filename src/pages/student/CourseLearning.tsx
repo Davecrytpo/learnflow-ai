@@ -94,10 +94,14 @@ const CourseLearning = () => {
           .eq("student_id", user.id)
           .maybeSingle();
 
-        if (!enrollment) {
+        const hasActiveEnrollment = enrollment && ["active", "approved", "completed"].includes(enrollment.status || "");
+
+        if (!hasActiveEnrollment) {
           toast({ 
             title: "Access Denied", 
-            description: "Your enrollment is pending administrator verification of tuition payment.", 
+            description: enrollment
+              ? "Your course enrollment is not active yet."
+              : "You need to enroll in this course before you can enter the learning portal.", 
             variant: "destructive" 
           });
           navigate("/dashboard");

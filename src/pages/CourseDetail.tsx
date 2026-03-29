@@ -29,6 +29,7 @@ const CourseDetail = () => {
   const [enrollmentCount, setEnrollmentCount] = useState(0);
   const [userEnrollmentCount, setUserEnrollmentCount] = useState(0);
   const [isEnrolled, setIsEnrolled] = useState(false);
+  const [enrollmentStatus, setEnrollmentStatus] = useState<string | null>(null);
   const [enrolling, setEnrolling] = useState(false);
   const [loading, setLoading] = useState(true);
 
@@ -52,10 +53,11 @@ const CourseDetail = () => {
 
         if (user) {
           const [enrolledRes, userCountRes] = await Promise.all([
-            supabase.from("enrollments").select("id").eq("course_id", courseId).eq("student_id", user.id).maybeSingle(),
+            supabase.from("enrollments").select("*").eq("course_id", courseId).eq("student_id", user.id).maybeSingle(),
             (supabase.from("enrollments") as any).select("*", { count: "exact", head: true }).eq("student_id", user.id)
           ]);
           setIsEnrolled(!!enrolledRes.data);
+          setEnrollmentStatus(enrolledRes.data?.status || null);
           setUserEnrollmentCount(userCountRes.count || 0);
         }
       } catch (err: any) {
@@ -77,21 +79,22 @@ const CourseDetail = () => {
     }
 
     setEnrolling(true);
-    const { error } = await supabase.from("enrollments").insert({ 
+    const { data, error } = await supabase.from("enrollments").insert({
       course_id: courseId, 
       student_id: user.id,
-      status: 'pending',
-      instructor_approved: false,
-      admin_approved: false
-    });
+    }).select().single();
     setEnrolling(false);
     if (error) {
       toast({ title: "Error", description: error.message, variant: "destructive" });
     } else {
       setIsEnrolled(true);
-      toast({ title: "Admission Requested", description: "Your enrollment request is pending faculty review." });
+      setEnrollmentStatus(data?.status || "active");
+      toast({ title: "Enrollment complete", description: "You can now start learning immediately." });
+      navigate(`/course/${courseId}/learn`);
     }
   };
+
+  const canEnterCourse = ["active", "approved", "completed"].includes(enrollmentStatus || "");
 
   if (loading) {
     return (
@@ -315,12 +318,24 @@ const CourseDetail = () => {
                   </div>
 
                   {isEnrolled ? (
-                    <Button className="w-full h-14 rounded-2xl bg-slate-900 text-white font-bold text-lg hover:bg-slate-800" onClick={() => navigate(`/course/${courseId}/learn`)}>
-                      Continue Learning <ArrowRight className="ml-2 h-5 w-5" />
-                    </Button>
+                    <div className="space-y-3">
+                      <Button
+                        className="w-full h-14 rounded-2xl bg-slate-900 text-white font-bold text-lg hover:bg-slate-800"
+                        onClick={() => canEnterCourse && navigate(`/course/${courseId}/learn`)}
+                        disabled={!canEnterCourse}
+                      >
+                        {canEnterCourse ? "Continue Learning" : "Enrollment Pending"}
+                        {canEnterCourse && <ArrowRight className="ml-2 h-5 w-5" />}
+                      </Button>
+                      <p className="text-center text-xs text-slate-500">
+                        {canEnterCourse
+                          ? "This course is available in your student dashboard and learning portal."
+                          : "Your enrollment is still pending approval."}
+                      </p>
+                    </div>
                   ) : (
                     <Button className="w-full h-14 rounded-2xl bg-primary text-white font-bold text-lg shadow-lg shadow-primary/20 hover:opacity-90 transition-opacity" onClick={handleEnroll} disabled={enrolling}>
-                      {enrolling ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : <>Enroll Now <ArrowRight className="ml-2 h-5 w-5" /></>}
+                      {enrolling ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : <>Enroll and Start Learning <ArrowRight className="ml-2 h-5 w-5" /></>}
                     </Button>
                   )}
 

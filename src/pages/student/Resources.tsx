@@ -14,8 +14,11 @@ const StudentResources = () => {
   useEffect(() => {
     if (!user) return;
     const fetch = async () => {
-      const { data: enrollments } = await supabase.from("enrollments").select("course_id").eq("student_id", user.id);
-      const courseIds = (enrollments || []).map((e) => e.course_id);
+      const { data: enrollments } = await supabase.from("enrollments").select("course_id, status").eq("student_id", user.id);
+      const activeEnrollments = (enrollments || []).filter((enrollment: any) =>
+        ["active", "approved", "completed"].includes(enrollment.status || "active")
+      );
+      const courseIds = activeEnrollments.map((e: any) => e.course_id);
       if (courseIds.length === 0) {
         setResources([]);
         setLoading(false);

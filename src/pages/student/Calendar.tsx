@@ -25,7 +25,8 @@ const CalendarPage = () => {
     const { data: enrollments } = await supabase
       .from("enrollments")
       .select("course_id")
-      .eq("student_id", user?.id);
+      .eq("student_id", user?.id)
+      .in("status", ["active", "approved", "completed"]);
     
     if (enrollments && enrollments.length > 0) {
       const courseIds = enrollments.map(e => e.course_id);

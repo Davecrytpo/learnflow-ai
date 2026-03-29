@@ -1538,8 +1538,17 @@ app.get("/quiz-attempts/me", authenticate, authorize(["student", "admin"]), asyn
 // --- COURSES ---
 app.get("/courses", async (req, res) => {
   try {
-    const { search } = req.query;
-    const query = search ? { title: { $regex: search, $options: "i" }, published: true } : { published: true };
+    const { search, level, category } = req.query;
+    const query = { published: true, status: "approved" };
+    if (search) {
+      query.title = { $regex: search, $options: "i" };
+    }
+    if (level) {
+      query.level = level;
+    }
+    if (category) {
+      query.category = category;
+    }
     const courses = await Course.find(query).populate("author_id", "display_name");
     res.json(courses);
   } catch (err) {
@@ -1617,7 +1626,9 @@ app.post("/db/query/:table", attachOptionalUser, async (req, res) => {
 
     if (operation === "insert") {
       const rows = Array.isArray(payload) ? payload : [payload];
-      const preparedRows = rows.map((row) => {
+      const preparedRows = [];
+      const existingRows = [];
+      for (const row of rows) {
         const nextRow = { ...row, updated_at: new Date() };
         if (resource.type === "dynamic") {
           nextRow.table = table;
@@ -1625,8 +1636,25 @@ app.post("/db/query/:table", attachOptionalUser, async (req, res) => {
         if (table === "newsletter_subs") {
           nextRow.email = normalizeEmail(nextRow.email);
         }
-        return nextRow;
-      });
+        if (table === "enrollments") {
+          const existingEnrollment = await Enrollment.findOne({
+            course_id: toObjectIdIfValid(nextRow.course_id),
+            student_id: toObjectIdIfValid(nextRow.student_id)
+          });
+          if (existingEnrollment) {
+            existingRows.push(existingEnrollment);
+            continue;
+          }
+
+          const course = await Course.findById(nextRow.course_id);
+          if (!course || !course.published || course.status !== "approved") {
+            return res.status(400).json({ error: "This course is not open for student enrollment yet." });
+          }
+          nextRow.status = "active";
+          nextRow.enrolled_at = nextRow.enrolled_at || new Date();
+        }
+        preparedRows.push(nextRow);
+      }
 
       if (table === "course_resources" && req.user?.role === "instructor") {
         for (const row of preparedRows) {
@@ -1635,8 +1663,8 @@ app.post("/db/query/:table", attachOptionalUser, async (req, res) => {
         }
       }
 
-      const docs = await Model.insertMany(preparedRows, { ordered: true });
-      const records = normalizeRecords(table, docs);
+      const docs = preparedRows.length > 0 ? await Model.insertMany(preparedRows, { ordered: true }) : [];
+      const records = normalizeRecords(table, [...existingRows, ...docs]);
       if (options.single) {
         return res.json({ data: records[0] || null, error: null });
       }

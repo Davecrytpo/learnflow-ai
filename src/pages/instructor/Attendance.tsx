@@ -60,10 +60,10 @@ const Attendance = () => {
     }
     const fetchAttendance = async () => {
       const [enrollRes, recordRes] = await Promise.all([
-        supabase.from("enrollments").select("student_id, profiles(display_name, avatar_url)").eq("course_id", selectedCourse),
+        supabase.from("enrollments").select("student_id, status, profiles(display_name, avatar_url)").eq("course_id", selectedCourse),
         (supabase.from as any)("attendance_records").select("student_id, status").eq("session_id", selectedSession)
       ]);
-      setStudents(enrollRes.data || []);
+      setStudents((enrollRes.data || []).filter((student: any) => ["active", "approved", "completed"].includes(student.status || "")));
       const map: Record<string, string> = {};
       recordRes.data?.forEach((r: any) => map[r.student_id] = r.status);
       setAttendanceMap(map);

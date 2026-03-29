@@ -17,7 +17,8 @@ const StudentAnnouncements = () => {
       const { data: enrollments } = await supabase
         .from("enrollments")
         .select("course_id")
-        .eq("student_id", user.id);
+        .eq("student_id", user.id)
+        .in("status", ["active", "approved", "completed"]);
       const courseIds = (enrollments || []).map((e) => e.course_id);
       if (courseIds.length === 0) {
         setAnnouncements([]);
