@@ -9,6 +9,7 @@ import { useToast } from "@/hooks/use-toast";
 import { motion } from "framer-motion";
 import Navbar from "@/components/landing/Navbar";
 import Footer from "@/components/landing/Footer";
+import { useAuthContext } from "@/contexts/AuthContext";
 
 const Login = () => {
   const [email, setEmail] = useState("");
@@ -17,6 +18,7 @@ const Login = () => {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { refreshRole } = useAuthContext();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -25,8 +27,9 @@ const Login = () => {
     try {
       const data = await apiClient.auth.login({ email, password });
       if (data.token) {
+        await refreshRole();
         toast({ title: "Login successful", description: `Welcome back, ${data.user.display_name}!` });
-        navigate("/dashboard");
+        navigate("/dashboard", { replace: true });
       }
     } catch (error: any) {
       toast({ title: "Login failed", description: error.message, variant: "destructive" });

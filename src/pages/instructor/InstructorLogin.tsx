@@ -4,12 +4,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Loader2, Eye, EyeOff, BookOpen, School, ArrowLeft } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { motion } from "framer-motion";
 import { apiClient } from "@/lib/api-client";
 import Navbar from "@/components/landing/Navbar";
 import Footer from "@/components/landing/Footer";
+import { useAuthContext } from "@/contexts/AuthContext";
 
 const InstructorLogin = () => {
   const [email, setEmail] = useState("");
@@ -18,6 +18,7 @@ const InstructorLogin = () => {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { refreshRole } = useAuthContext();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -27,7 +28,8 @@ const InstructorLogin = () => {
       const data = await apiClient.auth.login({ email, password });
       
       if (data.user && (data.user.role === "instructor" || data.user.role === "admin")) {
-        navigate("/instructor");
+        await refreshRole();
+        navigate("/instructor", { replace: true });
       } else {
         apiClient.auth.logout();
         throw new Error("Access Denied: Instructor privileges required.");

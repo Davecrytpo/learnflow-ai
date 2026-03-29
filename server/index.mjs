@@ -334,6 +334,11 @@ app.post("/auth/init-admin", async (req, res) => {
       status: "active"
     });
     await user.save();
+    await sendEmail({
+      to: normalizedEmail,
+      subject: "Admin Account Created",
+      htmlContent: wrapEmail(`<h2>Admin Access Ready</h2><p>Your administrative account for Global University Institute has been created successfully.</p><p>You can now sign in at <a href="${frontendUrl.replace(/\/$/, "")}/admin/login">Admin Login</a>.</p>`)
+    });
     res.json({ success: true, message: "Admin account created." });
   } catch (err) {
     res.status(500).json({ error: err.message });

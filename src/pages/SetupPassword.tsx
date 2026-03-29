@@ -46,7 +46,7 @@ const SetupPassword = () => {
         body: JSON.stringify({ token, password })
       });
       toast({ title: "Account Activated", description: "Your faculty account is now active. Please log in." });
-      navigate("/login");
+      navigate("/instructor/login");
     } catch (error: any) {
       toast({ title: "Activation Failed", description: error.message, variant: "destructive" });
     } finally {

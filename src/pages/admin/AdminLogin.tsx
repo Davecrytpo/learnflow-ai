@@ -7,6 +7,7 @@ import { Shield, Loader2, Lock, ArrowLeft } from "lucide-react";
 import { apiClient } from "@/lib/api-client";
 import { useToast } from "@/hooks/use-toast";
 import { motion } from "framer-motion";
+import { useAuthContext } from "@/contexts/AuthContext";
 
 const AdminLogin = () => {
   const [email, setEmail] = useState("");
@@ -14,6 +15,7 @@ const AdminLogin = () => {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { refreshRole } = useAuthContext();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -23,8 +25,9 @@ const AdminLogin = () => {
       const data = await apiClient.auth.login({ email, password });
       
       if (data.user && data.user.role === "admin") {
+        await refreshRole();
         toast({ title: "Authorized", description: "Welcome to the institutional command center." });
-        navigate("/admin/dashboard");
+        navigate("/admin/dashboard", { replace: true });
       } else {
         apiClient.auth.logout();
         throw new Error("Access Denied: Administrative privileges required.");
