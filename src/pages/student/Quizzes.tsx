@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { apiClient } from "@/lib/api-client";
 import { useAuth } from "@/hooks/useAuth";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
@@ -11,6 +12,7 @@ import { Clock, HelpCircle, Target, Loader2 } from "lucide-react";
 
 const StudentQuizzes = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [quizzes, setQuizzes] = useState<any[]>([]);
   const [attempts, setAttempts] = useState<any[]>([]);
@@ -60,7 +62,15 @@ const StudentQuizzes = () => {
                 Take quizzes, review attempts, and get instant feedback on mastery.
               </p>
             </div>
-            <Button className="bg-gradient-brand text-primary-foreground">
+            <Button
+              className="bg-gradient-brand text-primary-foreground"
+              onClick={() => {
+                const firstQuiz = upcoming[0];
+                const courseId = firstQuiz?.course_id?._id || firstQuiz?.course_id?.id;
+                if (courseId) navigate(`/course/${courseId}/learn`);
+              }}
+              disabled={upcoming.length === 0}
+            >
               <HelpCircle className="mr-2 h-4 w-4" /> Start practice quiz
             </Button>
           </div>
@@ -119,7 +129,7 @@ const StudentQuizzes = () => {
                   </div>
                   <div className="flex items-center gap-4 text-xs text-muted-foreground">
                     <span>{item.time_limit_minutes} min</span>
-                    <Button size="sm">Start</Button>
+                    <Button size="sm" onClick={() => navigate(`/course/${item.course_id?._id || item.course_id?.id}/learn`)}>Start</Button>
                   </div>
                 </div>
               </Card>
@@ -139,7 +149,7 @@ const StudentQuizzes = () => {
                   <div className="flex items-center gap-3">
                     <Badge className={badgeFor(item.passed)} variant="secondary">{item.passed ? "Passed" : "Failed"}</Badge>
                     <span className="text-xs font-semibold text-foreground">{item.score}/{item.total_points}</span>
-                    <Button size="sm" variant="ghost">Review</Button>
+                    <Button size="sm" variant="ghost" onClick={() => navigate(`/course/${item.quiz_id?.course_id?._id || item.quiz_id?.course_id?.id}/learn`)}>Review</Button>
                   </div>
                 </div>
               </Card>

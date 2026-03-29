@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import InstructorSidebar from "@/components/dashboard/InstructorSidebar";
@@ -12,9 +12,11 @@ import { useToast } from "@/hooks/use-toast";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogTrigger } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { apiClient } from "@/lib/api-client";
 
 const InstructorAssignments = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const { toast } = useToast();
   const [loading, setLoading] = useState(true);
   const [courses, setCourses] = useState<any[]>([]);
@@ -30,20 +32,12 @@ const InstructorAssignments = () => {
     if (!user) return;
     setLoading(true);
     try {
-      const { data: myCourses } = await supabase.from("courses").select("id, title").eq("author_id", user.id);
+      const [myCourses, asgns] = await Promise.all([
+        apiClient.fetch("/instructor/courses"),
+        apiClient.fetch("/instructor/assignments")
+      ]);
       setCourses(myCourses || []);
-
-      if (myCourses && myCourses.length > 0) {
-        const cIds = myCourses.map(c => c.id);
-        const { data: asgns, error } = await supabase
-          .from("assignments")
-          .select("*, courses:course_id(title)")
-          .in("course_id", cIds)
-          .order("created_at", { ascending: false });
-        
-        if (error) throw error;
-        setAssignments(asgns || []);
-      }
+      setAssignments(asgns || []);
     } catch (err: any) {
       toast({ title: "Load failed", description: err.message, variant: "destructive" });
     } finally {
@@ -60,13 +54,15 @@ const InstructorAssignments = () => {
     if (!newAsgn.title || !newAsgn.course_id) return;
     setSaving(true);
     try {
-      const { error } = await supabase.from("assignments").insert({
-        title: newAsgn.title,
-        course_id: newAsgn.course_id,
-        due_date: newAsgn.due_date || null,
-        max_score: parseInt(newAsgn.max_score)
+      await apiClient.fetch("/instructor/assignments", {
+        method: "POST",
+        body: JSON.stringify({
+          title: newAsgn.title,
+          course_id: newAsgn.course_id,
+          due_date: newAsgn.due_date || null,
+          max_score: parseInt(newAsgn.max_score)
+        })
       });
-      if (error) throw error;
       toast({ title: "Assignment created" });
       setOpen(false);
       setNewAsgn({ title: "", course_id: "", due_date: "", max_score: "100" });
@@ -80,9 +76,13 @@ const InstructorAssignments = () => {
 
   const deleteAssignment = async (id: string) => {
     if (!confirm("Delete this assignment?")) return;
-    const { error } = await supabase.from("assignments").delete().eq("id", id);
-    if (error) toast({ title: "Error", description: error.message, variant: "destructive" });
-    else { toast({ title: "Assignment deleted" }); fetchData(); }
+    try {
+      await apiClient.fetch(`/instructor/assignments/${id}`, { method: "DELETE" });
+      toast({ title: "Assignment deleted" });
+      fetchData();
+    } catch (error: any) {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    }
   };
 
   const filtered = assignments.filter(a => 
@@ -194,7 +194,12 @@ const InstructorAssignments = () => {
                         </td>
                         <td className="p-4 text-right">
                           <div className="flex items-center justify-end gap-1">
-                            <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-primary/10">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8 hover:bg-primary/10"
+                              onClick={() => navigate(`/instructor/courses/${a.course_id}`)}
+                            >
                               <Edit className="h-4 w-4" />
                             </Button>
                             <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:bg-destructive/10" onClick={() => deleteAssignment(a.id)}>

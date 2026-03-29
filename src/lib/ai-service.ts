@@ -1,11 +1,10 @@
-import { supabase } from "@/integrations/supabase/client";
+import { apiClient } from "@/lib/api-client";
 
 async function callAIFunction(action: string, payload: Record<string, unknown>) {
-  const { data, error } = await supabase.functions.invoke("ai-assist", {
-    body: { action, payload },
+  const data = await apiClient.fetch("/ai/assist", {
+    method: "POST",
+    body: JSON.stringify({ action, payload }),
   });
-
-  if (error) throw new Error(error.message || "AI service unavailable");
   if (data?.error) throw new Error(data.error);
   return data.result;
 }

@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import InstructorSidebar from "@/components/dashboard/InstructorSidebar";
@@ -14,6 +13,7 @@ import { useToast } from "@/hooks/use-toast";
 import RichTextEditor from "@/components/ui/rich-text-editor";
 import { Loader2, Sparkles } from "lucide-react";
 import { generateCourseDraft } from "@/lib/ai-service";
+import { apiClient } from "@/lib/api-client";
 
 const categories = ["Technology", "Science", "Mathematics", "Business", "Arts", "Health", "Engineering", "Humanities"];
 const levels = ["Undergraduate", "Graduate", "Doctoral", "Certificate", "Online"];
@@ -39,11 +39,12 @@ const CreateCourse = () => {
   useEffect(() => {
     if (!user) return;
     const checkLimit = async () => {
-      const { count } = await (supabase
-        .from("courses") as any)
-        .select("*", { count: "exact", head: true })
-        .eq("author_id", user.id);
-      setCourseCount(count || 0);
+      try {
+        const courses = await apiClient.fetch("/instructor/courses");
+        setCourseCount(courses.length || 0);
+      } catch {
+        setCourseCount(0);
+      }
     };
     checkLimit();
   }, [user]);
@@ -83,36 +84,22 @@ const CreateCourse = () => {
     e.preventDefault();
     if (!user) return;
     setLoading(true);
-
-    const slug = form.title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") + "-" + Math.random().toString(36).substring(2, 7);
-
-    const { data, error } = await supabase.from("courses").insert({
-      title: form.title, 
-      description: form.description, 
-      summary: form.summary,
-      category: form.category || null, 
-      level: form.level,
-      credits: form.credits,
-      duration: form.duration,
-      price_cents: 0, 
-      slug, 
-      author_id: user.id, 
-      published: false,
-      status: 'pending',
-      cover_image_url: form.cover_image_url || null,
-    }).select("id").single();
-
-    setLoading(false);
-    if (error) {
-      console.error("Course creation error detail:", error);
-      toast({ 
-        title: "Course Creation Failed", 
-        description: error.message || "Something went wrong. Please check if all required fields are met and database columns exist.", 
-        variant: "destructive" 
+    try {
+      const data = await apiClient.fetch("/instructor/courses", {
+        method: "POST",
+        body: JSON.stringify(form),
       });
-    } else {
       toast({ title: "Course created!", description: "Now add modules, lessons, and assessments." });
-      navigate(`/instructor/courses/${data.id}`);
+      navigate(`/instructor/courses/${data.id || data._id}`);
+    } catch (error: any) {
+      console.error("Course creation error detail:", error);
+      toast({
+        title: "Course Creation Failed",
+        description: error.message || "Something went wrong while creating the course.",
+        variant: "destructive"
+      });
+    } finally {
+      setLoading(false);
     }
   };
 

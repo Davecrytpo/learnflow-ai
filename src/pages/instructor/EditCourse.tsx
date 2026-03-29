@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import InstructorSidebar from "@/components/dashboard/InstructorSidebar";
@@ -20,7 +19,8 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { generateCurriculumOutline, generateLessonContent } from "@/lib/ai-service";
 import RichTextEditor from "@/components/ui/rich-text-editor";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { apiClient } from "@/lib/api-client";
 
 const EditCourse = () => {
   const { courseId } = useParams();
@@ -42,15 +42,9 @@ const EditCourse = () => {
     if (!courseId) return;
     setLoading(true);
     try {
-      const { data: courseData } = await supabase.from("courses").select("*").eq("id", courseId).single();
-      const { data: sectionData } = await supabase
-        .from("modules")
-        .select("*, lessons(*)")
-        .eq("course_id", courseId)
-        .order("order", { ascending: true });
-      
-      setCourse(courseData);
-      setSections(sectionData || []);
+      const data = await apiClient.fetch(`/instructor/courses/${courseId}`);
+      setCourse(data.course);
+      setSections(data.sections || []);
     } catch (err: any) {
       toast({ title: "Error", description: err.message, variant: "destructive" });
     } finally {
@@ -63,55 +57,73 @@ const EditCourse = () => {
   }, [courseId]);
 
   const addSection = async () => {
-    const { data, error } = await supabase.from("modules").insert({
-      course_id: courseId!,
-      title: "New Section",
-      order: sections.length
-    }).select().single();
-    
-    if (error) toast({ title: "Error", variant: "destructive" });
-    else fetchCourseData();
+    try {
+      await apiClient.fetch(`/instructor/courses/${courseId}/modules`, {
+        method: "POST",
+        body: JSON.stringify({
+          title: "New Section",
+          order: sections.length
+        })
+      });
+      fetchCourseData();
+    } catch {
+      toast({ title: "Error", variant: "destructive" });
+    }
   };
 
   const addLesson = async (sectionId: string) => {
-    const { data, error } = await supabase.from("lessons").insert({
-      module_id: sectionId,
-      course_id: courseId!,
-      title: "New Lesson",
-      order: 0
-    }).select().single();
-    
-    if (error) toast({ title: "Error", variant: "destructive" });
-    else {
+    try {
+      const section = sections.find((item) => item.id === sectionId);
+      const data = await apiClient.fetch(`/instructor/modules/${sectionId}/lessons`, {
+        method: "POST",
+        body: JSON.stringify({
+          title: "New Lesson",
+          order: section?.lessons?.length || 0
+        })
+      });
       setEditingLesson(data);
       setIsLessonModalOpen(true);
       fetchCourseData();
+    } catch {
+      toast({ title: "Error", variant: "destructive" });
     }
   };
 
   const deleteLesson = async (lessonId: string) => {
-    const { error } = await supabase.from("lessons").delete().eq("id", lessonId);
-    if (error) toast({ title: "Error", variant: "destructive" });
-    else fetchCourseData();
+    try {
+      await apiClient.fetch(`/instructor/lessons/${lessonId}`, { method: "DELETE" });
+      fetchCourseData();
+    } catch {
+      toast({ title: "Error", variant: "destructive" });
+    }
   };
 
   const deleteSection = async (sectionId: string) => {
-    const { error } = await supabase.from("modules").delete().eq("id", sectionId);
-    if (error) toast({ title: "Error", variant: "destructive" });
-    else fetchCourseData();
+    try {
+      await apiClient.fetch(`/instructor/modules/${sectionId}`, { method: "DELETE" });
+      fetchCourseData();
+    } catch {
+      toast({ title: "Error", variant: "destructive" });
+    }
   };
 
   const updateCourse = async () => {
     setSaving(true);
-    const { error } = await supabase.from("courses").update({
-      title: course.title,
-      description: course.description,
-      summary: course.summary
-    }).eq("id", courseId);
-    
-    setSaving(false);
-    if (error) toast({ title: "Update failed", variant: "destructive" });
-    else toast({ title: "Changes saved" });
+    try {
+      await apiClient.fetch(`/instructor/courses/${courseId}`, {
+        method: "PATCH",
+        body: JSON.stringify({
+          title: course.title,
+          description: course.description,
+          summary: course.summary
+        })
+      });
+      toast({ title: "Changes saved" });
+    } catch {
+      toast({ title: "Update failed", variant: "destructive" });
+    } finally {
+      setSaving(false);
+    }
   };
 
   const handleGenerateOutline = async () => {
@@ -120,20 +132,23 @@ const EditCourse = () => {
     try {
       const outline = await generateCurriculumOutline(course.title);
       for (const [sIdx, mod] of outline.modules.entries()) {
-        const { data: section } = await supabase.from("modules").insert({
-          course_id: courseId!,
-          title: mod.title,
-          order: sections.length + sIdx
-        }).select().single();
-
+        const section = await apiClient.fetch(`/instructor/courses/${courseId}/modules`, {
+          method: "POST",
+          body: JSON.stringify({
+            title: mod.title,
+            order: sections.length + sIdx
+          })
+        });
         if (section) {
-          const lessonInserts = mod.lessons.map((l: any, lIdx: number) => ({
-            module_id: section.id,
-            course_id: courseId!,
-            title: l.title,
-            order: lIdx
-          }));
-          await supabase.from("lessons").insert(lessonInserts);
+          for (const [lIdx, lesson] of mod.lessons.entries()) {
+            await apiClient.fetch(`/instructor/modules/${section.id}/lessons`, {
+              method: "POST",
+              body: JSON.stringify({
+                title: lesson.title,
+                order: lIdx
+              })
+            });
+          }
         }
       }
       toast({ title: "Curriculum Generated", description: "AI has structured your course modules." });
@@ -161,17 +176,20 @@ const EditCourse = () => {
 
   const saveLesson = async () => {
     if (!editingLesson) return;
-    const { error } = await supabase.from("lessons").update({
-      title: editingLesson.title,
-      content: editingLesson.content,
-      video_url: editingLesson.video_url,
-    }).eq("id", editingLesson.id);
-
-    if (error) toast({ title: "Save Error", variant: "destructive" });
-    else {
+    try {
+      await apiClient.fetch(`/instructor/lessons/${editingLesson.id}`, {
+        method: "PATCH",
+        body: JSON.stringify({
+          title: editingLesson.title,
+          content: editingLesson.content,
+          video_url: editingLesson.video_url,
+        })
+      });
       toast({ title: "Lesson Saved" });
       setIsLessonModalOpen(false);
       fetchCourseData();
+    } catch {
+      toast({ title: "Save Error", variant: "destructive" });
     }
   };
 

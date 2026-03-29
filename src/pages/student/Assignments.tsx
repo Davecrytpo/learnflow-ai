@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { apiClient } from "@/lib/api-client";
 import { useAuth } from "@/hooks/useAuth";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
@@ -13,6 +14,7 @@ import { useToast } from "@/hooks/use-toast";
 
 const StudentAssignments = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const { toast } = useToast();
   const [loading, setLoading] = useState(true);
   const [assignments, setAssignments] = useState<any[]>([]);
@@ -56,7 +58,7 @@ const StudentAssignments = () => {
   }, [user]);
 
   const getStatus = (assignmentId: string, dueDate: string | null) => {
-    const sub = submissions.find(s => s.assignment_id === assignmentId);
+    const sub = submissions.find(s => (s.assignment_id?._id || s.assignment_id?.id || s.assignment_id) === assignmentId);
     if (sub) return sub.score !== null ? "Graded" : "Submitted";
     if (dueDate && new Date(dueDate) < new Date()) return "Overdue";
     return "Open";
@@ -128,16 +130,16 @@ const StudentAssignments = () => {
           </div>
 
           <TabsContent value="all" className="mt-0">
-            <AssignmentList list={filtered} loading={loading} submissions={submissions} getStatus={getStatus} />
+            <AssignmentList list={filtered} loading={loading} submissions={submissions} getStatus={getStatus} navigate={navigate} />
           </TabsContent>
           <TabsContent value="upcoming" className="mt-0">
-            <AssignmentList list={upcoming} loading={loading} submissions={submissions} getStatus={getStatus} />
+            <AssignmentList list={upcoming} loading={loading} submissions={submissions} getStatus={getStatus} navigate={navigate} />
           </TabsContent>
           <TabsContent value="completed" className="mt-0">
-            <AssignmentList list={completed} loading={loading} submissions={submissions} getStatus={getStatus} />
+            <AssignmentList list={completed} loading={loading} submissions={submissions} getStatus={getStatus} navigate={navigate} />
           </TabsContent>
           <TabsContent value="overdue" className="mt-0">
-            <AssignmentList list={overdue} loading={loading} submissions={submissions} getStatus={getStatus} />
+            <AssignmentList list={overdue} loading={loading} submissions={submissions} getStatus={getStatus} navigate={navigate} />
           </TabsContent>
         </Tabs>
       </div>
@@ -145,7 +147,7 @@ const StudentAssignments = () => {
   );
 };
 
-const AssignmentList = ({ list, loading, submissions, getStatus }: any) => {
+const AssignmentList = ({ list, loading, submissions, getStatus, navigate }: any) => {
   if (loading) return <div className="flex justify-center py-12"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>;
   if (list.length === 0) return (
     <div className="text-center py-12 border-2 border-dashed rounded-2xl text-muted-foreground">
@@ -157,7 +159,7 @@ const AssignmentList = ({ list, loading, submissions, getStatus }: any) => {
     <div className="space-y-3">
       {list.map((a: any) => {
         const status = getStatus(a.id, a.due_date);
-        const sub = submissions.find((s: any) => s.assignment_id === a.id);
+        const sub = submissions.find((s: any) => (s.assignment_id?._id || s.assignment_id?.id || s.assignment_id) === a.id);
         
         return (
           <Card key={a.id} className="group hover:border-primary/30 transition-all">
@@ -194,7 +196,12 @@ const AssignmentList = ({ list, loading, submissions, getStatus }: any) => {
                   )}
                 </div>
 
-                <Button size="sm" variant={status === 'Open' || status === 'Overdue' ? 'default' : 'outline'} className="h-9">
+                <Button
+                  size="sm"
+                  variant={status === 'Open' || status === 'Overdue' ? 'default' : 'outline'}
+                  className="h-9"
+                  onClick={() => navigate(`/course/${a.course_id?._id || a.course_id?.id}/learn`)}
+                >
                   {status === 'Open' || status === 'Overdue' ? 'Submit' : 'Review'}
                 </Button>
               </div>

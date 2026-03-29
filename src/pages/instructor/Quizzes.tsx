@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import InstructorSidebar from "@/components/dashboard/InstructorSidebar";
@@ -12,9 +12,12 @@ import { useToast } from "@/hooks/use-toast";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogTrigger } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { apiClient } from "@/lib/api-client";
+import { generateQuiz } from "@/lib/ai-service";
 
 const InstructorQuizzes = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const { toast } = useToast();
   const [loading, setLoading] = useState(true);
   const [courses, setCourses] = useState<any[]>([]);
@@ -25,25 +28,18 @@ const InstructorQuizzes = () => {
   const [open, setOpen] = useState(false);
   const [newQuiz, setNewQuiz] = useState({ title: "", course_id: "", time_limit: "30" });
   const [saving, setSaving] = useState(false);
+  const [aiGenerating, setAiGenerating] = useState(false);
 
   const fetchData = async () => {
     if (!user) return;
     setLoading(true);
     try {
-      const { data: myCourses } = await supabase.from("courses").select("id, title").eq("author_id", user.id);
+      const [myCourses, quizData] = await Promise.all([
+        apiClient.fetch("/instructor/courses"),
+        apiClient.fetch("/instructor/quizzes")
+      ]);
       setCourses(myCourses || []);
-
-      if (myCourses && myCourses.length > 0) {
-        const cIds = myCourses.map(c => c.id);
-        const { data: quizData, error } = await supabase
-          .from("quizzes")
-          .select("*, courses:course_id(title)")
-          .in("course_id", cIds)
-          .order("created_at", { ascending: false });
-        
-        if (error) throw error;
-        setQuizzes(quizData || []);
-      }
+      setQuizzes(quizData || []);
     } catch (err: any) {
       toast({ title: "Load failed", description: err.message, variant: "destructive" });
     } finally {
@@ -60,12 +56,14 @@ const InstructorQuizzes = () => {
     if (!newQuiz.title || !newQuiz.course_id) return;
     setSaving(true);
     try {
-      const { error } = await supabase.from("quizzes").insert({
-        title: newQuiz.title,
-        course_id: newQuiz.course_id,
-        time_limit_minutes: parseInt(newQuiz.time_limit)
+      await apiClient.fetch("/instructor/quizzes", {
+        method: "POST",
+        body: JSON.stringify({
+          title: newQuiz.title,
+          course_id: newQuiz.course_id,
+          time_limit_minutes: parseInt(newQuiz.time_limit)
+        })
       });
-      if (error) throw error;
       toast({ title: "Quiz created", description: "You can now add questions in the editor." });
       setOpen(false);
       setNewQuiz({ title: "", course_id: "", time_limit: "30" });
@@ -79,9 +77,46 @@ const InstructorQuizzes = () => {
 
   const deleteQuiz = async (id: string) => {
     if (!confirm("Delete this quiz?")) return;
-    const { error } = await supabase.from("quizzes").delete().eq("id", id);
-    if (error) toast({ title: "Error", description: error.message, variant: "destructive" });
-    else { toast({ title: "Quiz removed" }); fetchData(); }
+    try {
+      await apiClient.fetch(`/instructor/quizzes/${id}`, { method: "DELETE" });
+      toast({ title: "Quiz removed" });
+      fetchData();
+    } catch (error: any) {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    }
+  };
+
+  const handleGenerateAiQuiz = async () => {
+    if (!newQuiz.title || !newQuiz.course_id) {
+      toast({ title: "Quiz title required", description: "Enter a quiz title and select a course first.", variant: "destructive" });
+      return;
+    }
+
+    setAiGenerating(true);
+    try {
+      const draft = await generateQuiz(newQuiz.title);
+      await apiClient.fetch("/instructor/quizzes", {
+        method: "POST",
+        body: JSON.stringify({
+          course_id: newQuiz.course_id,
+          title: draft.title || newQuiz.title,
+          description: draft.description || "",
+          quiz_type: draft.quiz_type || "quiz",
+          time_limit_minutes: draft.time_limit_minutes || parseInt(newQuiz.time_limit),
+          passing_score: draft.passing_score || 70,
+          max_attempts: draft.max_attempts || 3,
+          questions: draft.questions || []
+        })
+      });
+      toast({ title: "AI quiz created", description: "A quiz draft with starter questions has been added." });
+      setOpen(false);
+      setNewQuiz({ title: "", course_id: "", time_limit: "30" });
+      fetchData();
+    } catch (error: any) {
+      toast({ title: "AI quiz failed", description: error.message, variant: "destructive" });
+    } finally {
+      setAiGenerating(false);
+    }
   };
 
   const filtered = quizzes.filter(q => 
@@ -130,6 +165,10 @@ const InstructorQuizzes = () => {
                   </div>
                   <DialogFooter>
                     <Button variant="outline" type="button" onClick={() => setOpen(false)}>Cancel</Button>
+                    <Button type="button" variant="outline" onClick={handleGenerateAiQuiz} disabled={saving || aiGenerating}>
+                      {(aiGenerating || saving) && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                      Generate with AI
+                    </Button>
                     <Button type="submit" disabled={saving}>
                       {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                       Create Quiz
@@ -182,7 +221,12 @@ const InstructorQuizzes = () => {
                         <Badge variant="outline" className="mt-1 text-[10px] uppercase">Active</Badge>
                       </div>
                       <div className="flex gap-1">
-                        <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8 text-muted-foreground"
+                          onClick={() => navigate(`/instructor/courses/${q.course_id}`)}
+                        >
                           <Layout className="h-4 w-4" />
                         </Button>
                         <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:bg-destructive/10" onClick={() => deleteQuiz(q.id)}>
