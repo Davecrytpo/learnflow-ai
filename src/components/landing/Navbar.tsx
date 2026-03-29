@@ -53,7 +53,6 @@ const staticPages = [
   ...research,
   ...admissions,
   ...campus,
-  { title: "Faculty Recruitment", href: "/instructor/register", description: "Join our teaching staff" },
   { title: "Giving", href: "/giving", description: "Support the university" },
   { title: "Contact Us", href: "/contact", description: "Get in touch" },
   { title: "Login", href: "/login", description: "Access your portal" },

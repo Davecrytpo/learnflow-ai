@@ -104,10 +104,9 @@ const Footer = () => (
             {[
               ["Apply Now", "/signup"],
               ["Student Portal", "/login"],
-              ["Faculty Portal", "/instructor/login"],
-              ["Admin Login", "/admin/login"],
               ["Contact Us", "/contact"],
-              ["Careers at GUI", "/instructor/register"],
+              ["About the Institute", "/about"],
+              ["Giving to GUI", "/giving"],
             ].map(([label, href]) => (
               <li key={label}>
                 <Link to={href} className="text-sm text-background/40 transition-colors hover:text-background">{label}</Link>

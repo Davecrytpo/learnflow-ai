@@ -32,6 +32,7 @@ const Index = lazy(() => import("./pages/Index"));
 const StudentPortal = lazy(() => import("./pages/StudentPortal"));
 const InstructorPortal = lazy(() => import("./pages/InstructorPortal"));
 const AdminPortal = lazy(() => import("./pages/AdminPortal"));
+const SetupPassword = lazy(() => import("./pages/SetupPassword"));
 const InstructorAnnouncements = lazy(() => import("./pages/instructor/Announcements"));
 const InstructorGroups = lazy(() => import("./pages/instructor/Groups"));
 const InstructorAnalytics = lazy(() => import("./pages/instructor/Analytics"));
@@ -231,6 +232,7 @@ const App = () => (
                   <Route path="/student" element={<StudentPortal />} />
                   <Route path="/instructor-portal" element={<InstructorPortal />} />
                   <Route path="/admin-portal" element={<AdminPortal />} />
+                  <Route path="/setup-password" element={<SetupPassword />} />
                   <Route path="/login" element={<Login />} />
                   <Route path="/instructor/login" element={<InstructorLogin />} />
                   <Route path="/signup" element={<Signup />} />

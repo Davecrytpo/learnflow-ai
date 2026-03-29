@@ -350,42 +350,16 @@ const authorize = (roles) => {
 };
 
 // --- AUTH ROUTES ---
-app.post("/auth/init-admin", async (req, res) => {
-  try {
-    const { email, password, key } = req.body;
-    
-    // Check if any admin exists
-    const adminExists = await User.findOne({ role: "admin" });
-    if (adminExists) {
-      return res.status(403).json({ error: "System already initialized." });
-    }
-
-    // Optional: Use JWT_SECRET as a simple 'key' to prevent random access
-    if (key !== JWT_SECRET) {
-      return res.status(403).json({ error: "Invalid initialization key." });
-    }
-
-    const hashedPassword = await bcrypt.hash(password, 10);
-    const user = new User({
-      email: normalizeEmail(email),
-      password: hashedPassword,
-      role: "admin",
-      display_name: "System Administrator",
-      email_verified: true,
-      status: "active"
-    });
-
-    await user.save();
-    res.json({ success: true, message: "Admin account created successfully. You can now log in at /admin/login" });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
-
 app.post("/auth/signup", async (req, res) => {
   try {
     const { email, password, role, display_name, department, specialization, bio } = req.body;
     const normalizedEmail = normalizeEmail(email);
+    
+    // STRICT SECURITY: Only student role can self-register
+    if (role && role !== "student") {
+      return res.status(403).json({ error: "Only student accounts can be created via public registration." });
+    }
+
     if (!normalizedEmail || !password) {
       return res.status(400).json({ error: "Email and password are required." });
     }
@@ -394,18 +368,18 @@ app.post("/auth/signup", async (req, res) => {
     if (existingUser) return res.status(400).json({ error: "User already registered." });
 
     const hashedPassword = await bcrypt.hash(password, 10);
-    const admissionNumber = role === "student" ? `GUI-2026-${Math.floor(1000 + Math.random() * 9000)}` : undefined;
+    const admissionNumber = `GUI-2026-${Math.floor(1000 + Math.random() * 9000)}`;
 
     const user = new User({
       email: normalizedEmail,
       password: hashedPassword,
-      role: role || "student",
+      role: "student",
       display_name: display_name || normalizedEmail.split("@")[0],
       admission_number: admissionNumber,
       department,
       specialization,
       bio,
-      email_verified: true, // Auto-verify for now as requested to ensure it works
+      email_verified: true,
     });
 
     await user.save();
@@ -416,8 +390,8 @@ app.post("/auth/signup", async (req, res) => {
       subject: `Welcome to Global University Institute`,
       htmlContent: wrapEmail(`
         <h2 style="margin:0 0 12px;">Welcome, ${user.display_name}!</h2>
-        <p style="margin:0 0 16px; color:#475569;">Your account has been successfully created as a <strong>${user.role}</strong>.</p>
-        ${admissionNumber ? `<p style="margin:0 0 16px; color:#475569;"><strong>Your Admission Number:</strong> ${admissionNumber}</p>` : ""}
+        <p style="margin:0 0 16px; color:#475569;">Your account has been successfully created as a <strong>student</strong>.</p>
+        <p style="margin:0 0 16px; color:#475569;"><strong>Your Admission Number:</strong> ${admissionNumber}</p>
         <p style="margin:0 0 16px; color:#475569;">You can now log in to your portal to complete your profile and explore our platform.</p>
       `)
     }).catch(err => console.error("Email error:", err));
@@ -439,12 +413,94 @@ app.post("/auth/login", async (req, res) => {
     const validPassword = await bcrypt.compare(password, user.password);
     if (!validPassword) return res.status(400).json({ error: "Invalid email or password." });
 
+    // Ensure authorized admin email
+    if (user.role === "admin" && user.email !== "globaluniversityinstitutes@gmail.com") {
+      return res.status(403).json({ error: "Access denied. Unauthorized administrative email." });
+    }
+
     const token = jwt.sign({ id: user._id, email: user.email, role: user.role }, JWT_SECRET, { expiresIn: "7d" });
     
     // Send login notification
     sendLoginEmail(user.email).catch(err => console.error("Login email error:", err));
 
     res.json({ token, user: { id: user._id, email: user.email, role: user.role, display_name: user.display_name } });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post("/auth/setup-password", async (req, res) => {
+  try {
+    const { token, password } = req.body;
+    if (!token || !password) return res.status(400).json({ error: "Token and password are required." });
+    if (password.length < 8) return res.status(400).json({ error: "Password must be at least 8 characters." });
+
+    const tokenHash = hashToken(token);
+    const user = await User.findOne({
+      email_verification_token: tokenHash,
+      email_verification_expires: { $gt: new Date() }
+    });
+    if (!user) return res.status(400).json({ error: "Invalid or expired setup link." });
+
+    user.password = await bcrypt.hash(password, 10);
+    user.email_verified = true;
+    user.email_verification_token = undefined;
+    user.email_verification_expires = undefined;
+    user.status = "active";
+    await user.save();
+
+    res.json({ success: true, message: "Account activated successfully. You can now log in." });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Admin: Create Instructor (Invitation Flow)
+app.post("/admin/create-instructor", authenticate, authorize(["admin"]), async (req, res) => {
+  try {
+    const { email, name, department, specialization } = req.body;
+    const normalizedEmail = normalizeEmail(email);
+    
+    const existingUser = await User.findOne({ email: normalizedEmail });
+    if (existingUser) return res.status(400).json({ error: "User already exists with this email." });
+
+    const setupToken = generateToken();
+    const setupTokenHash = hashToken(setupToken);
+
+    // Create user in invited state without password
+    const user = new User({
+      email: normalizedEmail,
+      password: await bcrypt.hash(generateToken(), 10), // Random temp password
+      display_name: name,
+      role: "instructor",
+      department,
+      specialization,
+      status: "pending",
+      email_verification_token: setupTokenHash,
+      email_verification_expires: new Date(Date.now() + 24 * 60 * 60 * 1000) // 24 hours
+    });
+
+    await user.save();
+
+    const setupUrl = buildAppUrl("/setup-password", setupToken);
+
+    await sendEmail({
+      to: normalizedEmail,
+      subject: "Invitation to Join Global University Institute Faculty",
+      htmlContent: wrapEmail(`
+        <h2 style="margin:0 0 12px;">Faculty Invitation</h2>
+        <p style="margin:0 0 16px; color:#475569;">Hello ${name},</p>
+        <p style="margin:0 0 16px; color:#475569;">You have been invited to join the faculty at Global University Institute. Please click the button below to set up your password and activate your account.</p>
+        <p style="margin:0 0 20px;">
+          <a href="${setupUrl}" style="display:inline-block; background:#2563eb; color:#fff; text-decoration:none; padding:12px 18px; border-radius:10px; font-weight:700;">
+            Set Up My Account
+          </a>
+        </p>
+        <p style="margin:0; color:#64748b; font-size:13px;">This link will expire in 24 hours.</p>
+      `)
+    });
+
+    res.json({ success: true, message: "Invitation sent to lecturer." });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
