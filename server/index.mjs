@@ -253,6 +253,39 @@ const notificationSchema = new mongoose.Schema({
 });
 const Notification = mongoose.model("Notification", notificationSchema);
 
+const discussionSchema = new mongoose.Schema({
+  course_id: { type: mongoose.Schema.Types.ObjectId, ref: "Course", required: true },
+  user_id: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
+  title: { type: String, required: true },
+  content: { type: String, required: true },
+  created_at: { type: Date, default: Date.now },
+  updated_at: { type: Date, default: Date.now }
+});
+const Discussion = mongoose.model("Discussion", discussionSchema);
+
+const discussionReplySchema = new mongoose.Schema({
+  discussion_id: { type: mongoose.Schema.Types.ObjectId, ref: "Discussion", required: true },
+  user_id: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
+  content: { type: String, required: true },
+  created_at: { type: Date, default: Date.now },
+  updated_at: { type: Date, default: Date.now }
+});
+const DiscussionReply = mongoose.model("DiscussionReply", discussionReplySchema);
+
+const dynamicRecordSchema = new mongoose.Schema(
+  {
+    table: { type: String, required: true, index: true }
+  },
+  {
+    strict: false
+  }
+);
+dynamicRecordSchema.add({
+  created_at: { type: Date, default: Date.now },
+  updated_at: { type: Date, default: Date.now }
+});
+const DynamicRecord = mongoose.model("DynamicRecord", dynamicRecordSchema);
+
 // --- EMAIL (SENDGRID) ---
 const SENDGRID_API_KEY = process.env.SENDGRID_API_KEY;
 const SENDGRID_SENDER_EMAIL = process.env.SENDGRID_SENDER_EMAIL || "noreply@globaluniversityinstitute.com";
@@ -296,6 +329,239 @@ const serializeDoc = (doc) => {
   };
 };
 const serializeCollection = (docs = []) => docs.map((doc) => serializeDoc(doc));
+const toObjectIdIfValid = (value) => (isValidObjectId(value) ? new mongoose.Types.ObjectId(value) : value);
+const dynamicTables = new Set([
+  "accreditations",
+  "ai_governance_logs",
+  "audit_logs",
+  "attendance_records",
+  "attendance_sessions",
+  "billing_invoices",
+  "compliance_records",
+  "course_groups",
+  "course_resources",
+  "data_exports",
+  "data_pipelines",
+  "directory_syncs",
+  "group_members",
+  "marketplace_orders",
+  "newsletter_subs",
+  "permissions_roles",
+  "plagiarism_cases",
+  "proctoring_sessions",
+  "sso_providers",
+  "support_tickets",
+  "tenants",
+  "webhook_configs",
+  "news",
+  "webinars"
+]);
+
+const getTableModel = (table) => {
+  switch (table) {
+    case "courses":
+      return { type: "model", model: Course };
+    case "modules":
+      return { type: "model", model: Module };
+    case "lessons":
+      return { type: "model", model: Lesson };
+    case "enrollments":
+      return { type: "model", model: Enrollment };
+    case "assignments":
+      return { type: "model", model: Assignment };
+    case "submissions":
+      return { type: "model", model: Submission };
+    case "quizzes":
+      return { type: "model", model: Quiz };
+    case "quiz_questions":
+      return { type: "model", model: QuizQuestion };
+    case "quiz_attempts":
+      return { type: "model", model: QuizAttempt };
+    case "certificates":
+      return { type: "model", model: Certificate };
+    case "announcements":
+      return { type: "model", model: Announcement };
+    case "lesson_progress":
+      return { type: "model", model: LessonProgress };
+    case "notifications":
+      return { type: "model", model: Notification };
+    case "discussions":
+      return { type: "model", model: Discussion };
+    case "discussion_replies":
+      return { type: "model", model: DiscussionReply };
+    case "profiles":
+      return { type: "profile", model: User };
+    default:
+      return { type: "dynamic", model: DynamicRecord, table };
+  }
+};
+
+const buildMongoMatch = (table, filters = []) => {
+  const match = {};
+  if (table && dynamicTables.has(table)) {
+    match.table = table;
+  }
+
+  for (const filter of filters) {
+    const field = filter.column === "id" ? "_id" : filter.column;
+    const value = Array.isArray(filter.value)
+      ? filter.value.map((item) => toObjectIdIfValid(item))
+      : toObjectIdIfValid(filter.value);
+
+    if (filter.type === "eq") {
+      match[field] = value;
+    }
+    if (filter.type === "neq") {
+      match[field] = { ...(match[field] || {}), $ne: value };
+    }
+    if (filter.type === "in") {
+      match[field] = { $in: value };
+    }
+    if (filter.type === "ilike") {
+      const pattern = String(filter.value || "").replace(/%/g, ".*");
+      match[field] = { $regex: pattern, $options: "i" };
+    }
+  }
+
+  return match;
+};
+
+const applyPopulate = (table, query) => {
+  switch (table) {
+    case "courses":
+      return query.populate("author_id", "display_name avatar_url bio department email");
+    case "enrollments":
+      return query
+        .populate("student_id", "display_name avatar_url email")
+        .populate("course_id", "title cover_image_url category");
+    case "assignments":
+      return query.populate("course_id", "title");
+    case "submissions":
+      return query
+        .populate("assignment_id", "title max_score course_id")
+        .populate("student_id", "display_name avatar_url email");
+    case "quizzes":
+      return query.populate("course_id", "title");
+    case "quiz_attempts":
+      return query
+        .populate({ path: "quiz_id", populate: { path: "course_id", select: "title" } })
+        .populate("user_id", "display_name avatar_url email");
+    case "certificates":
+      return query.populate("course_id", "title");
+    case "announcements":
+      return query.populate("course_id", "title");
+    case "discussions":
+    case "discussion_replies":
+      return query.populate("user_id", "display_name avatar_url");
+    default:
+      return query;
+  }
+};
+
+const normalizeRecord = (table, input) => {
+  const item = serializeDoc(input);
+  if (!item) return item;
+
+  if (item._id && !item.id) {
+    item.id = item._id.toString();
+  }
+
+  if (table === "profiles") {
+    return {
+      ...item,
+      id: item.id || item._id?.toString?.(),
+      user_id: item.id || item._id?.toString?.()
+    };
+  }
+
+  if (table === "courses" && item.author_id && typeof item.author_id === "object") {
+    item.profiles = {
+      display_name: item.author_id.display_name || null,
+      avatar_url: item.author_id.avatar_url || null,
+      bio: item.author_id.bio || null,
+      department: item.author_id.department || null
+    };
+    item.author_id = item.author_id.id || item.author_id._id?.toString?.() || item.author_id;
+  }
+
+  if (table === "enrollments") {
+    if (item.student_id && typeof item.student_id === "object") {
+      item.profiles = {
+        display_name: item.student_id.display_name || null,
+        avatar_url: item.student_id.avatar_url || null
+      };
+      item.student_id = item.student_id.id || item.student_id._id?.toString?.() || item.student_id;
+    }
+    if (item.course_id && typeof item.course_id === "object") {
+      item.courses = {
+        title: item.course_id.title || null
+      };
+      item.course_id = item.course_id.id || item.course_id._id?.toString?.() || item.course_id;
+    }
+  }
+
+  if (table === "assignments" && item.course_id && typeof item.course_id === "object") {
+    item.courses = { title: item.course_id.title || null };
+    item.course_id = item.course_id.id || item.course_id._id?.toString?.() || item.course_id;
+  }
+
+  if (table === "quizzes" && item.course_id && typeof item.course_id === "object") {
+    item.courses = { title: item.course_id.title || null };
+    item.course_id = item.course_id.id || item.course_id._id?.toString?.() || item.course_id;
+  }
+
+  if (table === "submissions") {
+    if (item.assignment_id && typeof item.assignment_id === "object") {
+      item.assignment = {
+        title: item.assignment_id.title || null,
+        max_score: item.assignment_id.max_score || null,
+        course_id: item.assignment_id.course_id || null
+      };
+      item.assignment_id = item.assignment_id.id || item.assignment_id._id?.toString?.() || item.assignment_id;
+    }
+    if (item.student_id && typeof item.student_id === "object") {
+      item.profiles = {
+        display_name: item.student_id.display_name || null,
+        avatar_url: item.student_id.avatar_url || null
+      };
+      item.student_id = item.student_id.id || item.student_id._id?.toString?.() || item.student_id;
+    }
+  }
+
+  if (table === "quiz_attempts") {
+    if (item.quiz_id && typeof item.quiz_id === "object") {
+      item.quiz = {
+        title: item.quiz_id.title || null,
+        course_id: item.quiz_id.course_id || null
+      };
+      item.quiz_id = item.quiz_id.id || item.quiz_id._id?.toString?.() || item.quiz_id;
+    }
+    if (item.user_id && typeof item.user_id === "object") {
+      item.profiles = {
+        display_name: item.user_id.display_name || null,
+        avatar_url: item.user_id.avatar_url || null
+      };
+      item.user_id = item.user_id.id || item.user_id._id?.toString?.() || item.user_id;
+    }
+  }
+
+  if (table === "certificates" && item.course_id && typeof item.course_id === "object") {
+    item.courses = { title: item.course_id.title || null };
+    item.course_id = item.course_id.id || item.course_id._id?.toString?.() || item.course_id;
+  }
+
+  if ((table === "discussions" || table === "discussion_replies") && item.user_id && typeof item.user_id === "object") {
+    item.profiles = {
+      display_name: item.user_id.display_name || null,
+      avatar_url: item.user_id.avatar_url || null
+    };
+    item.user_id = item.user_id.id || item.user_id._id?.toString?.() || item.user_id;
+  }
+
+  return item;
+};
+
+const normalizeRecords = (table, docs = []) => docs.map((doc) => normalizeRecord(table, doc));
 const ensureInstructorCourse = async (courseId, user) => {
   if (!isValidObjectId(courseId)) return null;
   const query = { _id: courseId };
@@ -520,6 +786,20 @@ const authenticate = (req, res, next) => {
   } catch (ex) {
     res.status(400).json({ error: "Invalid token." });
   }
+};
+
+const attachOptionalUser = (req, _res, next) => {
+  const token = req.headers.authorization?.split(" ")[1];
+  if (!token) {
+    req.user = null;
+    return next();
+  }
+  try {
+    req.user = jwt.verify(token, JWT_SECRET);
+  } catch {
+    req.user = null;
+  }
+  next();
 };
 
 const authorize = (roles) => {
@@ -1262,6 +1542,155 @@ app.get("/courses", async (req, res) => {
     const query = search ? { title: { $regex: search, $options: "i" }, published: true } : { published: true };
     const courses = await Course.find(query).populate("author_id", "display_name");
     res.json(courses);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post("/db/query/:table", attachOptionalUser, async (req, res) => {
+  try {
+    const table = req.params.table;
+    const { operation = "select", filters = [], payload, order, options = {}, limit } = req.body || {};
+    const resource = getTableModel(table);
+    const match = buildMongoMatch(resource.type === "dynamic" ? table : null, filters);
+    const isPublicTable = ["courses", "news", "webinars"].includes(table);
+
+    if (!req.user && !(operation === "select" && isPublicTable) && !(table === "newsletter_subs" && operation === "insert")) {
+      return res.status(401).json({ error: "Authentication required." });
+    }
+
+    if (resource.type === "profile") {
+      if (operation === "select") {
+        let query = User.find(match).select("-password");
+        if (order?.column) {
+          query = query.sort({ [order.column === "id" ? "_id" : order.column]: order.ascending === false ? -1 : 1 });
+        }
+        if (limit) {
+          query = query.limit(Number(limit));
+        }
+        const docs = await query.exec();
+        const records = normalizeRecords(table, docs);
+        if (options.head && options.count) {
+          return res.json({ data: null, count: records.length, error: null });
+        }
+        if (options.single || options.maybeSingle) {
+          return res.json({ data: records[0] || null, error: null });
+        }
+        return res.json({ data: records, count: options.count ? records.length : null, error: null });
+      }
+
+      if (operation === "update") {
+        const update = { ...payload, updated_at: new Date() };
+        const docs = await User.find(match);
+        for (const doc of docs) {
+          Object.assign(doc, update);
+          await doc.save();
+        }
+        return res.json({ data: normalizeRecords(table, docs), error: null });
+      }
+    }
+
+    const Model = resource.model;
+
+    if (operation === "select") {
+      if (options.head && options.count) {
+        const count = await Model.countDocuments(match);
+        return res.json({ data: null, count, error: null });
+      }
+
+      let query = Model.find(match);
+      query = applyPopulate(table, query);
+      if (order?.column) {
+        query = query.sort({ [order.column === "id" ? "_id" : order.column]: order.ascending === false ? -1 : 1 });
+      }
+      if (limit) {
+        query = query.limit(Number(limit));
+      }
+
+      const docs = await query.exec();
+      const records = normalizeRecords(table, docs);
+      if (options.single || options.maybeSingle) {
+        return res.json({ data: records[0] || null, error: null });
+      }
+      return res.json({ data: records, count: options.count ? records.length : null, error: null });
+    }
+
+    if (operation === "insert") {
+      const rows = Array.isArray(payload) ? payload : [payload];
+      const preparedRows = rows.map((row) => {
+        const nextRow = { ...row, updated_at: new Date() };
+        if (resource.type === "dynamic") {
+          nextRow.table = table;
+        }
+        if (table === "newsletter_subs") {
+          nextRow.email = normalizeEmail(nextRow.email);
+        }
+        return nextRow;
+      });
+
+      if (table === "course_resources" && req.user?.role === "instructor") {
+        for (const row of preparedRows) {
+          const course = await ensureInstructorCourse(row.course_id, req.user);
+          if (!course) return res.status(404).json({ error: "Course not found." });
+        }
+      }
+
+      const docs = await Model.insertMany(preparedRows, { ordered: true });
+      const records = normalizeRecords(table, docs);
+      if (options.single) {
+        return res.json({ data: records[0] || null, error: null });
+      }
+      return res.json({ data: records, error: null });
+    }
+
+    if (operation === "update") {
+      const docs = await Model.find(match);
+      for (const doc of docs) {
+        Object.assign(doc, { ...payload, updated_at: new Date() });
+        await doc.save();
+      }
+      return res.json({ data: normalizeRecords(table, docs), error: null });
+    }
+
+    if (operation === "delete") {
+      const docs = await Model.find(match);
+      await Model.deleteMany(match);
+      return res.json({ data: normalizeRecords(table, docs), error: null });
+    }
+
+    if (operation === "upsert") {
+      const rows = Array.isArray(payload) ? payload : [payload];
+      const conflictFields = String(options.onConflict || "")
+        .split(",")
+        .map((field) => field.trim())
+        .filter(Boolean);
+
+      const results = [];
+      for (const row of rows) {
+        const conflictMatch = {};
+        for (const field of conflictFields) {
+          conflictMatch[field === "id" ? "_id" : field] = toObjectIdIfValid(row[field]);
+        }
+        if (resource.type === "dynamic") {
+          conflictMatch.table = table;
+        }
+        let doc = conflictFields.length > 0 ? await Model.findOne(conflictMatch) : null;
+        if (doc) {
+          Object.assign(doc, { ...row, updated_at: new Date() });
+          await doc.save();
+        } else {
+          doc = await Model.create({
+            ...(resource.type === "dynamic" ? { table } : {}),
+            ...row,
+            updated_at: new Date()
+          });
+        }
+        results.push(doc);
+      }
+      return res.json({ data: normalizeRecords(table, results), error: null });
+    }
+
+    return res.status(400).json({ error: "Unsupported database operation." });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
