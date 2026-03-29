@@ -8,11 +8,13 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { apiClient } from "@/lib/api-client";
 
+const ADMIN_BOOTSTRAP_EMAIL = "globaluniversityinstitutes@gmail.com";
+
 const AdminInit = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [formData, setFormData] = useState({
-    email: "",
+    email: ADMIN_BOOTSTRAP_EMAIL,
     password: "",
     key: "",
   });
@@ -56,7 +58,7 @@ const AdminInit = () => {
               <KeyRound className="h-8 w-8 text-white" />
             </div>
             <h1 className="text-3xl font-display font-bold text-white mb-2">Initialize Admin Access</h1>
-            <p className="text-slate-400 text-sm">Create the first platform administrator.</p>
+            <p className="text-slate-400 text-sm">Create the single institutional admin account. This page is separate from instructor email setup.</p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-6 relative z-10">
@@ -67,13 +69,12 @@ const AdminInit = () => {
                 <Input
                   id="email"
                   type="email"
-                  required
-                  placeholder="admin@globaluniversityinstitute.com"
+                  readOnly
                   value={formData.email}
-                  onChange={(e) => setFormData((current) => ({ ...current, email: e.target.value }))}
-                  className="h-14 rounded-2xl border-slate-800 bg-slate-950/50 text-white placeholder:text-slate-600 pl-11"
+                  className="h-14 rounded-2xl border-slate-800 bg-slate-950/50 text-white pl-11 opacity-80"
                 />
               </div>
+              <p className="text-xs text-slate-500">Only `globaluniversityinstitutes@gmail.com` can be initialized as admin.</p>
             </div>
 
             <div className="space-y-2">

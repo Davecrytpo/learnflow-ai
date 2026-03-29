@@ -19,6 +19,7 @@ dotenv.config();
 const PORT = process.env.PORT || process.env.API_PORT || 8787;
 const MONGODB_URI = process.env.MONGODB_URI;
 const JWT_SECRET = process.env.JWT_SECRET;
+const ADMIN_BOOTSTRAP_EMAIL = "globaluniversityinstitutes@gmail.com";
 
 if (!MONGODB_URI || !JWT_SECRET) {
   console.error("FATAL ERROR: MONGODB_URI or JWT_SECRET is not defined in environment variables.");
@@ -317,15 +318,19 @@ const authorize = (roles) => {
 app.post("/auth/init-admin", async (req, res) => {
   try {
     const { email, password, key } = req.body;
+    const normalizedEmail = normalizeEmail(email);
     const adminExists = await User.findOne({ role: "admin" });
     if (adminExists) return res.status(403).json({ error: "System already initialized." });
     if (key !== JWT_SECRET) return res.status(403).json({ error: "Invalid initialization key." });
+    if (normalizedEmail !== ADMIN_BOOTSTRAP_EMAIL) {
+      return res.status(403).json({ error: "Only the authorized institutional admin email can be initialized." });
+    }
 
     const user = new User({
-      email: normalizeEmail(email),
+      email: normalizedEmail,
       password: await bcrypt.hash(password, 10),
       role: "admin",
-      display_name: "System Administrator",
+      display_name: "Institutional Administrator",
       email_verified: true,
       status: "active"
     });
@@ -368,9 +373,13 @@ app.post("/auth/signup", async (req, res) => {
 app.post("/auth/login", async (req, res) => {
   try {
     const { email, password } = req.body;
-    const user = await User.findOne({ email: normalizeEmail(email) });
+    const normalizedEmail = normalizeEmail(email);
+    const user = await User.findOne({ email: normalizedEmail });
     if (!user || !(await bcrypt.compare(password, user.password))) {
       return res.status(400).json({ error: "Invalid credentials." });
+    }
+    if (user.role === "admin" && normalizedEmail !== ADMIN_BOOTSTRAP_EMAIL) {
+      return res.status(403).json({ error: "This account is not authorized for admin access." });
     }
     const token = jwt.sign({ id: user._id, email: user.email, role: user.role }, JWT_SECRET, { expiresIn: "7d" });
     res.json({ token, user: { id: user._id, email: user.email, role: user.role, display_name: user.display_name } });
