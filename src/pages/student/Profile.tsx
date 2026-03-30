@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { apiClient } from "@/lib/api-client";
 import { useAuth } from "@/hooks/useAuth";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import StudentSidebar from "@/components/dashboard/StudentSidebar";
@@ -24,32 +24,44 @@ const Profile = () => {
   useEffect(() => {
     if (!user) return;
     const fetchProfile = async () => {
-      const [profRes, certRes] = await Promise.all([
-        supabase.from("profiles").select("*").eq("user_id", user.id).single(),
-        supabase.from("certificates").select("*, courses(title)").eq("user_id", user.id)
-      ]);
-      setProfile(profRes.data);
-      setCertificates(certRes.data || []);
-      setLoading(false);
+      try {
+        const [profRes, certRes] = await Promise.all([
+          apiClient.db.from("profiles").select("*").eq("user_id", user.id).single(),
+          apiClient.db.from("certificates").select("*, courses(title)").eq("user_id", user.id).execute()
+        ]);
+        setProfile(profRes.data);
+        setCertificates(certRes.data || []);
+      } catch (error: any) {
+        console.error("Error fetching profile:", error);
+        toast({ title: "Error", description: error.message, variant: "destructive" });
+      } finally {
+        setLoading(false);
+      }
     };
     fetchProfile();
   }, [user]);
 
   const handleSave = async () => {
+    if (!user) return;
     setSaving(true);
-    const { error } = await supabase.from("profiles").update({
-      display_name: profile.display_name,
-      bio: profile.bio,
-      city: profile.city,
-      institution: profile.institution,
-    }).eq("user_id", user?.id);
+    try {
+      const { error } = await apiClient.db.from("profiles").update({
+        display_name: profile.display_name,
+        bio: profile.bio,
+        city: profile.city,
+        institution: profile.institution,
+      }).eq("user_id", user.id).execute();
 
-    if (error) {
+      if (error) {
+        toast({ title: "Error", description: error, variant: "destructive" });
+      } else {
+        toast({ title: "Profile updated!" });
+      }
+    } catch (error: any) {
       toast({ title: "Error", description: error.message, variant: "destructive" });
-    } else {
-      toast({ title: "Profile updated!" });
+    } finally {
+      setSaving(false);
     }
-    setSaving(false);
   };
 
   if (loading) {

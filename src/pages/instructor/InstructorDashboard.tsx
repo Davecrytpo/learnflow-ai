@@ -71,55 +71,64 @@ const InstructorDashboard = () => {
 
   return (
     <DashboardLayout allowedRoles={["instructor"]} sidebar={<InstructorSidebar />}>
-      <div className="space-y-8 pb-12">
+      <div className="space-y-12 pb-24">
         
         {/* Academic Header */}
-        <section className="relative overflow-hidden rounded-[2rem] border border-primary/10 bg-slate-900 p-8 md:p-12 text-white shadow-2xl">
-          <div className="absolute top-0 right-0 w-1/2 h-full opacity-10 pointer-events-none">
+        <section className="relative overflow-hidden rounded-[3rem] border border-slate-800 bg-slate-950 p-10 md:p-16 text-white shadow-[0_35px_60px_-15px_rgba(0,0,0,0.3)]">
+          <div className="absolute top-0 right-0 w-2/3 h-full opacity-5 pointer-events-none">
              <Layout className="w-full h-full text-white" />
           </div>
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(37,99,235,0.15),transparent)]" />
+          <div className="absolute inset-0 bg-gradient-to-br from-indigo-950/50 via-slate-950 to-slate-950" />
           
-          <div className="relative z-10">
-            <motion.div 
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/20 text-primary-foreground text-xs font-bold uppercase tracking-wider mb-6"
-            >
-              <Award className="h-3.5 w-3.5" /> Faculty Portal
-            </motion.div>
-            <h1 className="text-3xl md:text-5xl font-display font-bold mb-4">
-              Welcome, Professor {user?.display_name?.split(' ').pop() || "Educator"}
-            </h1>
-            <p className="text-slate-400 max-w-2xl text-lg leading-relaxed">
-              Manage your academic portfolio, track student progress, and develop world-class curriculum using our integrated AI tools.
-            </p>
+          <div className="relative z-10 flex flex-col md:flex-row items-center gap-10">
+            <div className="flex-1">
+              <motion.div 
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-indigo-500/10 text-indigo-400 text-[10px] font-black uppercase tracking-[0.3em] mb-8 border border-indigo-500/20"
+              >
+                <Award className="h-4 w-4" /> Distinguished Faculty
+              </motion.div>
+              <h1 className="text-4xl md:text-6xl font-display font-bold mb-6 leading-tight">
+                Professor {user?.display_name?.split(' ').pop() || "Educator"}
+              </h1>
+              <p className="text-slate-400 max-w-2xl text-xl leading-relaxed font-medium">
+                Your institutional command center. Oversee your curriculum, analyze scholarly performance, and leverage AI-driven educational insights.
+              </p>
+              
+              <div className="mt-10 flex flex-wrap gap-5">
+                <Button 
+                  onClick={() => navigate("/instructor/courses/new")}
+                  className="bg-indigo-600 hover:bg-indigo-500 text-white font-bold h-14 px-10 rounded-2xl shadow-2xl shadow-indigo-500/20 transition-all hover:scale-105"
+                >
+                  <PlusCircle className="mr-3 h-6 w-6" /> Create Curriculum
+                </Button>
+                <Button 
+                  variant="outline"
+                  className="border-slate-700 bg-slate-900/50 hover:bg-slate-800 text-white font-bold h-14 px-10 rounded-2xl backdrop-blur-md transition-all"
+                  onClick={() => navigate("/instructor/grading")}
+                >
+                  <ClipboardCheck className="mr-3 h-6 w-6" /> Grading Queue
+                </Button>
+              </div>
+            </div>
             
-            <div className="mt-8 flex flex-wrap gap-4">
-              <Button 
-                onClick={() => navigate("/instructor/courses/new")}
-                className="bg-primary hover:bg-primary/90 text-white font-bold h-12 px-8 rounded-xl shadow-lg shadow-primary/20"
-              >
-                <PlusCircle className="mr-2 h-5 w-5" /> Launch New Course
-              </Button>
-              <Button 
-                variant="outline"
-                className="border-white/20 bg-white/5 hover:bg-white/10 text-white font-bold h-12 px-8 rounded-xl backdrop-blur-sm"
-                onClick={() => navigate("/instructor/announcements")}
-              >
-                <MessageSquare className="mr-2 h-5 w-5" /> Post Announcement
-              </Button>
+            <div className="hidden lg:block shrink-0">
+               <div className="h-64 w-64 rounded-[4rem] bg-indigo-600/10 border-2 border-indigo-500/20 flex items-center justify-center relative group overflow-hidden">
+                  <div className="absolute inset-0 bg-indigo-500/10 opacity-0 group-hover:opacity-100 transition-opacity" />
+                  <GraduationCap className="h-32 w-32 text-indigo-500 relative z-10" />
+               </div>
             </div>
           </div>
         </section>
 
-        {/* Premium Stats Grid */}
-        <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+        {/* Executive Stats Grid */}
+        <div className="grid gap-8 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
           {[
-            { label: "Total Students", value: stats.students, icon: Users, color: "text-indigo-600", bg: "bg-indigo-50" },
-            { label: "Completion Rate", value: "88%", icon: Award, color: "text-emerald-600", bg: "bg-emerald-50" },
-            { label: "Avg. Faculty Rating", value: stats.rating, icon: Star, color: "text-amber-600", bg: "bg-amber-50" },
-            { label: "Active Curriculum", value: stats.activeCourses, icon: BookOpen, color: "text-blue-600", bg: "bg-blue-50" },
+            { label: "Total Students", value: stats.students, icon: Users, color: "text-indigo-400", bg: "bg-indigo-950/40", border: "border-indigo-500/10" },
+            { label: "Completion Rate", value: "88%", icon: Award, color: "text-emerald-400", bg: "bg-emerald-950/40", border: "border-emerald-500/10" },
+            { label: "Faculty Rating", value: stats.rating, icon: Star, color: "text-amber-400", bg: "bg-amber-950/40", border: "border-amber-500/10" },
+            { label: "Active Courses", value: stats.activeCourses, icon: BookOpen, color: "text-blue-400", bg: "bg-blue-950/40", border: "border-blue-500/10" },
           ].map((s, i) => (
             <motion.div
               key={i}
@@ -127,162 +136,187 @@ const InstructorDashboard = () => {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: i * 0.1 }}
             >
-              <Card className="border-none shadow-sm shadow-slate-200 overflow-hidden group">
-                <CardContent className="p-6">
-                  <div className="flex items-center justify-between mb-4">
-                    <div className={`h-12 w-12 rounded-2xl ${s.bg} flex items-center justify-center transition-transform group-hover:scale-110`}>
-                      <s.icon className={`h-6 w-6 ${s.color}`} />
+              <Card className="border-none shadow-sm shadow-slate-200 overflow-hidden group rounded-[2.5rem] bg-white">
+                <CardContent className="p-8">
+                  <div className="flex items-center justify-between mb-6">
+                    <div className={`h-14 w-14 rounded-2xl ${s.bg} border ${s.border} flex items-center justify-center transition-transform group-hover:scale-110`}>
+                      <s.icon className={`h-7 w-7 ${s.color}`} />
                     </div>
-                    <TrendingUp className="h-4 w-4 text-slate-300" />
+                    <div className="h-8 w-8 rounded-full bg-slate-50 flex items-center justify-center">
+                       <TrendingUp className="h-4 w-4 text-slate-300" />
+                    </div>
                   </div>
-                  <p className="text-sm font-bold text-slate-500 uppercase tracking-wider">{s.label}</p>
-                  <h3 className="text-3xl font-bold text-slate-900 mt-1">{s.value}</h3>
+                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2">{s.label}</p>
+                  <h3 className="text-4xl font-black text-slate-900">{s.value}</h3>
                 </CardContent>
               </Card>
             </motion.div>
           ))}
         </div>
 
-        {/* AI Faculty Assistant Section */}
-        <Card className="border-none shadow-xl bg-gradient-to-br from-indigo-50 to-white overflow-hidden relative">
-          <div className="absolute top-0 right-0 p-8 opacity-10 pointer-events-none">
-            <Sparkles className="h-32 w-32 text-indigo-600" />
+        {/* AI Insight Engine */}
+        <Card className="border-none shadow-2xl bg-white rounded-[3rem] overflow-hidden relative group">
+          <div className="absolute top-0 right-0 p-12 opacity-[0.03] pointer-events-none group-hover:opacity-[0.05] transition-opacity">
+            <Sparkles className="h-48 w-48 text-indigo-600" />
           </div>
-          <CardHeader>
-            <div className="flex items-center justify-between">
+          <CardHeader className="p-10 pb-0">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
               <div>
-                <CardTitle className="text-2xl font-display font-bold flex items-center gap-2">
-                  <Sparkles className="h-6 w-6 text-indigo-600" /> AI Faculty Assistant
+                <CardTitle className="text-3xl font-display font-bold flex items-center gap-3">
+                  <div className="h-12 w-12 rounded-[1.2rem] bg-indigo-50 flex items-center justify-center">
+                    <Sparkles className="h-6 w-6 text-indigo-600" />
+                  </div>
+                  Performance Analytics Engine
                 </CardTitle>
-                <CardDescription>Get automated insights into student performance and attendance trends.</CardDescription>
+                <CardDescription className="text-lg mt-2 font-medium text-slate-500">Deep neural analysis of student engagement and curriculum efficacy.</CardDescription>
               </div>
               <Button 
                 onClick={handleAiAnalysis} 
                 disabled={analyzing || courses.length === 0}
-                className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold"
+                className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold h-14 px-10 rounded-2xl shadow-xl shadow-indigo-100 transition-all hover:scale-105 active:scale-95"
               >
-                {analyzing ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Sparkles className="mr-2 h-4 w-4" />}
-                Run Performance Analysis
+                {analyzing ? <Loader2 className="mr-3 h-5 w-5 animate-spin" /> : <Sparkles className="mr-3 h-5 w-5" />}
+                Run AI Diagnosis
               </Button>
             </div>
           </CardHeader>
-          <CardContent>
+          <CardContent className="p-10 pt-8">
             {aiAnalysis ? (
               <motion.div 
-                initial={{ opacity: 0 }} 
-                animate={{ opacity: 1 }} 
-                className="prose prose-indigo max-w-none bg-white/50 p-6 rounded-2xl border border-indigo-100"
+                initial={{ opacity: 0, y: 10 }} 
+                animate={{ opacity: 1, y: 0 }} 
+                className="prose prose-indigo max-w-none bg-slate-50 p-8 rounded-[2rem] border border-slate-100 shadow-inner"
                 dangerouslySetInnerHTML={{ __html: aiAnalysis }}
               />
             ) : (
-              <div className="text-center py-12 text-slate-500 italic">
-                {courses.length === 0 ? "Create courses to enable AI insights." : "Click the button above to generate a performance analysis based on real student data."}
+              <div className="text-center py-20 bg-slate-50/50 rounded-[2rem] border-2 border-dashed border-slate-200">
+                <div className="h-20 w-20 bg-white rounded-full flex items-center justify-center mx-auto mb-6 shadow-sm">
+                   <Sparkles className="h-10 w-10 text-indigo-200" />
+                </div>
+                <p className="text-slate-500 font-bold max-w-sm mx-auto leading-relaxed">
+                  {courses.length === 0 ? "Curriculum required for analysis." : "The engine is ready. Initialize analysis to visualize student progress trends and risk factors."}
+                </p>
               </div>
             )}
           </CardContent>
         </Card>
 
-        <div className="grid gap-8 lg:grid-cols-3">
-          {/* Main Course List */}
-          <div className="lg:col-span-2 space-y-6">
+        <div className="grid gap-10 lg:grid-cols-12">
+          {/* Faculty Course Registry */}
+          <div className="lg:col-span-8 space-y-8">
             <div className="flex items-center justify-between">
-              <h2 className="text-2xl font-display font-bold text-slate-900">Your Curriculum</h2>
-              <Button variant="ghost" className="text-primary font-bold" asChild>
-                <Link to="/instructor">View All <ArrowRight className="ml-2 h-4 w-4" /></Link>
+              <h2 className="text-3xl font-display font-bold text-slate-900">Course Registry</h2>
+              <Button variant="ghost" className="text-indigo-600 font-black text-sm uppercase tracking-widest hover:bg-indigo-50 rounded-xl" asChild>
+                <Link to="/instructor/courses">Manage All <ArrowRight className="ml-2 h-4 w-4" /></Link>
               </Button>
             </div>
 
             {loading ? (
-              <div className="space-y-4">
-                {[1, 2].map(i => <Card key={i} className="h-32 animate-pulse bg-slate-50 border-none shadow-sm" />)}
+              <div className="space-y-6">
+                {[1, 2].map(i => <div key={i} className="h-40 animate-pulse bg-slate-100 rounded-[2.5rem]" />)}
               </div>
             ) : courses.length === 0 ? (
-              <div className="text-center py-20 bg-white rounded-[2rem] border-2 border-dashed border-slate-200">
-                <BookOpen className="h-12 w-12 text-slate-300 mx-auto mb-4" />
-                <h3 className="text-xl font-bold text-slate-900 mb-2">No courses created yet</h3>
-                <p className="text-slate-500 mb-6">Start your journey as an institutional educator.</p>
-                <Button onClick={() => navigate("/instructor/courses/new")}>Create Your First Course</Button>
+              <div className="text-center py-24 bg-white rounded-[3rem] border-2 border-dashed border-slate-200">
+                <BookOpen className="h-16 w-16 text-slate-200 mx-auto mb-6" />
+                <h3 className="text-2xl font-bold text-slate-900 mb-2">Registry is Empty</h3>
+                <p className="text-slate-500 mb-8 max-w-xs mx-auto">Begin your tenure by architecting your first course curriculum.</p>
+                <Button className="h-12 px-8 rounded-xl font-bold" onClick={() => navigate("/instructor/courses/new")}>Initiate Course Creation</Button>
               </div>
             ) : (
-              <div className="grid gap-4">
-                {courses.slice(0, 3).map((course) => (
-                  <Card key={course._id} className="border-none shadow-sm shadow-slate-200 hover:shadow-md transition-all group overflow-hidden">
-                    <CardContent className="p-0">
-                      <div className="flex flex-col sm:flex-row h-full">
-                        <div className="w-full sm:w-48 h-32 sm:h-auto relative bg-slate-100 overflow-hidden shrink-0">
-                          {course.cover_image_url ? (
-                            <img src={course.cover_image_url} alt="" className="h-full w-full object-cover transition-transform group-hover:scale-105" />
-                          ) : (
-                            <div className="h-full w-full flex items-center justify-center bg-gradient-brand opacity-80">
-                              <BookOpen className="h-8 w-8 text-white/40" />
+              <div className="grid gap-6">
+                {courses.slice(0, 3).map((course, i) => (
+                  <motion.div
+                    key={course._id}
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: i * 0.1 }}
+                  >
+                    <Card className="border-none shadow-sm shadow-slate-200 hover:shadow-xl transition-all group overflow-hidden bg-white rounded-[2.5rem]">
+                      <CardContent className="p-0">
+                        <div className="flex flex-col sm:flex-row h-full">
+                          <div className="w-full sm:w-64 h-44 sm:h-auto relative bg-slate-100 overflow-hidden shrink-0">
+                            {course.cover_image_url ? (
+                              <img src={course.cover_image_url} alt="" className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110" />
+                            ) : (
+                              <div className="h-full w-full flex items-center justify-center bg-slate-900">
+                                <BookOpen className="h-12 w-12 text-slate-700" />
+                              </div>
+                            )}
+                            <div className="absolute top-4 left-4">
+                              <Badge className={course.published ? "bg-emerald-500 hover:bg-emerald-600 text-white border-none font-bold px-3 py-1 rounded-lg" : "bg-slate-700 hover:bg-slate-800 text-white border-none font-bold px-3 py-1 rounded-lg"}>
+                                {course.published ? "Live" : "Internal Draft"}
+                              </Badge>
                             </div>
-                          )}
-                          <div className="absolute top-2 left-2">
-                            <Badge className={course.published ? "bg-emerald-500 hover:bg-emerald-600 text-white border-none" : "bg-amber-500 hover:bg-amber-600 text-white border-none"}>
-                              {course.published ? "Live" : "Draft"}
-                            </Badge>
                           </div>
-                        </div>
-                        <div className="flex-1 p-6">
-                          <div className="flex items-start justify-between">
-                            <div className="min-w-0">
-                              <h3 className="font-bold text-lg text-slate-900 group-hover:text-primary transition-colors line-clamp-1">{course.title}</h3>
-                              <div className="flex items-center gap-4 mt-2 text-sm text-slate-500">
-                                <span className="flex items-center gap-1.5"><Users className="h-3.5 w-3.5" /> Course Resource Center</span>
-                                <span className="flex items-center gap-1.5"><Calendar className="h-3.5 w-3.5" /> Updated {new Date(course.updated_at).toLocaleDateString()}</span>
+                          <div className="flex-1 p-8">
+                            <div className="flex flex-col h-full justify-between">
+                              <div>
+                                <h3 className="font-bold text-2xl text-slate-900 group-hover:text-indigo-600 transition-colors line-clamp-1 mb-3">{course.title}</h3>
+                                <div className="flex flex-wrap items-center gap-6 text-xs font-bold text-slate-400 uppercase tracking-widest">
+                                  <span className="flex items-center gap-2 bg-slate-50 px-3 py-1 rounded-lg border border-slate-100"><Users className="h-3.5 w-3.5" /> Scholars Enrolled</span>
+                                  <span className="flex items-center gap-2"><Calendar className="h-3.5 w-3.5" /> Updated {new Date(course.updated_at).toLocaleDateString()}</span>
+                                </div>
+                              </div>
+                              <div className="mt-8 flex items-center justify-between border-t border-slate-50 pt-6">
+                                <div className="flex -space-x-3">
+                                   {[1,2,3,4].map(x => <div key={x} className="h-8 w-8 rounded-full border-2 border-white bg-slate-200" />)}
+                                   <div className="h-8 w-8 rounded-full border-2 border-white bg-indigo-50 flex items-center justify-center text-[10px] font-bold text-indigo-600">+12</div>
+                                </div>
+                                <Button size="sm" asChild className="rounded-xl font-bold h-10 px-6 bg-slate-900 hover:bg-indigo-600 transition-colors">
+                                  <Link to={`/instructor/courses/${course._id}`}>Architect Module</Link>
+                                </Button>
                               </div>
                             </div>
-                            <Button variant="outline" size="sm" asChild className="rounded-xl font-bold shrink-0 ml-4">
-                              <Link to={`/instructor/courses/${course._id}`}>Manage</Link>
-                            </Button>
                           </div>
                         </div>
-                      </div>
-                    </CardContent>
-                  </Card>
+                      </CardContent>
+                    </Card>
+                  </motion.div>
                 ))}
               </div>
             )}
           </div>
 
-          {/* Sidebar / Quick Actions */}
-          <div className="space-y-6">
-            <h2 className="text-2xl font-display font-bold text-slate-900">Faculty Actions</h2>
-            
-            <Card className="border-none shadow-sm shadow-slate-200 bg-white rounded-[2rem]">
-              <CardContent className="p-6 space-y-2">
-                {[
-                  { label: "Gradebook", icon: ClipboardCheck, href: "/instructor/grading", color: "text-rose-600", bg: "bg-rose-50" },
-                  { label: "Syllabus Review", icon: FileText, href: "/instructor", color: "text-amber-600", bg: "bg-amber-50" },
-                  { label: "Faculty Calendar", icon: Calendar, href: "/instructor/attendance", color: "text-blue-600", bg: "bg-blue-50" },
-                  { label: "Discussion Forums", icon: MessageSquare, href: "/instructor/discussions", color: "text-emerald-600", bg: "bg-emerald-50" },
-                ].map((action, i) => (
-                  <Link 
-                    key={i} 
-                    to={action.href} 
-                    className="flex items-center gap-4 p-4 rounded-2xl hover:bg-slate-50 transition-colors group"
-                  >
-                    <div className={`h-10 w-10 rounded-xl ${action.bg} flex items-center justify-center`}>
-                      <action.icon className={`h-5 w-5 ${action.color}`} />
-                    </div>
-                    <span className="font-bold text-slate-700 group-hover:text-primary transition-colors">{action.label}</span>
-                    <ArrowRight className="ml-auto h-4 w-4 text-slate-300 group-hover:text-primary transition-transform group-hover:translate-x-1" />
-                  </Link>
-                ))}
-              </CardContent>
-            </Card>
+          {/* Institutional Controls */}
+          <div className="lg:col-span-4 space-y-10">
+            <section className="space-y-6">
+               <h2 className="text-2xl font-display font-bold text-slate-900 px-2">Operational Hub</h2>
+               <Card className="border-none shadow-sm shadow-slate-200 bg-white rounded-[2.5rem] overflow-hidden">
+                <CardContent className="p-4 space-y-2">
+                  {[
+                    { label: "Grading Matrix", icon: ClipboardCheck, href: "/instructor/grading", color: "text-rose-500", bg: "bg-rose-50" },
+                    { label: "Academic Repository", icon: FileText, href: "/instructor", color: "text-amber-500", bg: "bg-amber-50" },
+                    { label: "Faculty Schedule", icon: Calendar, href: "/instructor/attendance", color: "text-blue-500", bg: "bg-blue-50" },
+                    { label: "Discussion Hub", icon: MessageSquare, href: "/instructor/discussions", color: "text-emerald-500", bg: "bg-emerald-50" },
+                  ].map((action, i) => (
+                    <Link 
+                      key={i} 
+                      to={action.href} 
+                      className="flex items-center gap-5 p-5 rounded-2xl hover:bg-slate-50 transition-all group border border-transparent hover:border-slate-100"
+                    >
+                      <div className={`h-12 w-12 rounded-xl ${action.bg} flex items-center justify-center group-hover:scale-110 transition-transform`}>
+                        <action.icon className={`h-6 w-6 ${action.color}`} />
+                      </div>
+                      <span className="font-bold text-slate-700 group-hover:text-indigo-600 transition-colors">{action.label}</span>
+                      <ArrowRight className="ml-auto h-4 w-4 text-slate-200 group-hover:text-indigo-400 transition-transform group-hover:translate-x-1" />
+                    </Link>
+                  ))}
+                </CardContent>
+              </Card>
+            </section>
 
-            <Card className="border-none shadow-sm shadow-slate-200 bg-gradient-to-br from-indigo-600 to-primary p-6 text-white rounded-[2rem] relative overflow-hidden">
-               <div className="absolute top-0 right-0 p-4 opacity-20">
-                  <Star className="h-20 w-20" />
+            <Card className="border-none shadow-2xl bg-indigo-600 p-8 text-white rounded-[3rem] relative overflow-hidden group">
+               <div className="absolute top-0 right-0 p-6 opacity-10 group-hover:scale-125 transition-transform duration-700">
+                  <Star className="h-32 w-32" />
                </div>
                <div className="relative z-10">
-                 <h3 className="font-bold text-xl mb-2">Faculty Excellence</h3>
-                 <p className="text-white/80 text-sm leading-relaxed mb-6">
-                   You are in the top 5% of instructors this semester. Keep up the great work!
+                 <Badge className="bg-white/20 hover:bg-white/30 text-white border-none mb-6 px-3 font-bold uppercase tracking-widest text-[10px]">Excellence Award</Badge>
+                 <h3 className="font-display font-bold text-3xl mb-4">Academic Impact</h3>
+                 <p className="text-indigo-100/80 text-lg leading-relaxed mb-10 font-medium">
+                   Your curriculum is currently ranked in the top 5% for scholar retention.
                  </p>
-                 <Button variant="outline" className="w-full border-white/20 bg-white/10 hover:bg-white hover:text-primary font-bold rounded-xl transition-all">
-                   View Performance Report
+                 <Button className="w-full bg-white text-indigo-600 hover:bg-indigo-50 font-black h-14 rounded-2xl shadow-xl transition-all">
+                   Faculty Performance Report
                  </Button>
                </div>
             </Card>
@@ -292,5 +326,6 @@ const InstructorDashboard = () => {
     </DashboardLayout>
   );
 };
+
 
 export default InstructorDashboard;

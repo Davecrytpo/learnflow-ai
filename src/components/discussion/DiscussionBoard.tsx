@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { apiClient } from "@/lib/api-client";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -11,7 +11,7 @@ import DiscussionThread from "./DiscussionThread";
 import { Discussion } from "@/types/discussion";
 
 interface DiscussionBoardProps {
-  courseId: string;
+  courseId?: string;
 }
 
 const DiscussionBoard = ({ courseId }: DiscussionBoardProps) => {
@@ -29,44 +29,47 @@ const DiscussionBoard = ({ courseId }: DiscussionBoardProps) => {
   }, [courseId]);
 
   const fetchDiscussions = async () => {
-    setLoading(true);
-    const { data, error } = await (supabase
-      .from as any)("discussions")
-      .select("*, profiles(display_name, avatar_url)")
-      .eq("course_id", courseId)
-      .order("created_at", { ascending: false });
+    try {
+      setLoading(true);
+      const query = apiClient.db.from("discussions").select("*, profiles(display_name, avatar_url)");
+      if (courseId) {
+        query.eq("course_id", courseId);
+      }
+      const { data, error } = await query.order("created_at", { ascending: false }).execute();
 
-    if (error) {
-      // toast({ title: "Error fetching discussions", description: error.message, variant: "destructive" });
-      console.error(error);
-    } else {
-      // Cast the data to Discussion[] because TypeScript doesn't know about the new table yet from Supabase types
-      setDiscussions((data as unknown) as Discussion[]);
+      if (error) {
+        console.error(error);
+      } else {
+        setDiscussions(data as Discussion[]);
+      }
+    } catch (error) {
+      console.error("Error fetching discussions:", error);
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   const createDiscussion = async () => {
-    if (!user) return;
-    const { data, error } = await (supabase
-      .from as any)("discussions")
-      .insert({
+    if (!user || !courseId) return;
+    try {
+      const { error } = await apiClient.db.from("discussions").insert({
         course_id: courseId,
         user_id: user.id,
         title,
         content,
-      })
-      .select()
-      .single();
+      }).execute();
 
-    if (error) {
+      if (error) {
+        toast({ title: "Error", description: error, variant: "destructive" });
+      } else {
+        toast({ title: "Discussion created!" });
+        setCreating(false);
+        setTitle("");
+        setContent("");
+        fetchDiscussions();
+      }
+    } catch (error: any) {
       toast({ title: "Error", description: error.message, variant: "destructive" });
-    } else {
-      toast({ title: "Discussion created!" });
-      setCreating(false);
-      setTitle("");
-      setContent("");
-      fetchDiscussions();
     }
   };
 

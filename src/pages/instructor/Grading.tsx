@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import InstructorSidebar from "@/components/dashboard/InstructorSidebar";
@@ -10,6 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, CheckCircle, Sparkles } from "lucide-react";
 import { aiGradeSubmission } from "@/lib/ai-service";
+import { apiClient } from "@/lib/api-client";
 
 const Grading = () => {
   const { user } = useAuth();
@@ -26,31 +26,11 @@ const Grading = () => {
     const fetch = async () => {
       setLoading(true);
       try {
-        // Get instructor's courses first
-        const coursesRes = await supabase.from("courses").select("id").eq("author_id", user.id);
-        const courseIds = (coursesRes.data || []).map((c) => c.id);
-        if (courseIds.length === 0) return;
-
-        // Get assignments for those courses
-        const assignRes = await supabase.from("assignments").select("id, title, course_id, max_score").in("course_id", courseIds);
-        const assignments = assignRes.data || [];
-        if (assignments.length === 0) return;
-
-        // Get ungraded submissions
-        const subRes = await supabase
-          .from("submissions")
-          .select("*")
-          .in("assignment_id", assignments.map((a) => a.id))
-          .is("graded_at", null)
-          .order("submitted_at", { ascending: true });
-
-        const subs = (subRes.data || []).map((s) => ({
-          ...s,
-          assignment: assignments.find((a) => a.id === s.assignment_id),
-        }));
-        setSubmissions(subs);
+        const subs = await apiClient.fetch("/instructor/submissions/pending");
+        setSubmissions(subs || []);
       } catch (err: any) {
         console.error("Grading fetch error:", err);
+        toast({ title: "Fetch failed", description: err.message, variant: "destructive" });
       } finally {
         setLoading(false);
       }
@@ -62,12 +42,12 @@ const Grading = () => {
     setAiLoading(true);
     try {
       const result = await aiGradeSubmission(
-        sub.assignment?.title || "Assignment",
+        sub.assignment_id?.title || "Assignment",
         sub.content || "",
-        "Refer to the assignment instructions." // We should ideally fetch the rubrics here
+        "Refer to the assignment instructions."
       );
-      const parsed = JSON.parse(result.trim());
-      setScore(Math.round((parsed.score / 100) * (sub.assignment?.max_score || 100)).toString());
+      const parsed = typeof result === 'string' ? JSON.parse(result.trim()) : result;
+      setScore(Math.round((parsed.score / 100) * (sub.assignment_id?.max_score || 100)).toString());
       setFeedback(parsed.feedback);
       toast({ title: "AI Suggestion Ready", description: "Review and adjust before submitting." });
     } catch (err: any) {
@@ -79,21 +59,21 @@ const Grading = () => {
 
   const gradeSubmission = async (subId: string) => {
     if (!user) return;
-    const { error } = await supabase.from("submissions").update({
-      score: Number(score),
-      feedback,
-      graded_at: new Date().toISOString(),
-      graded_by: user.id,
-    }).eq("id", subId);
-
-    if (error) {
-      toast({ title: "Error", description: error.message, variant: "destructive" });
-    } else {
+    try {
+      await apiClient.fetch(`/instructor/submissions/${subId}/grade`, {
+        method: "PATCH",
+        body: JSON.stringify({
+          score: Number(score),
+          feedback
+        })
+      });
       toast({ title: "Graded!" });
-      setSubmissions(submissions.filter((s) => s.id !== subId));
+      setSubmissions(submissions.filter((s) => s._id !== subId));
       setGradingId(null);
       setScore("");
       setFeedback("");
+    } catch (err: any) {
+      toast({ title: "Error", description: err.message, variant: "destructive" });
     }
   };
 
@@ -121,17 +101,17 @@ const Grading = () => {
         ) : (
           <div className="space-y-4">
             {submissions.map((sub) => (
-              <Card key={sub.id}>
+              <Card key={sub._id}>
                 <CardHeader>
-                  <CardTitle className="text-base">{sub.assignment?.title || "Assignment"}</CardTitle>
-                  <p className="text-xs text-muted-foreground">Max score: {sub.assignment?.max_score || 100}</p>
+                  <CardTitle className="text-base">{sub.assignment_id?.title || "Assignment"}</CardTitle>
+                  <p className="text-xs text-muted-foreground">Max score: {sub.assignment_id?.max_score || 100}</p>
                 </CardHeader>
                 <CardContent>
                   <p className="text-sm text-foreground">{sub.content || "No text content"}</p>
                   {sub.file_url && (
                     <a href={sub.file_url} className="mt-2 text-xs text-primary hover:underline" target="_blank" rel="noreferrer">View attachment</a>
                   )}
-                  {gradingId === sub.id ? (
+                  {gradingId === sub._id ? (
                     <div className="mt-4 space-y-3 rounded-md border border-border p-4">
                       <div className="flex items-center justify-between mb-2">
                         <span className="text-sm font-bold">Grading Form</span>
@@ -150,7 +130,7 @@ const Grading = () => {
                       <div className="flex gap-4">
                         <div className="space-y-1">
                           <label className="text-xs text-muted-foreground">Score</label>
-                          <Input type="number" min={0} max={sub.assignment?.max_score || 100} value={score} onChange={(e) => setScore(e.target.value)} className="w-24" />
+                          <Input type="number" min={0} max={sub.assignment_id?.max_score || 100} value={score} onChange={(e) => setScore(e.target.value)} className="w-24" />
                         </div>
                       </div>
                       <div className="space-y-1">
@@ -158,12 +138,12 @@ const Grading = () => {
                         <Textarea value={feedback} onChange={(e) => setFeedback(e.target.value)} rows={3} />
                       </div>
                       <div className="flex gap-2">
-                        <Button size="sm" onClick={() => gradeSubmission(sub.id)}>Submit Grade</Button>
+                        <Button size="sm" onClick={() => gradeSubmission(sub._id)}>Submit Grade</Button>
                         <Button size="sm" variant="ghost" onClick={() => setGradingId(null)}>Cancel</Button>
                       </div>
                     </div>
                   ) : (
-                    <Button size="sm" variant="outline" className="mt-3" onClick={() => setGradingId(sub.id)}>Grade</Button>
+                    <Button size="sm" variant="outline" className="mt-3" onClick={() => setGradingId(sub._id)}>Grade</Button>
                   )}
                 </CardContent>
               </Card>

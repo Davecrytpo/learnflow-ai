@@ -56,5 +56,124 @@ export const apiClient = {
     logout() {
       localStorage.removeItem('auth_token');
     }
+  },
+
+  db: {
+    from(table: string) {
+      return {
+        select(columns: string = '*') {
+          let _filters: any[] = [];
+          let _order: any = null;
+          let _limit: number | null = null;
+          let _single = false;
+
+          const builder = {
+            eq(column: string, value: any) {
+              _filters.push({ column, value, type: 'eq' });
+              return builder;
+            },
+            in(column: string, values: any[]) {
+              _filters.push({ column, value: values, type: 'in' });
+              return builder;
+            },
+            order(column: string, { ascending = true } = {}) {
+              _order = { column, ascending };
+              return builder;
+            },
+            limit(count: number) {
+              _limit = count;
+              return builder;
+            },
+            single() {
+              _single = true;
+              return this.execute();
+            },
+            async execute() {
+              const res = await apiClient.fetch(`/db/query/${table}`, {
+                method: 'POST',
+                body: JSON.stringify({
+                  operation: 'select',
+                  filters: _filters,
+                  order: _order,
+                  limit: _limit,
+                  options: { single: _single }
+                }),
+              });
+              return res;
+            },
+            // Add thenable support for await
+            then(onfulfilled?: (value: any) => any, onrejected?: (reason: any) => any) {
+              return this.execute().then(onfulfilled, onrejected);
+            }
+          };
+          return builder;
+        },
+
+        insert(payload: any) {
+          return {
+            async execute() {
+              return apiClient.fetch(`/db/query/${table}`, {
+                method: 'POST',
+                body: JSON.stringify({
+                  operation: 'insert',
+                  payload,
+                  options: { single: !Array.isArray(payload) }
+                }),
+              });
+            },
+            then(onfulfilled?: (value: any) => any, onrejected?: (reason: any) => any) {
+              return this.execute().then(onfulfilled, onrejected);
+            }
+          };
+        },
+
+        update(payload: any) {
+          let _filters: any[] = [];
+          const builder = {
+            eq(column: string, value: any) {
+              _filters.push({ column, value, type: 'eq' });
+              return builder;
+            },
+            async execute() {
+              return apiClient.fetch(`/db/query/${table}`, {
+                method: 'POST',
+                body: JSON.stringify({
+                  operation: 'update',
+                  filters: _filters,
+                  payload
+                }),
+              });
+            },
+            then(onfulfilled?: (value: any) => any, onrejected?: (reason: any) => any) {
+              return this.execute().then(onfulfilled, onrejected);
+            }
+          };
+          return builder;
+        },
+
+        delete() {
+          let _filters: any[] = [];
+          const builder = {
+            eq(column: string, value: any) {
+              _filters.push({ column, value, type: 'eq' });
+              return builder;
+            },
+            async execute() {
+              return apiClient.fetch(`/db/query/${table}`, {
+                method: 'POST',
+                body: JSON.stringify({
+                  operation: 'delete',
+                  filters: _filters
+                }),
+              });
+            },
+            then(onfulfilled?: (value: any) => any, onrejected?: (reason: any) => any) {
+              return this.execute().then(onfulfilled, onrejected);
+            }
+          };
+          return builder;
+        }
+      };
+    }
   }
 };
