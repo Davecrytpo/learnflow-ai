@@ -9,7 +9,7 @@ const items = [
   { title: "Courses", url: "/admin/courses", icon: BookOpen },
   { title: "Analytics", url: "/admin/analytics", icon: BarChart3 },
   { title: "Security", url: "/admin/security", icon: Shield },
-  { title: "Audit Logs", url: "/admin/audit", icon: FileText },
+  { title: "Audit Logs", url: "/admin/audit-logs", icon: FileText },
   { title: "Bulk Enrollment", url: "/admin/bulk-enrollment", icon: Upload },
   { title: "Categories", url: "/admin/categories", icon: Tag },
   { title: "Reports", url: "/admin/reports", icon: LineChart },

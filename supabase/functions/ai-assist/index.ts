@@ -52,20 +52,39 @@ serve(async (req) => {
       case "generate_course_draft": {
         const { topic } = payload;
         result = await callAI(
-          "You are a curriculum design expert. Always respond with valid JSON only, no markdown fences.",
-          `Create a professional course draft for an LMS about "${topic}".
+          "You are a master curriculum architect. Always respond with valid JSON only, no markdown fences.",
+          `Create a COMPREHENSIVE and DETAILED professional course draft for an LMS about "${topic}".
+Include a full academic syllabus with detailed modules and lessons.
+The "description" must be a thorough Syllabus Narrative (at least 500 words) formatted in professional HTML with <h2>, <h3>, <p>, <ul>, and <li> tags.
 Provide the response in the following JSON format:
 {
-  "title": "Clear Course Title",
-  "summary": "One sentence punchy summary",
-  "description": "Full HTML description with <p>, <ul>, <li> tags",
-  "category": "One of: Technology, Science, Mathematics, Business, Arts, Health, Engineering, Humanities",
-  "level": "One of: Undergraduate, Graduate, Doctoral, Certificate, Online",
+  "title": "Clear Academic Course Title",
+  "summary": "One sentence punchy executive summary",
+  "description": "Thorough HTML narrative description (500+ words)",
+  "category": "Technology, Science, Mathematics, Business, Arts, Health, Engineering, or Humanities",
+  "level": "Undergraduate, Graduate, Doctoral, Certificate, or Online",
   "credits": 3,
-  "duration": "12 Weeks"
+  "duration": "12 Weeks",
+  "image_search_term": "A specific search term for a high-quality academic Unsplash image",
+  "syllabus": [
+    {
+      "title": "Module Title",
+      "lessons": [
+        { "title": "Lesson Title", "type": "content|video|quiz|assignment" }
+      ]
+    }
+  ]
 }
-Only return the JSON object.`
+Create 6 substantial modules, each with 4 detailed lessons. Ensure the flow is academically rigorous. Only return the JSON object.`,
+          4096
         );
+        break;
+      }
+
+      case "generate_course_image": {
+        const { topic } = payload;
+        result = `https://images.unsplash.com/photo-1497633762265-9d179a990aa6?auto=format&fit=crop&q=80&w=800&q=${encodeURIComponent(topic)}`;
+        // In a real scenario, we might use an image API, but for now we'll provide a high-quality placeholder logic
         break;
       }
 

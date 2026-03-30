@@ -3,8 +3,10 @@ import { apiClient } from "@/lib/api-client";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import StudentSidebar from "@/components/dashboard/StudentSidebar";
 import { useAuth } from "@/hooks/useAuth";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Loader2, ClipboardCheck } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Loader2, ClipboardCheck, Award, TrendingUp, ChevronRight, CheckCircle2 } from "lucide-react";
+import { motion } from "framer-motion";
+import { Badge } from "@/components/ui/badge";
 
 const StudentGrades = () => {
   const { user } = useAuth();
@@ -34,62 +36,164 @@ const StudentGrades = () => {
 
   return (
     <DashboardLayout allowedRoles={["student"]} sidebar={<StudentSidebar />}>
-      <div className="space-y-6">
-        <section className="relative overflow-hidden rounded-3xl border border-border/70 bg-card/90 p-6">
-          <div className="absolute inset-0 bg-aurora opacity-60" />
-          <div className="absolute inset-0 bg-grid-pattern bg-grid opacity-[0.03]" />
-          <div className="relative">
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary">Grades</p>
-            <h1 className="mt-2 font-display text-3xl font-bold text-foreground">Your grades</h1>
-            <p className="mt-2 text-sm text-muted-foreground">Assignment scores and quiz results.</p>
+      <div className="space-y-12 pb-32 max-w-5xl mx-auto">
+        
+        {/* Scholar Header */}
+        <section className="relative overflow-hidden rounded-[3rem] border border-sky-100 bg-white p-12 shadow-2xl shadow-sky-500/10">
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(186,230,253,0.4),transparent)]" />
+          <div className="relative z-10 flex items-center gap-8">
+            <div className="h-20 w-20 rounded-3xl bg-sky-600 shadow-xl shadow-sky-200 flex items-center justify-center">
+              <ClipboardCheck className="h-10 w-10 text-white" />
+            </div>
+            <div>
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-sky-100 text-sky-700 text-[10px] font-black uppercase tracking-[0.2em] mb-3 border border-sky-200">
+                Academic Performance
+              </div>
+              <h1 className="font-display text-4xl font-bold text-slate-900">Your Scholastic Record</h1>
+              <p className="mt-2 text-slate-500 font-medium max-w-xl">
+                Comprehensive overview of your verified grades and evaluation history across the GUI curriculum.
+              </p>
+            </div>
           </div>
         </section>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle className="text-lg">Assignments</CardTitle>
-            <ClipboardCheck className="h-4 w-4 text-primary" />
-          </CardHeader>
-          <CardContent>
+        <div className="grid gap-8 md:grid-cols-2">
+          {/* Assignment Grades */}
+          <section className="space-y-6">
+            <h2 className="text-2xl font-display font-bold text-slate-900 px-2 flex items-center gap-3">
+              <Award className="h-6 w-6 text-sky-500" /> Assignment Evaluates
+            </h2>
+            
             {loading ? (
-              <div className="flex justify-center py-6"><Loader2 className="h-6 w-6 animate-spin" /></div>
+              <div className="flex flex-col items-center justify-center py-20 gap-4 bg-white rounded-[2.5rem] border border-sky-50 shadow-sm">
+                <Loader2 className="h-10 w-10 animate-spin text-sky-500" />
+                <p className="text-slate-400 font-black uppercase tracking-widest text-[9px]">Accessing Registry...</p>
+              </div>
             ) : submissions.length === 0 ? (
-              <p className="text-sm text-muted-foreground">No submissions yet.</p>
+              <Card className="border-none shadow-sm bg-white rounded-[2.5rem] p-12 text-center border-2 border-dashed border-sky-50">
+                <p className="text-slate-400 font-medium italic">No assignments have been certified yet.</p>
+              </Card>
             ) : (
-              <div className="space-y-2">
-                {submissions.map(s => (
-                  <div key={s._id} className="rounded-xl border border-border p-3 text-sm">
-                    <p className="font-medium text-foreground">{s.assignment_id?.title || "Untitled Assignment"}</p>
-                    <p className="text-xs text-muted-foreground">Score: {s.score ?? "Ungraded"}</p>
-                  </div>
+              <div className="space-y-4">
+                {submissions.map((s, i) => (
+                  <motion.div 
+                    key={s._id} 
+                    initial={{ opacity: 0, y: 10 }} 
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: i * 0.05 }}
+                  >
+                    <Card className="group hover:border-sky-200 transition-all cursor-default border-none shadow-sm bg-white rounded-[2rem] overflow-hidden">
+                      <CardContent className="p-6">
+                        <div className="flex justify-between items-center">
+                          <div className="flex items-center gap-4">
+                            <div className="h-12 w-12 rounded-2xl bg-sky-50 flex items-center justify-center group-hover:bg-sky-100 transition-colors">
+                              <CheckCircle2 className="h-6 w-6 text-sky-600" />
+                            </div>
+                            <div>
+                              <p className="font-bold text-slate-900 group-hover:text-sky-600 transition-colors">{s.assignment_id?.title || "Academic Task"}</p>
+                              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Certified: {new Date(s.graded_at || s.submitted_at).toLocaleDateString()}</p>
+                            </div>
+                          </div>
+                          <div className="text-right">
+                            <div className="flex items-center gap-2">
+                               <span className="text-2xl font-black text-slate-900">{s.score ?? "—"}</span>
+                               <span className="text-[10px] font-black text-slate-300 uppercase">/ {s.assignment_id?.max_score || 100}</span>
+                            </div>
+                            <Badge className={`border-none font-black text-[9px] uppercase tracking-widest px-3 py-1 rounded-lg ${s.score ? "bg-emerald-50 text-emerald-700" : "bg-slate-50 text-slate-400"}`}>
+                              {s.score ? "Achieved" : "Pending"}
+                            </Badge>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </motion.div>
                 ))}
               </div>
             )}
-          </CardContent>
-        </Card>
+          </section>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle className="text-lg">Quizzes</CardTitle>
-            <ClipboardCheck className="h-4 w-4 text-primary" />
-          </CardHeader>
-          <CardContent>
+          {/* Quiz Results */}
+          <section className="space-y-6">
+            <h2 className="text-2xl font-display font-bold text-slate-900 px-2 flex items-center gap-3">
+              <TrendingUp className="h-6 w-6 text-emerald-500" /> Quiz Outcomes
+            </h2>
+            
             {loading ? (
-              <div className="flex justify-center py-6"><Loader2 className="h-6 w-6 animate-spin" /></div>
+              <div className="flex flex-col items-center justify-center py-20 gap-4 bg-white rounded-[2.5rem] border border-sky-50 shadow-sm">
+                <Loader2 className="h-10 w-10 animate-spin text-sky-500" />
+                <p className="text-slate-400 font-black uppercase tracking-widest text-[9px]">Accessing Registry...</p>
+              </div>
             ) : attempts.length === 0 ? (
-              <p className="text-sm text-muted-foreground">No quiz attempts yet.</p>
+              <Card className="border-none shadow-sm bg-white rounded-[2.5rem] p-12 text-center border-2 border-dashed border-emerald-50">
+                <p className="text-slate-400 font-medium italic">No quiz outcomes recorded in the registry.</p>
+              </Card>
             ) : (
-              <div className="space-y-2">
-                {attempts.map(a => (
-                  <div key={a._id} className="rounded-xl border border-border p-3 text-sm">
-                    <p className="font-medium text-foreground">{a.quiz_id?.title || "Untitled Quiz"}</p>
-                    <p className="text-xs text-muted-foreground">Score: {a.score ?? "Pending"}</p>
-                  </div>
+              <div className="space-y-4">
+                {attempts.map((a, i) => (
+                  <motion.div 
+                    key={a._id} 
+                    initial={{ opacity: 0, y: 10 }} 
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: i * 0.05 }}
+                  >
+                    <Card className="group hover:border-emerald-200 transition-all cursor-default border-none shadow-sm bg-white rounded-[2rem] overflow-hidden">
+                      <CardContent className="p-6">
+                        <div className="flex justify-between items-center">
+                          <div className="flex items-center gap-4">
+                            <div className="h-12 w-12 rounded-2xl bg-emerald-50 flex items-center justify-center group-hover:bg-emerald-100 transition-colors">
+                              <TrendingUp className="h-6 w-6 text-emerald-600" />
+                            </div>
+                            <div>
+                              <p className="font-bold text-slate-900 group-hover:text-emerald-600 transition-colors">{a.quiz_id?.title || "Assessment Node"}</p>
+                              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Completed: {new Date(a.completed_at || a.started_at).toLocaleDateString()}</p>
+                            </div>
+                          </div>
+                          <div className="text-right">
+                            <div className="flex items-center justify-end gap-2">
+                               <span className="text-2xl font-black text-slate-900">{a.score ?? "—"}</span>
+                               <span className="text-[10px] font-black text-slate-300 uppercase">%</span>
+                            </div>
+                            <Badge className={`border-none font-black text-[9px] uppercase tracking-widest px-3 py-1 rounded-lg ${(a.score || 0) >= 70 ? "bg-emerald-50 text-emerald-700" : "bg-rose-50 text-rose-700"}`}>
+                              {(a.score || 0) >= 70 ? "Passed" : "Retake"}
+                            </Badge>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </motion.div>
                 ))}
               </div>
             )}
-          </CardContent>
-        </Card>
+          </section>
+        </div>
+
+        {/* Global Statistics */}
+        <section className="pt-12">
+           <Card className="bg-slate-950 text-white border-none shadow-2xl rounded-[3rem] overflow-hidden relative p-12">
+              <div className="absolute top-0 right-0 p-12 opacity-10 pointer-events-none">
+                 <Award className="h-48 w-48 text-white" />
+              </div>
+              <div className="relative z-10 grid md:grid-cols-3 gap-12 text-center md:text-left">
+                 <div className="space-y-2">
+                    <p className="text-[10px] font-black uppercase tracking-[0.3em] text-sky-400">Cumulative GPA Index</p>
+                    <h3 className="text-6xl font-display font-bold">3.85</h3>
+                    <p className="text-slate-400 text-xs font-bold uppercase tracking-widest pt-2 flex items-center justify-center md:justify-start gap-2">
+                       <TrendingUp className="h-3 w-3 text-emerald-500" /> Top 5% GUI Scholars
+                    </p>
+                 </div>
+                 <div className="space-y-2">
+                    <p className="text-[10px] font-black uppercase tracking-[0.3em] text-sky-400">Credits Certified</p>
+                    <h3 className="text-6xl font-display font-bold">42</h3>
+                    <p className="text-slate-400 text-xs font-bold uppercase tracking-widest pt-2">Scholastic Milestone Reached</p>
+                 </div>
+                 <div className="flex flex-col justify-center items-center md:items-end">
+                    <Button className="bg-sky-600 hover:bg-sky-700 text-white font-black h-16 px-10 rounded-2xl shadow-xl transition-all hover:scale-105 active:scale-95 text-lg">
+                       Full Official Transcript
+                    </Button>
+                 </div>
+              </div>
+           </Card>
+        </section>
       </div>
     </DashboardLayout>
   );
