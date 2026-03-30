@@ -5,9 +5,10 @@ import Footer from "@/components/landing/Footer";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { GraduationCap, Search, Filter, BookOpen, Clock, Award, Loader2 } from "lucide-react";
+import { Search, Filter, BookOpen, Clock, Award, Loader2 } from "lucide-react";
 import { motion } from "framer-motion";
 import { apiClient } from "@/lib/api-client";
+import GraduationCapIcon from "@/components/icons/GraduationCapIcon";
 
 const CourseCatalog = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -107,7 +108,7 @@ const CourseCatalog = () => {
               </div>
             ) : courses.length === 0 ? (
               <div className="text-center py-20 bg-slate-50 rounded-3xl border border-dashed">
-                <GraduationCap className="h-12 w-12 text-slate-300 mx-auto mb-4" />
+                <GraduationCapIcon className="h-12 w-12 text-slate-300 mx-auto mb-4" />
                 <h3 className="text-xl font-bold mb-2">No programs found</h3>
                 <p className="text-muted-foreground mb-6">Try adjusting your search or filters to find what you're looking for.</p>
                 <Button variant="outline" onClick={() => { setSearchQuery(""); setLevelFilter("All"); setCategoryFilter("All"); }}>

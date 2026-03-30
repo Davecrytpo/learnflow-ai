@@ -9,8 +9,8 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { 
-  BookOpen, GraduationCap, Star, Users, ArrowRight, Play, BookCheck, 
+import {
+  BookOpen, Star, Users, ArrowRight, Play, BookCheck,
   ShieldCheck, Sparkles, Calendar, Download, Loader2, Search, CheckCircle2,
   Trophy, Lightbulb, Code, LayoutDashboard, Newspaper
 } from "lucide-react";

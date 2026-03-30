@@ -1,5 +1,6 @@
 import { motion } from "framer-motion";
-import { BarChart3, Award, Users, BookOpen, ClipboardCheck, GraduationCap, Shield, Brain, Filter } from "lucide-react";
+import { BarChart3, Award, Users, BookOpen, ClipboardCheck, Shield, Brain, Filter } from "lucide-react";
+import GraduationCapIcon from "@/components/icons/GraduationCapIcon";
 import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 
@@ -10,7 +11,7 @@ const features = [
   { icon: Award, title: "Digital Certificates", description: "Automated certificates with verifiable IDs and shareable links.", tag: "Certification", link: "/student" },
   { icon: Users, title: "Role-Based Access", description: "Purpose-built dashboards for students, instructors, and administrators.", tag: "Security", link: "/login" },
   { icon: BookOpen, title: "Curriculum Builder", description: "Structured modules, video embeds, attachments, and rich content.", tag: "Content", link: "/instructor-portal" },
-  { icon: GraduationCap, title: "Outcomes Alignment", description: "Map courses to standards, grade levels, and institutional requirements.", tag: "Compliance", link: "/academy" },
+  { icon: GraduationCapIcon, title: "Outcomes Alignment", description: "Map courses to standards, grade levels, and institutional requirements.", tag: "Compliance", link: "/academy" },
   { icon: Shield, title: "Enterprise Security", description: "Row-level security, audit trails, and role-based permissions by default.", tag: "Security", link: "/admin-portal" },
 ];
 

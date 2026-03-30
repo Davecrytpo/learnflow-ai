@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Mail, Phone, MapPin, Loader2, CheckCircle2 } from "lucide-react";
+import GraduationCapIcon from "@/components/icons/GraduationCapIcon";
 import { apiClient } from "@/lib/api-client";
 import { useToast } from "@/hooks/use-toast";
 import { motion } from "framer-motion";
@@ -171,7 +172,8 @@ const Contact = () => {
 
             <div className="bg-primary rounded-[3rem] p-10 text-white shadow-xl relative overflow-hidden group">
                <div className="absolute -right-10 -bottom-10 opacity-10 group-hover:scale-110 transition-transform duration-700">
-                 <GraduationCap className="h-64 w-64 text-white" />
+                 <GraduationCapIcon className="h-64 w-64 text-white" />
+
                </div>
                <h3 className="text-2xl font-bold mb-4 relative z-10">Attend a Virtual Open Day</h3>
                <p className="text-white/80 mb-8 relative z-10 leading-relaxed">

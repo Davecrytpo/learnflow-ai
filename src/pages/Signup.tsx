@@ -3,11 +3,12 @@ import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { GraduationCap, Loader2, Eye, EyeOff, Phone, Calendar, User, MapPin } from "lucide-react";
+import { Loader2, Eye, EyeOff, Phone, Calendar, User, MapPin } from "lucide-react";
 import { apiClient } from "@/lib/api-client";
 import { useToast } from "@/hooks/use-toast";
 import Navbar from "@/components/landing/Navbar";
 import Footer from "@/components/landing/Footer";
+import GraduationCapIcon from "@/components/icons/GraduationCapIcon";
 import { motion } from "framer-motion";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
@@ -77,7 +78,7 @@ const Signup = () => {
           <div className="p-8 md:p-12">
             <div className="text-center mb-10">
               <div className="h-16 w-16 bg-primary/10 rounded-2xl flex items-center justify-center mx-auto mb-4 text-primary">
-                <GraduationCap className="h-8 w-8" />
+                <GraduationCapIcon className="h-8 w-8" />
               </div>
               <h1 className="text-3xl font-display font-bold text-slate-900">Student Registration</h1>
               <p className="text-slate-500 mt-2">Join Global University Institute</p>

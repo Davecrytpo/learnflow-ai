@@ -12,6 +12,7 @@ import { BookOpen, Award, Bell, Play, Calendar, Sparkles, Target, Users, Message
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
 import { motion } from "framer-motion";
 import { Badge } from "@/components/ui/badge";
+import GraduationCapIcon from "@/components/icons/GraduationCapIcon";
 
 interface EnrolledCourse {
   id: string;
@@ -131,7 +132,7 @@ const StudentDashboard = () => {
             <div className="hidden lg:block">
               <div className="h-48 w-48 bg-sky-50 rounded-[3rem] flex items-center justify-center border-4 border-white shadow-inner relative overflow-hidden">
                 <Award className="h-24 w-24 text-sky-200 absolute -bottom-4 -right-4 rotate-12" />
-                <GraduationCap className="h-20 w-20 text-sky-600 relative z-10" />
+                <GraduationCapIcon className="h-20 w-20 text-sky-600 relative z-10" />
               </div>
             </div>
           </div>

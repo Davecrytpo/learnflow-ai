@@ -1,0 +1,25 @@
+Replace all occurrences of `GraduationCap` from `lucide-react` with the local `GraduationCapIcon` from `@/components/icons/GraduationCapIcon`.
+
+Files to update:
+1. `src/pages/student/CourseLearning.tsx`
+2. `src/pages/student/AlumniNetwork.tsx`
+3. `src/pages/admissions/Tuition.tsx`
+4. `src/pages/admissions/Contact.tsx`
+5. `src/pages/admissions/Apply.tsx`
+6. `src/pages/academics/Undergraduate.tsx`
+7. `src/pages/admin/Reports.tsx`
+8. `src/pages/admin/AdminDashboard.tsx`
+9. `src/pages/admin/Accreditation.tsx`
+10. `src/components/landing/QuickLinks.tsx`
+11. `src/components/landing/Navbar.tsx`
+12. `src/components/landing/Hero.tsx`
+13. `src/components/landing/Features.tsx`
+14. `src/components/landing/AdmissionsCTA.tsx`
+15. `src/components/dashboard/AdminSidebar.tsx`
+16. `src/components/dashboard/InstructorSidebar.tsx`
+
+Instructions for each file:
+- Ensure the import from `lucide-react` is removed if it's no longer used, and add the new import: `import GraduationCapIcon from "@/components/icons/GraduationCapIcon";`. 
+- Replace the usage of `GraduationCap` with `GraduationCapIcon`.
+- Use `replace` or `write_file` as needed.
+- Verify changes after editing.

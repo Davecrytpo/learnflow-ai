@@ -1,8 +1,10 @@
 import { Link } from "react-router-dom";
-import { GraduationCap, BookOpen, Microscope, MapPin, Calendar, Users } from "lucide-react";
+import { BookOpen, Microscope, MapPin, Calendar, Users } from "lucide-react";
+import GraduationCapIcon from "@/components/icons/GraduationCapIcon";
 
 const links = [
-  { label: "How to Apply", href: "/admissions/apply", icon: GraduationCap, desc: "Admissions & Requirements" },
+  { label: "How to Apply", href: "/admissions/apply", icon: GraduationCapIcon, desc: "Admissions & Requirements" },
+
   { label: "Programs", href: "/academics/catalog", icon: BookOpen, desc: "Undergraduate & Graduate" },
   { label: "Research", href: "/research/centers", icon: Microscope, desc: "Labs & Publications" },
   { label: "Campus Visit", href: "/admissions/visit", icon: MapPin, desc: "Tours & Open Days" },

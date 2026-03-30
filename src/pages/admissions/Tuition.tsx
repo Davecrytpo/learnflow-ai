@@ -2,9 +2,10 @@ import PageLayout from "@/components/layout/PageLayout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { 
-  Calculator, Landmark, GraduationCap, ArrowRight, CheckCircle, 
+  Calculator, Landmark, ArrowRight, CheckCircle, 
   DollarSign, FileCheck, Globe, HelpCircle 
 } from "lucide-react";
+import GraduationCapIcon from "@/components/icons/GraduationCapIcon";
 import { Link } from "react-router-dom";
 
 const Tuition = () => {
@@ -100,7 +101,8 @@ const Tuition = () => {
               
               <div className="grid sm:grid-cols-2 gap-6">
                 <div className="p-6 bg-white rounded-2xl border border-slate-100 shadow-sm space-y-3">
-                  <GraduationCap className="h-8 w-8 text-primary" />
+                  <GraduationCapIcon className="h-8 w-8 text-primary" />
+
                   <h4 className="font-bold">Merit Scholarships</h4>
                   <p className="text-xs text-slate-500">Based on academic, athletic, or artistic excellence.</p>
                 </div>

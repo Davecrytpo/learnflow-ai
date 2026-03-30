@@ -5,7 +5,8 @@ import AdminSidebar from "@/components/dashboard/AdminSidebar";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { GraduationCap, ShieldCheck, Loader2, Trash2, Calendar, Plus } from "lucide-react";
+import { ShieldCheck, Loader2, Trash2, Calendar, Plus } from "lucide-react";
+import GraduationCapIcon from "@/components/icons/GraduationCapIcon";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -173,7 +174,8 @@ const AdminAccreditation = () => {
           <Card>
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground">Total Tracked</CardTitle>
-              <GraduationCap className="h-4 w-4 text-primary" />
+              <GraduationCapIcon className="h-4 w-4 text-primary" />
+
             </CardHeader>
             <CardContent>
               <p className="text-2xl font-bold">{accreditations.length}</p>

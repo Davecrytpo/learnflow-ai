@@ -5,7 +5,8 @@ import AdminSidebar from "@/components/dashboard/AdminSidebar";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Download, LineChart, TrendingUp, Users, GraduationCap, Loader2 } from "lucide-react";
+import { Download, LineChart, TrendingUp, Users, Loader2 } from "lucide-react";
+import GraduationCapIcon from "@/components/icons/GraduationCapIcon";
 import { useToast } from "@/hooks/use-toast";
 
 const AdminReports = () => {
@@ -119,7 +120,8 @@ const AdminReports = () => {
             <Card>
               <CardHeader className="flex flex-row items-center justify-between pb-2">
                 <CardTitle className="text-sm font-medium text-muted-foreground">Certificates</CardTitle>
-                <GraduationCap className="h-4 w-4 text-amber-500" />
+                <GraduationCapIcon className="h-4 w-4 text-amber-500" />
+
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">{stats.certificatesIssued}</div>

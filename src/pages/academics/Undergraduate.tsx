@@ -1,7 +1,8 @@
 import PageLayout from "@/components/layout/PageLayout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowRight, BookOpen, Users, GraduationCap, Building2, FlaskConical, Briefcase, Globe } from "lucide-react";
+import { ArrowRight, BookOpen, Users, Building2, FlaskConical, Briefcase, Globe } from "lucide-react";
+import GraduationCapIcon from "@/components/icons/GraduationCapIcon";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 
@@ -42,7 +43,8 @@ const faculties = [
   { name: "School of Engineering", icon: Building2, count: "12 Programs" },
   { name: "Business & Management", icon: Briefcase, count: "8 Programs" },
   { name: "Health & Medicine", icon: FlaskConical, count: "6 Programs" },
-  { name: "Arts & Humanities", icon: GraduationCap, count: "10 Programs" }
+  { name: "Arts & Humanities", icon: GraduationCapIcon, count: "10 Programs" }
+
 ];
 
 const Undergraduate = () => {

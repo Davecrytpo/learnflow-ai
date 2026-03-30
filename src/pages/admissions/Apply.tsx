@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { 
   CheckCircle, FileText, UserPlus, Upload, CreditCard, 
-  Mail, ArrowRight, GraduationCap, Building2, HelpCircle 
+  Mail, ArrowRight, Building2, HelpCircle 
 } from "lucide-react";
 import { motion } from "framer-motion";
 

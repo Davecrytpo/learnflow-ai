@@ -173,6 +173,7 @@ const Discover = lazy(() => import("./pages/campus/Discover"));
 const Contact = lazy(() => import("./pages/Contact"));
 const Careers = lazy(() => import("./pages/Careers"));
 const Giving = lazy(() => import("./pages/Giving"));
+const TeachAtGui = lazy(() => import("./pages/TeachAtGui"));
 
 const queryClient = new QueryClient();
 
@@ -229,6 +230,7 @@ const App = () => (
                   <Route path="/contact" element={<Contact />} />
                   <Route path="/careers" element={<Careers />} />
                   <Route path="/giving" element={<Giving />} />
+                  <Route path="/teach" element={<TeachAtGui />} />
 
                   <Route path="/student" element={<StudentPortal />} />
                   <Route path="/instructor-portal" element={<InstructorPortal />} />

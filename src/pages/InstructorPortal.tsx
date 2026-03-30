@@ -1,8 +1,9 @@
 import Navbar from "@/components/landing/Navbar";
 import Footer from "@/components/landing/Footer";
 import { Button } from "@/components/ui/button";
-import { GraduationCap, ClipboardCheck, BarChart3, Users, Shield, ArrowRight } from "lucide-react";
+import { ClipboardCheck, BarChart3, Users, Shield, ArrowRight } from "lucide-react";
 import { Link } from "react-router-dom";
+import GraduationCapIcon from "@/components/icons/GraduationCapIcon";
 
 const InstructorPortal = () => (
   <div className="min-h-screen bg-background">
@@ -30,7 +31,7 @@ const InstructorPortal = () => (
 
       <section className="mt-10 grid gap-6 md:grid-cols-3">
         {[
-          { icon: GraduationCap, title: "Course Builder", body: "Create modules, lessons, resources, and assessments in one place.", link: "/instructor/courses/new", label: "Start Building" },
+          { icon: GraduationCapIcon, title: "Course Builder", body: "Create modules, lessons, resources, and assessments in one place.", link: "/instructor/courses/new", label: "Start Building" },
           { icon: ClipboardCheck, title: "Grading Queue", body: "Grade submissions quickly with a focused, unified queue.", link: "/instructor/grading", label: "Grade Now" },
           { icon: BarChart3, title: "Analytics", body: "Track enrollment, progress, and completion trends.", link: "/instructor/analytics", label: "View Data" },
           { icon: Users, title: "Cohorts", body: "Manage groups and track attendance per session.", link: "/instructor/attendance", label: "Manage Attendance" },

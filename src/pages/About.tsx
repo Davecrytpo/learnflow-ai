@@ -1,6 +1,6 @@
 import Navbar from "@/components/landing/Navbar";
 import Footer from "@/components/landing/Footer";
-import { Target, Heart, Globe, GraduationCap, Users, BookOpen, Award, ShieldCheck, Microscope } from "lucide-react";
+import { Target, Heart, Globe, Users, BookOpen, Award, ShieldCheck, Microscope } from "lucide-react";
 import { motion } from "framer-motion";
 import { Badge } from "@/components/ui/badge";
 

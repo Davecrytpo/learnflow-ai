@@ -1,7 +1,10 @@
 import { useState, useEffect, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Zap, BookOpen, Award, TrendingUp, Search, MapPin, Beaker, Calendar, Users, GraduationCap, Loader2 } from "lucide-react";
+import { ArrowRight, Zap, BookOpen, Award, TrendingUp, Search, MapPin, Beaker, Calendar, Users, Loader2 } from "lucide-react";
+import GraduationCapIcon from "@/components/icons/GraduationCapIcon";
+
+import GraduationCapIcon from "@/components/icons/GraduationCapIcon";
 import { motion, AnimatePresence } from "framer-motion";
 import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
@@ -14,7 +17,8 @@ const statsItems = [
 ];
 
 const quickLinks = [
-  { label: "How to Apply", icon: GraduationCap, href: "/admissions/apply" },
+  { label: "How to Apply", icon: GraduationCapIcon, href: "/admissions/apply" },
+
   { label: "Programs", icon: BookOpen, href: "/academics/undergraduate" },
   { label: "Research", icon: Beaker, href: "/research/centers" },
   { label: "Visit Campus", icon: MapPin, href: "/admissions/visit" },

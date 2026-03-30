@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, GraduationCap, FileText, Phone } from "lucide-react";
+import { ArrowRight, FileText, Phone } from "lucide-react";
+import GraduationCapIcon from "@/components/icons/GraduationCapIcon";
 import { motion } from "framer-motion";
 
 const AdmissionsCTA = () => (
@@ -21,7 +22,7 @@ const AdmissionsCTA = () => (
         viewport={{ once: true }}
         className="mx-auto max-w-3xl text-center"
       >
-        <GraduationCap className="mx-auto h-12 w-12 text-primary-foreground/80 mb-6" />
+        <GraduationCapIcon className="mx-auto h-12 w-12 text-primary-foreground/80 mb-6" />
         <h2 className="text-4xl font-bold text-primary-foreground md:text-6xl mb-6">
           Begin Your Journey
         </h2>

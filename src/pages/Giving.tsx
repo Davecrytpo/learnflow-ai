@@ -2,9 +2,10 @@ import { useState } from "react";
 import PageLayout from "@/components/layout/PageLayout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Heart, Gift, Building2, Users, GraduationCap, Trophy, Loader2 } from "lucide-react";
+import { Heart, Gift, Building2, Users, Trophy, Loader2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import GraduationCapIcon from "@/components/icons/GraduationCapIcon";
 import { useToast } from "@/hooks/use-toast";
 
 const Giving = () => {
@@ -27,7 +28,7 @@ const Giving = () => {
   };
 
   const funds = [
-    { name: "Student Scholarships", icon: GraduationCap, desc: "Support the next generation of leaders through merit and need-based aid." },
+    { name: "Student Scholarships", icon: GraduationCapIcon, desc: "Support the next generation of leaders through merit and need-based aid." },
     { name: "Research & Innovation", icon: Building2, desc: "Fund ground-breaking research in medicine, technology, and humanities." },
     { name: "Campus Development", icon: Trophy, desc: "Help us build world-class facilities and modern learning environments." },
     { name: "Global Impact Fund", icon: Heart, desc: "Sponsor community outreach and international development programs." }

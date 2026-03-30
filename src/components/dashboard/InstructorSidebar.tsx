@@ -1,7 +1,7 @@
 import { 
   LayoutDashboard, BookOpen, Users, 
   MessageSquare, BarChart, Settings, 
-  PlusCircle, Calendar, GraduationCap,
+  PlusCircle, Calendar,
   ClipboardCheck, Bell, User, ListChecks,
   FileText, MessageSquareQuote, FileStack,
   Video, Star, BrainCircuit, Activity,
@@ -9,6 +9,7 @@ import {
   PieChart, ScrollText, ListPlus, UploadCloud,
   ShieldCheck, Briefcase
 } from "lucide-react";
+import GraduationCapIcon from "@/components/icons/GraduationCapIcon";
 import { NavLink } from "@/components/NavLink";
 import { Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarHeader } from "@/components/ui/sidebar";
 

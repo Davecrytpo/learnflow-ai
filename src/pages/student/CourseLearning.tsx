@@ -11,8 +11,9 @@ import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   BookOpen, ChevronLeft, ChevronRight, CheckCircle, Circle, Play, ClipboardCheck,
-  Award, Loader2, ArrowLeft, Clock, GraduationCap, MessageSquare, FileText, Send, Link as LinkIcon, Download
+  Award, Loader2, ArrowLeft, Clock, MessageSquare, FileText, Send, Link as LinkIcon, Download
 } from "lucide-react";
+import GraduationCapIcon from "@/components/icons/GraduationCapIcon";
 import DOMPurify from "dompurify";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import DiscussionBoard from "@/components/discussion/DiscussionBoard";
@@ -746,7 +747,8 @@ const CourseLearning = () => {
           
             <div className="flex h-full items-center justify-center p-8 text-center">
               <div>
-                <GraduationCap className="mx-auto h-12 w-12 text-muted-foreground/30" />
+                <GraduationCapIcon className="mx-auto h-12 w-12 text-muted-foreground/30" />
+
                 <p className="mt-4 text-lg font-semibold text-foreground">No content yet</p>
                 <p className="text-sm text-muted-foreground">This course doesn't have any published lessons yet.</p>
               </div>

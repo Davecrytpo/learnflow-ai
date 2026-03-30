@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { 
   Users, Globe, Briefcase, Award, MessageSquare, 
-  Search, BookOpen, GraduationCap, ArrowRight 
+  Search, BookOpen, ArrowRight 
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";

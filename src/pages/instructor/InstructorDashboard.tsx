@@ -11,6 +11,7 @@ import {
   TrendingUp, Award, ArrowRight, Loader2,
   FileText, ClipboardCheck, Layout, Sparkles
 } from "lucide-react";
+import GraduationCapIcon from "@/components/icons/GraduationCapIcon";
 import { motion } from "framer-motion";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
@@ -116,7 +117,7 @@ const InstructorDashboard = () => {
             <div className="hidden lg:block shrink-0">
                <div className="h-64 w-64 rounded-[4rem] bg-indigo-600/10 border-2 border-indigo-500/20 flex items-center justify-center relative group overflow-hidden">
                   <div className="absolute inset-0 bg-indigo-500/10 opacity-0 group-hover:opacity-100 transition-opacity" />
-                  <GraduationCap className="h-32 w-32 text-indigo-500 relative z-10" />
+                  <GraduationCapIcon className="h-32 w-32 text-indigo-500 relative z-10" />
                </div>
             </div>
           </div>

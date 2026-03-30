@@ -7,10 +7,11 @@ import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { 
-  Users, BookOpen, GraduationCap, Award, Search, 
+  Users, BookOpen, Award, Search, 
   Shield, Trash2, Eye, CheckCircle, XCircle, 
   UserPlus, Mail, Loader2, Sparkles, TrendingUp
 } from "lucide-react";
+import GraduationCapIcon from "@/components/icons/GraduationCapIcon";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogTrigger } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
@@ -366,7 +367,8 @@ const AdminDashboard = () => {
                     <div key={e._id} className="flex items-center justify-between p-4 rounded-xl border border-border bg-card/50">
                       <div className="flex items-center gap-4">
                         <div className="h-10 w-10 rounded-lg bg-accent/10 flex items-center justify-center text-accent">
-                          <GraduationCap className="h-5 w-5" />
+                          <GraduationCapIcon className="h-5 w-5" />
+
                         </div>
                         <div>
                           <p className="font-bold text-foreground">{e.student_id?.display_name || "Student"}</p>

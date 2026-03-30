@@ -1,11 +1,12 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { GraduationCap, BookOpen, Users, Loader2 } from "lucide-react";
+import { BookOpen, Users, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useAuthContext } from "@/contexts/AuthContext";
 import { motion } from "framer-motion";
+import GraduationCapIcon from "@/components/icons/GraduationCapIcon";
 
 const roles = [
   {
@@ -72,7 +73,7 @@ const Onboarding = () => {
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
       <div className="w-full max-w-lg text-center">
         <div className="mx-auto mb-6 flex h-14 w-14 items-center justify-center rounded-xl bg-primary">
-          <GraduationCap className="h-7 w-7 text-primary-foreground" />
+          <GraduationCapIcon className="h-7 w-7 text-primary-foreground" />
         </div>
         <h1 className="text-2xl font-bold text-foreground">How will you use Learnflow AI?</h1>
         <p className="mt-2 text-muted-foreground">Select your role to personalize your experience.</p>

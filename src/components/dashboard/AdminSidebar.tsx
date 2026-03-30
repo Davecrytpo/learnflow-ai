@@ -1,4 +1,5 @@
-import { LayoutDashboard, Users, BookOpen, Shield, BarChart3, FileText, Upload, Tag, LineChart, Plug, Building2, KeyRound, CreditCard, GraduationCap, Gavel, Store, Bot, Database, ScanEye, FileSearch, Network, ShoppingCart, Receipt, Key, RefreshCw, Palette, LifeBuoy, Radar, ScrollText, Map, LayoutGrid } from "lucide-react";
+import { LayoutDashboard, Users, BookOpen, Shield, BarChart3, FileText, Upload, Tag, LineChart, Plug, Building2, KeyRound, CreditCard, Gavel, Store, Bot, Database, ScanEye, FileSearch, Network, ShoppingCart, Receipt, Key, RefreshCw, Palette, LifeBuoy, Radar, ScrollText, Map, LayoutGrid } from "lucide-react";
+import GraduationCapIcon from "@/components/icons/GraduationCapIcon";
 import { NavLink } from "@/components/NavLink";
 import { Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarHeader } from "@/components/ui/sidebar";
 
@@ -16,7 +17,7 @@ const items = [
   { title: "Tenants", url: "/admin/tenants", icon: Building2 },
   { title: "Permissions", url: "/admin/permissions", icon: KeyRound },
   { title: "Billing", url: "/admin/billing", icon: CreditCard },
-  { title: "Accreditation", url: "/admin/accreditation", icon: GraduationCap },
+  { title: "Accreditation", url: "/admin/accreditation", icon: GraduationCapIcon },
   { title: "Compliance", url: "/admin/compliance", icon: Gavel },
   { title: "Marketplace", url: "/admin/marketplace", icon: Store },
   { title: "AI Governance", url: "/admin/ai-governance", icon: Bot },
