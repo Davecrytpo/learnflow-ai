@@ -8,7 +8,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, CheckCircle } from "lucide-react";
+import { Loader2, CheckCircle, Sparkles } from "lucide-react";
+import { aiGradeSubmission } from "@/lib/ai-service";
 
 const Grading = () => {
   const { user } = useAuth();
@@ -18,6 +19,7 @@ const Grading = () => {
   const [gradingId, setGradingId] = useState<string | null>(null);
   const [score, setScore] = useState("");
   const [feedback, setFeedback] = useState("");
+  const [aiLoading, setAiLoading] = useState(false);
 
   useEffect(() => {
     if (!user) return;
@@ -55,6 +57,25 @@ const Grading = () => {
     };
     fetch();
   }, [user]);
+
+  const handleAiGrade = async (sub: any) => {
+    setAiLoading(true);
+    try {
+      const result = await aiGradeSubmission(
+        sub.assignment?.title || "Assignment",
+        sub.content || "",
+        "Refer to the assignment instructions." // We should ideally fetch the rubrics here
+      );
+      const parsed = JSON.parse(result.trim());
+      setScore(Math.round((parsed.score / 100) * (sub.assignment?.max_score || 100)).toString());
+      setFeedback(parsed.feedback);
+      toast({ title: "AI Suggestion Ready", description: "Review and adjust before submitting." });
+    } catch (err: any) {
+      toast({ title: "AI Grade Assist Failed", description: err.message, variant: "destructive" });
+    } finally {
+      setAiLoading(false);
+    }
+  };
 
   const gradeSubmission = async (subId: string) => {
     if (!user) return;
@@ -112,6 +133,20 @@ const Grading = () => {
                   )}
                   {gradingId === sub.id ? (
                     <div className="mt-4 space-y-3 rounded-md border border-border p-4">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-sm font-bold">Grading Form</span>
+                        <Button 
+                          type="button" 
+                          variant="outline" 
+                          size="sm" 
+                          className="gap-2 text-indigo-600 border-indigo-200"
+                          onClick={() => handleAiGrade(sub)}
+                          disabled={aiLoading}
+                        >
+                          {aiLoading ? <Loader2 className="h-3 w-3 animate-spin" /> : <Sparkles className="h-3 w-3" />}
+                          AI Grade Assist
+                        </Button>
+                      </div>
                       <div className="flex gap-4">
                         <div className="space-y-1">
                           <label className="text-xs text-muted-foreground">Score</label>

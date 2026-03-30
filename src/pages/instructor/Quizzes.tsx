@@ -105,10 +105,18 @@ const InstructorQuizzes = () => {
           time_limit_minutes: draft.time_limit_minutes || parseInt(newQuiz.time_limit),
           passing_score: draft.passing_score || 70,
           max_attempts: draft.max_attempts || 3,
-          questions: draft.questions || []
+          questions: draft.questions?.map((q: any, idx: number) => ({
+            question_text: q.question,
+            question_type: "multiple_choice",
+            options: q.options,
+            correct_answer: q.options[q.correct_index],
+            points: q.points || 10,
+            order: idx,
+            explanation: q.explanation
+          })) || []
         })
       });
-      toast({ title: "AI quiz created", description: "A quiz draft with starter questions has been added." });
+      toast({ title: "AI quiz created", description: "A quiz draft with starter questions and points has been added." });
       setOpen(false);
       setNewQuiz({ title: "", course_id: "", time_limit: "30" });
       fetchData();

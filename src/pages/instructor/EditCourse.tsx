@@ -17,7 +17,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { generateCurriculumOutline, generateLessonContent } from "@/lib/ai-service";
+import { generateCurriculumOutline, generateLessonContent, generateQuiz } from "@/lib/ai-service";
 import RichTextEditor from "@/components/ui/rich-text-editor";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { apiClient } from "@/lib/api-client";
@@ -160,6 +160,46 @@ const EditCourse = () => {
     }
   };
 
+  const handleGenerateFullCourse = async () => {
+    if (!course.title) return;
+    setAiLoading(true);
+    try {
+      toast({ title: "Generation Started", description: "AI is crafting your entire course. This may take a minute..." });
+      
+      const fullDraft = await generateCurriculumOutline(course.title); 
+      
+      for (const [sIdx, mod] of fullDraft.modules.entries()) {
+        const section = await apiClient.fetch(`/instructor/courses/${courseId}/modules`, {
+          method: "POST",
+          body: JSON.stringify({
+            title: mod.title,
+            order: sections.length + sIdx
+          })
+        });
+        
+        if (section) {
+          for (const [lIdx, lesson] of mod.lessons.entries()) {
+            const content = await generateLessonContent(course.title, lesson.title);
+            await apiClient.fetch(`/instructor/modules/${section.id}/lessons`, {
+              method: "POST",
+              body: JSON.stringify({
+                title: lesson.title,
+                content: content,
+                order: lIdx
+              })
+            });
+          }
+        }
+      }
+      toast({ title: "Course Fully Generated!", description: "All modules and lessons are ready." });
+      fetchCourseData();
+    } catch (err: any) {
+      toast({ title: "AI Full Generation Failed", description: err.message, variant: "destructive" });
+    } finally {
+      setAiLoading(false);
+    }
+  };
+
   const handleGenerateLessonContent = async () => {
     if (!editingLesson) return;
     setAiLoading(true);
@@ -174,6 +214,31 @@ const EditCourse = () => {
     }
   };
 
+  const handleGenerateModuleAssessment = async (sectionId: string) => {
+    const section = sections.find(s => s.id === sectionId);
+    if (!section) return;
+    
+    setAiLoading(true);
+    try {
+      const draft = await generateQuiz(section.title);
+      await apiClient.fetch(`/instructor/modules/${sectionId}/lessons`, {
+        method: "POST",
+        body: JSON.stringify({
+          title: `Assessment: ${draft.title || section.title}`,
+          lesson_type: "quiz",
+          content: JSON.stringify(draft),
+          order: section.lessons?.length || 0
+        })
+      });
+      toast({ title: "AI Assessment Generated", description: "A quiz with points and answers has been added." });
+      fetchCourseData();
+    } catch (err: any) {
+      toast({ title: "AI Assessment Failed", description: err.message, variant: "destructive" });
+    } finally {
+      setAiLoading(false);
+    }
+  };
+
   const saveLesson = async () => {
     if (!editingLesson) return;
     try {
@@ -183,6 +248,7 @@ const EditCourse = () => {
           title: editingLesson.title,
           content: editingLesson.content,
           video_url: editingLesson.video_url,
+          lesson_type: editingLesson.lesson_type
         })
       });
       toast({ title: "Lesson Saved" });
@@ -240,6 +306,15 @@ const EditCourse = () => {
                   {aiLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
                   Generate AI Outline
                 </Button>
+                <Button 
+                  onClick={handleGenerateFullCourse} 
+                  disabled={aiLoading} 
+                  variant="default" 
+                  className="w-full gap-2 bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg shadow-indigo-200"
+                >
+                  {aiLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
+                  Generate Full Course Content
+                </Button>
               </CardContent>
             </Card>
           </div>
@@ -269,7 +344,7 @@ const EditCourse = () => {
                       {section.lessons?.sort((a: any, b: any) => (a.order || 0) - (b.order || 0)).map((lesson: any) => (
                         <div key={lesson.id} className="flex items-center justify-between p-3 rounded-lg border border-border bg-card group hover:border-primary/30 transition-all">
                           <div className="flex items-center gap-3">
-                            {lesson.video_url ? <Video className="h-4 w-4 text-blue-500" /> : <FileText className="h-4 w-4 text-emerald-500" />}
+                            {lesson.lesson_type === 'quiz' ? <Sparkles className="h-4 w-4 text-indigo-500" /> : lesson.video_url ? <Video className="h-4 w-4 text-blue-500" /> : <FileText className="h-4 w-4 text-emerald-500" />}
                             <span className="text-sm font-medium">{lesson.title}</span>
                           </div>
                           <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -285,6 +360,14 @@ const EditCourse = () => {
                       <div className="flex gap-2">
                         <Button onClick={() => addLesson(section.id)} variant="ghost" className="flex-1 h-10 border-2 border-dashed text-muted-foreground hover:text-primary hover:border-primary/50 text-xs">
                           <Plus className="mr-2 h-3 w-3" /> New Lesson
+                        </Button>
+                        <Button 
+                          onClick={() => handleGenerateModuleAssessment(section.id)} 
+                          variant="ghost" 
+                          className="flex-1 h-10 border-2 border-dashed border-indigo-200 text-indigo-400 hover:text-indigo-600 hover:border-indigo-400 text-xs"
+                          disabled={aiLoading}
+                        >
+                          <Sparkles className="mr-2 h-3 w-3" /> AI Assessment
                         </Button>
                         <Button onClick={() => deleteSection(section.id)} variant="ghost" size="icon" className="h-10 w-10 text-destructive hover:bg-destructive/5">
                           <Trash2 className="h-4 w-4" />

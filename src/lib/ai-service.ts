@@ -26,6 +26,15 @@ export const generateCourseDraft = async (topic: string) => {
   }
 };
 
+export const generateFullCurriculum = async (topic: string) => {
+  const raw = await callAIFunction("generate_full_curriculum", { topic });
+  try {
+    return JSON.parse(cleanJSON(raw));
+  } catch {
+    throw new Error("AI returned invalid data format.");
+  }
+};
+
 export const generateCurriculumOutline = async (courseTitle: string) => {
   const raw = await callAIFunction("generate_curriculum_outline", { courseTitle });
   try {
@@ -46,6 +55,19 @@ export const generateQuiz = async (lessonTitle: string, difficulty: string = "me
   } catch {
     throw new Error("AI returned invalid data format.");
   }
+};
+
+export const generateAssessment = async (topic: string, type: "quiz" | "assignment" | "test" = "quiz") => {
+  const raw = await callAIFunction("generate_assessment", { topic, type });
+  try {
+    return JSON.parse(cleanJSON(raw));
+  } catch {
+    throw new Error("AI returned invalid data format.");
+  }
+};
+
+export const aiGradeSubmission = async (question: string, studentAnswer: string, correctAnswer: string) => {
+  return await callAIFunction("ai_grade_submission", { question, studentAnswer, correctAnswer });
 };
 
 export const analyzeStudentPerformance = async (studentData: unknown) => {

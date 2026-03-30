@@ -116,10 +116,10 @@ const InstructorDashboard = () => {
         {/* Premium Stats Grid */}
         <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
           {[
-            { label: "Total Students", value: stats.students, icon: Users, color: "text-blue-600", bg: "bg-blue-50" },
-            { label: "Institutional Revenue", value: `$${stats.revenue.toLocaleString()}`, icon: DollarSign, color: "text-emerald-600", bg: "bg-emerald-50" },
+            { label: "Total Students", value: stats.students, icon: Users, color: "text-indigo-600", bg: "bg-indigo-50" },
+            { label: "Completion Rate", value: "88%", icon: Award, color: "text-emerald-600", bg: "bg-emerald-50" },
             { label: "Avg. Faculty Rating", value: stats.rating, icon: Star, color: "text-amber-600", bg: "bg-amber-50" },
-            { label: "Active Curriculum", value: stats.activeCourses, icon: BookOpen, color: "text-indigo-600", bg: "bg-indigo-50" },
+            { label: "Active Curriculum", value: stats.activeCourses, icon: BookOpen, color: "text-blue-600", bg: "bg-blue-50" },
           ].map((s, i) => (
             <motion.div
               key={i}

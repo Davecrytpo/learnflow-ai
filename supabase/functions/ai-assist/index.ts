@@ -79,13 +79,43 @@ Provide the response in the following JSON format:
   "modules": [
     {
       "title": "Module Title",
+      "summary": "Brief module summary",
       "lessons": [
-        { "title": "Lesson Title", "type": "content|video|quiz" }
+        { "title": "Lesson Title", "type": "content|video|quiz|assignment", "duration": "15 min" }
       ]
     }
   ]
 }
-Create 3-5 modules, each with 2-3 lessons. Only return the JSON object.`
+Create 4-6 modules, each with 3-4 lessons. Ensure the flow is logical and educational. Only return the JSON object.`
+        );
+        break;
+      }
+
+      case "generate_full_curriculum": {
+        const { topic } = payload;
+        result = await callAI(
+          "You are a master educator. Always respond with valid JSON only, no markdown fences.",
+          `Create a COMPLETE curriculum for a course about "${topic}".
+Include modules, lessons, and the FULL content for each lesson.
+Provide the response in the following JSON format:
+{
+  "title": "Course Title",
+  "description": "Full HTML description",
+  "modules": [
+    {
+      "title": "Module Title",
+      "lessons": [
+        { 
+          "title": "Lesson Title", 
+          "content": "Full HTML content with <h2>, <p>, <ul>, <li>",
+          "type": "content"
+        }
+      ]
+    }
+  ]
+}
+Limit to 3 modules and 2 lessons per module to ensure quality within token limits. Only return the JSON object.`,
+          4096
         );
         break;
       }
@@ -96,10 +126,14 @@ Create 3-5 modules, each with 2-3 lessons. Only return the JSON object.`
           "You are an educational content writer. Write professional HTML content suitable for a modern LMS.",
           `Write educational content for a lesson titled "${lessonTitle}" as part of a course on "${courseTitle}".
 Format the content as professional HTML suitable for a modern LMS.
-Include sections with <h2> tags, paragraphs with <p>, and bullet points with <ul>/<li>.
-Add an "Objective" section at the top and a "Key Takeaways" section at the end.
-Ensure it is thorough and engaging. Only return the HTML content.`,
-          2048
+Include:
+- An "Objective" section at the top (<h2>).
+- 3-5 sub-sections with <h3> tags and detailed <p> content.
+- Practical examples or case studies.
+- A "Check for Understanding" question (text-only).
+- A "Key Takeaways" section at the end (<ul>/<li>).
+Ensure it is thorough (at least 500 words) and engaging. Only return the HTML content.`,
+          3000
         );
         break;
       }
@@ -117,12 +151,58 @@ Provide the response in the following JSON format:
       "question": "The question text?",
       "options": ["Option A", "Option B", "Option C", "Option D"],
       "correct_index": 0,
+      "points": 10,
       "explanation": "Why this is correct"
     }
   ]
 }
-Create 5 questions. Only return the JSON object.`,
-          1500
+Create 5 questions. Assign points to each. Only return the JSON object.`,
+          2000
+        );
+        break;
+      }
+
+      case "generate_assessment": {
+        const { topic, type } = payload;
+        result = await callAI(
+          "You are an assessment design expert. Always respond with valid JSON only, no markdown fences.",
+          `Create a comprehensive ${type} about "${topic}".
+Include specific point values for each task and a clear answer key for instructors.
+Provide the response in the following JSON format:
+{
+  "title": "Assessment Title",
+  "description": "Instructions for the student (HTML)",
+  "max_points": 100,
+  "tasks": [
+    {
+      "instruction": "What the student needs to do",
+      "points": 25,
+      "answer_key": "Detailed explanation of what a correct answer looks like for the instructor"
+    }
+  ]
+}
+Create 4 substantial tasks. Only return the JSON object.`,
+          2500
+        );
+        break;
+      }
+
+      case "ai_grade_submission": {
+        const { question, studentAnswer, correctAnswer } = payload;
+        result = await callAI(
+          "You are a fair and rigorous academic grader. Respond with JSON only.",
+          `Grade the following student response based on the question and the provided answer key.
+Question: ${question}
+Expected Answer: ${correctAnswer}
+Student Response: ${studentAnswer}
+
+Provide the response in JSON:
+{
+  "score": 0-100,
+  "feedback": "Constructive feedback for the student",
+  "justification": "Internal reasoning for the instructor"
+}
+Only return the JSON object.`
         );
         break;
       }

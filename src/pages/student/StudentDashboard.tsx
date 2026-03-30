@@ -97,17 +97,24 @@ const StudentDashboard = () => {
     <DashboardLayout allowedRoles={["student"]} sidebar={<StudentSidebar />}>
       <div className="space-y-8">
         {/* Welcome & Search */}
-        <section className="relative overflow-hidden rounded-3xl border border-border/70 bg-card/90 p-8 shadow-sm">
-          <div className="absolute inset-0 bg-aurora opacity-40" />
-          <div className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <section className="relative overflow-hidden rounded-[2.5rem] border border-sky-100 bg-white p-10 shadow-xl shadow-sky-500/5">
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(186,230,253,0.3),transparent)]" />
+          <div className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
             <div>
-              <h1 className="text-3xl font-display font-bold text-foreground">
+              <motion.div 
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-sky-100 text-sky-700 text-xs font-bold uppercase tracking-wider mb-4"
+              >
+                <Target className="h-3.5 w-3.5" /> Academic Growth
+              </motion.div>
+              <h1 className="text-3xl md:text-4xl font-display font-bold text-slate-900">
                 Welcome back, {user?.display_name?.split(" ")[0] || "Scholar"}.
               </h1>
-              <p className="mt-2 text-muted-foreground">Continue your journey. You have {enrollments.length} active courses.</p>
+              <p className="mt-2 text-slate-500 text-lg">You have {enrollments.length} active courses. Ready for the next milestone?</p>
             </div>
-            <Button className="bg-gradient-brand text-primary-foreground shadow-lg shadow-primary/20" onClick={() => navigate("/courses")}>
-              <Search className="mr-2 h-4 w-4" /> Browse Course Catalog
+            <Button className="bg-sky-600 hover:bg-sky-700 text-white font-bold h-12 px-8 rounded-2xl shadow-lg shadow-sky-200" onClick={() => navigate("/courses")}>
+              <Search className="mr-2 h-4 w-4" /> Explore Courses
             </Button>
           </div>
         </section>
@@ -117,26 +124,26 @@ const StudentDashboard = () => {
           <div className="lg:col-span-2 space-y-8">
             
             {/* My Progress */}
-            <Card className="border-primary/10 bg-card/50">
-              <CardHeader>
-                <CardTitle className="text-lg flex items-center gap-2">
-                  <TrendingUp className="h-5 w-5 text-primary" /> Learning Velocity
+            <Card className="border-none shadow-sm shadow-slate-200 bg-white rounded-[2rem] overflow-hidden">
+              <CardHeader className="border-b border-slate-50 pb-4">
+                <CardTitle className="text-lg flex items-center gap-2 text-slate-800">
+                  <TrendingUp className="h-5 w-5 text-sky-500" /> Learning Momentum
                 </CardTitle>
               </CardHeader>
-              <CardContent>
+              <CardContent className="pt-6">
                 <div className="h-[200px] w-full">
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart data={progressData}>
-                      <XAxis dataKey="name" tick={{fontSize: 10}} />
+                      <XAxis dataKey="name" tick={{fontSize: 10, fill: '#64748b'}} axisLine={false} tickLine={false} />
                       <Tooltip 
-                        contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
-                        cursor={{fill: 'transparent'}}
+                        contentStyle={{ borderRadius: '16px', border: 'none', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)' }}
+                        cursor={{fill: '#f8fafc', radius: 8}}
                       />
-                      <Bar dataKey="progress" fill="url(#colorGradient)" radius={[4, 4, 0, 0]} barSize={30} />
+                      <Bar dataKey="progress" fill="url(#skyGradient)" radius={[8, 8, 8, 8]} barSize={24} />
                       <defs>
-                        <linearGradient id="colorGradient" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="0%" stopColor="hsl(var(--primary))" stopOpacity={0.8}/>
-                          <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0.3}/>
+                        <linearGradient id="skyGradient" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="0%" stopColor="#0ea5e9" stopOpacity={0.8}/>
+                          <stop offset="95%" stopColor="#0ea5e9" stopOpacity={0.4}/>
                         </linearGradient>
                       </defs>
                     </BarChart>
@@ -146,39 +153,34 @@ const StudentDashboard = () => {
             </Card>
 
             {/* Current Courses */}
-            <div>
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-xl font-semibold">Jump Back In</h2>
-                <Link to="/courses" className="text-sm text-primary hover:underline">View All</Link>
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <h2 className="text-2xl font-display font-bold text-slate-900">Resume Learning</h2>
+                <Button variant="ghost" className="text-sky-600 font-bold" onClick={() => navigate("/courses")}>View All</Button>
               </div>
               {enrollments.length === 0 ? (
-                <div className="text-center py-12 border-2 border-dashed rounded-3xl bg-slate-50">
-                  <BookOpen className="h-10 w-10 text-slate-300 mx-auto mb-4" />
+                <div className="text-center py-20 bg-white rounded-[2.5rem] border-2 border-dashed border-slate-200">
+                  <BookOpen className="h-12 w-12 text-slate-200 mx-auto mb-4" />
                   <p className="text-slate-500 font-medium">No active courses. Explore our catalog!</p>
-                  <Button variant="link" className="mt-2" onClick={() => navigate("/courses")}>Go to Catalog</Button>
+                  <Button variant="link" className="mt-2 text-sky-600 font-bold" onClick={() => navigate("/courses")}>Go to Catalog</Button>
                 </div>
               ) : (
                 <div className="grid gap-4 md:grid-cols-2">
                   {enrollments.slice(0, 4).map((enr) => (
-                    <Card key={enr.id} className="group hover:border-primary/30 transition-all cursor-pointer overflow-hidden" onClick={() => navigate(`/course/${enr.course_id}/learn`)}>
-                      <CardContent className="p-5 flex gap-4">
-                        <div className="h-16 w-16 rounded-lg bg-accent/10 flex items-center justify-center shrink-0 text-accent font-bold text-xl overflow-hidden">
+                    <Card key={enr.id} className="group hover:border-sky-200 transition-all cursor-pointer overflow-hidden border-none shadow-sm shadow-slate-200 rounded-[2rem]" onClick={() => navigate(`/course/${enr.course_id}/learn`)}>
+                      <CardContent className="p-6 flex gap-4">
+                        <div className="h-20 w-20 rounded-2xl bg-sky-50 flex items-center justify-center shrink-0 text-sky-600 font-bold text-2xl overflow-hidden group-hover:scale-105 transition-transform">
                           {enr.courses.cover_image_url ? (
                             <img src={enr.courses.cover_image_url} className="h-full w-full object-cover" />
                           ) : enr.courses.title.charAt(0)}
                         </div>
-                        <div className="flex-1 min-w-0">
-                          <h3 className="font-semibold truncate group-hover:text-primary transition-colors">{enr.courses.title}</h3>
-                          <p className="text-xs text-muted-foreground mb-3">{enr.courses.category || "General"}</p>
+                        <div className="flex-1 min-w-0 flex flex-col justify-center">
+                          <h3 className="font-bold text-slate-900 truncate group-hover:text-sky-600 transition-colors">{enr.courses.title}</h3>
+                          <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">{enr.courses.category || "General"}</p>
                           <div className="flex items-center gap-3">
-                            <Progress value={enr.progress} className="h-1.5 flex-1" />
-                            <span className="text-[10px] font-medium text-muted-foreground">{enr.progress}%</span>
+                            <Progress value={enr.progress} className="h-2 flex-1 bg-slate-100" indicatorClassName="bg-sky-500" />
+                            <span className="text-[10px] font-bold text-slate-500">{enr.progress}%</span>
                           </div>
-                        </div>
-                        <div className="self-center">
-                          <Button size="icon" variant="ghost" className="rounded-full h-8 w-8 hover:bg-primary/10 hover:text-primary">
-                            <Play className="h-3 w-3 ml-0.5" />
-                          </Button>
                         </div>
                       </CardContent>
                     </Card>
