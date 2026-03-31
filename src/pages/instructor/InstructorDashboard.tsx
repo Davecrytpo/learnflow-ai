@@ -5,6 +5,7 @@ import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import InstructorSidebar from "@/components/dashboard/InstructorSidebar";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Progress } from "@/components/ui/progress";
 import { 
   BookOpen, Users, Award, Star, 
   PlusCircle, ClipboardCheck, MessageSquare, 
@@ -229,7 +230,7 @@ const InstructorDashboard = () => {
                           <span>{stat.label}</span>
                           <span className="text-white">{stat.value}%</span>
                         </div>
-                        <Progress value={stat.stat} className="h-2 bg-white/10" indicatorClassName={stat.color} />
+                        <Progress value={stat.value} className="h-2 bg-white/10" indicatorClassName={stat.color} />
                       </div>
                     ))}
                   </div>

@@ -170,11 +170,17 @@ const Athletics = lazy(() => import("./pages/campus/Athletics"));
 const Health = lazy(() => import("./pages/campus/Health"));
 const Discover = lazy(() => import("./pages/campus/Discover"));
 
-// General
-const Contact = lazy(() => import("./pages/Contact"));
-const Careers = lazy(() => import("./pages/Careers"));
-const Giving = lazy(() => import("./pages/Giving"));
-const TeachAtGui = lazy(() => import("./pages/TeachAtGui"));
+// Shared Auth
+import { useAuth } from "@/hooks/useAuth";
+
+const RoleBasedRedirect = () => {
+  const { user, loading } = useAuth();
+  if (loading) return <div className="flex min-h-screen items-center justify-center"><div className="h-10 w-10 animate-spin rounded-full border-2 border-primary border-t-transparent" /></div>;
+  if (!user) return <Navigate to="/login" replace />;
+  if (user.role === "admin") return <Navigate to="/admin/dashboard" replace />;
+  if (user.role === "instructor") return <Navigate to="/instructor" replace />;
+  return <Navigate to="/dashboard/student" replace />;
+};
 
 const queryClient = new QueryClient();
 
@@ -239,6 +245,9 @@ const App = () => (
                   <Route path="/setup-password" element={<SetupPassword />} />
                   <Route path="/onboarding" element={<Onboarding />} />
                   <Route path="/verify" element={<Verification />} />
+
+                  {/* Dashboard Redirect */}
+                  <Route path="/dashboard" element={<RoleBasedRedirect />} />
 
                   {/* Student Routes */}
                   <Route path="/dashboard/student" element={<StudentDashboard />} />
