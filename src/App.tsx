@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { lazy, Suspense, Component, ErrorInfo, ReactNode } from "react";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ThemeProvider } from "next-themes";
+import { useAuth } from "@/hooks/useAuth";
 
 class ErrorBoundary extends Component<{children: ReactNode}, {hasError: boolean}> {
   constructor(props: {children: ReactNode}) {
@@ -170,16 +171,36 @@ const Athletics = lazy(() => import("./pages/campus/Athletics"));
 const Health = lazy(() => import("./pages/campus/Health"));
 const Discover = lazy(() => import("./pages/campus/Discover"));
 
-// Shared Auth
-import { useAuth } from "@/hooks/useAuth";
+// General
+const Contact = lazy(() => import("./pages/Contact"));
+const Careers = lazy(() => import("./pages/Careers"));
+const Giving = lazy(() => import("./pages/Giving"));
+const TeachAtGui = lazy(() => import("./pages/TeachAtGui"));
 
 const RoleBasedRedirect = () => {
   const { user, loading } = useAuth();
-  if (loading) return <div className="flex min-h-screen items-center justify-center"><div className="h-10 w-10 animate-spin rounded-full border-2 border-primary border-t-transparent" /></div>;
-  if (!user) return <Navigate to="/login" replace />;
-  if (user.role === "admin") return <Navigate to="/admin/dashboard" replace />;
-  if (user.role === "instructor") return <Navigate to="/instructor" replace />;
-  return <Navigate to="/dashboard/student" replace />;
+  
+  if (loading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-background">
+        <div className="h-10 w-10 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+      </div>
+    );
+  }
+
+  if (!user) {
+    return <Navigate to="/login" replace />;
+  }
+
+  switch (user.role) {
+    case "admin":
+      return <Navigate to="/admin/dashboard" replace />;
+    case "instructor":
+      return <Navigate to="/instructor" replace />;
+    case "student":
+    default:
+      return <Navigate to="/dashboard/student" replace />;
+  }
 };
 
 const queryClient = new QueryClient();
