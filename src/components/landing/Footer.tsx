@@ -104,6 +104,7 @@ const Footer = () => (
             {[
               ["Apply Now", "/signup"],
               ["Student Portal", "/login"],
+              ["Teach at GUI", "/teach"],
               ["Contact Us", "/contact"],
               ["About the Institute", "/about"],
               ["Giving to GUI", "/giving"],

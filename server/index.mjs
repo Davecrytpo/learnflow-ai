@@ -635,25 +635,43 @@ const buildCourseDraft = (topic) => {
     { match: /history|language|philosophy|literature/i, category: "Humanities" }
   ];
   const category = categoryHints.find((hint) => hint.match.test(normalizedTopic))?.category || "General";
+  
+  // Generating a rich academic structure
+  const modules = Array.from({ length: 8 }, (_, i) => ({
+    title: `Module ${i + 1}: ${normalizedTopic} Advancement ${i === 0 ? 'Foundations' : i === 7 ? 'Capstone' : 'Core'}`,
+    lessons: Array.from({ length: 5 }, (_, j) => ({
+      title: `Lesson ${j + 1}: Detailed Exploration of ${normalizedTopic} Segment ${i}.${j}`,
+      type: j === 4 ? "assignment" : j === 3 ? "quiz" : "content"
+    }))
+  }));
+
   return {
-    title: normalizedTopic,
-    summary: `An applied academic introduction to ${normalizedTopic}.`,
+    title: `Advanced ${normalizedTopic} and Professional Application`,
+    summary: `A comprehensive academic curriculum focused on mastering ${normalizedTopic} through rigorous research and applied methodologies.`,
     description: `
-      <h2>Course Overview</h2>
-      <p>This course introduces the core principles, vocabulary, and professional applications of ${normalizedTopic}.</p>
-      <h3>Learning Outcomes</h3>
+      <h2>Institutional Course Narrative</h2>
+      <p>This course provides a deep, multi-dimensional exploration of <strong>${normalizedTopic}</strong>. Designed for scholars seeking to bridge the gap between theoretical frameworks and global industry applications, this curriculum covers eight distinct modules of study.</p>
+      
+      <h3>Scholarly Learning Outcomes</h3>
       <ul>
-        <li>Explain foundational concepts with accuracy.</li>
-        <li>Apply theory to structured case studies and practical exercises.</li>
-        <li>Evaluate common tools, methods, and ethical considerations.</li>
+        <li>Synthesize complex principles of ${normalizedTopic} into actionable professional strategies.</li>
+        <li>Execute advanced analytical methodologies to solve real-world pedagogical and technical challenges.</li>
+        <li>Demonstrate institutional mastery through a culminating capstone project and rigorous proctored evaluations.</li>
+        <li>Critically evaluate ethical considerations and global impacts within the field of ${normalizedTopic}.</li>
       </ul>
-      <h3>Assessment Structure</h3>
-      <p>Students progress through guided lessons, formative quizzes, and graded assignments.</p>
+
+      <h3>Academic Rigor and Accreditation</h3>
+      <p>The curriculum is structured to meet international accreditation standards, requiring approximately 150 hours of total study time over a 12-15 week semester. Students will engage with interactive lectures, case-based assignments, and collaborative discourse modules.</p>
+      
+      <h3>Prerequisite Knowledge</h3>
+      <p>A foundational understanding of general academic principles and an introductory awareness of ${normalizedTopic} is recommended for optimal performance.</p>
     `.trim(),
     category,
     level: "Undergraduate",
-    credits: 3,
-    duration: "12 Weeks"
+    credits: 4,
+    duration: "15 Weeks",
+    image_search_term: normalizedTopic,
+    syllabus: modules
   };
 };
 
@@ -1080,6 +1098,44 @@ app.delete("/admin/instructors/:id", authenticate, authorize(["admin"]), async (
 });
 
 // --- INSTRUCTOR ROUTES ---
+app.get("/instructor/submissions/pending", authenticate, authorize(["instructor", "admin"]), async (req, res) => {
+  try {
+    const courses = await Course.find(req.user.role === "admin" ? {} : { author_id: req.user.id }).select("_id");
+    const cIds = courses.map(c => c._id);
+    const assignments = await Assignment.find({ course_id: { $in: cIds } }).select("_id");
+    const aIds = assignments.map(a => a._id);
+    
+    const submissions = await Submission.find({ 
+      assignment_id: { $in: aIds },
+      score: { $exists: false } 
+    })
+    .populate("assignment_id", "title max_score")
+    .populate("student_id", "display_name email")
+    .sort({ submitted_at: 1 });
+    
+    res.json(serializeCollection(submissions));
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.patch("/instructor/submissions/:id/grade", authenticate, authorize(["instructor", "admin"]), async (req, res) => {
+  try {
+    const submission = await Submission.findByIdAndUpdate(
+      req.params.id,
+      { 
+        score: req.body.score,
+        feedback: req.body.feedback,
+        graded_at: new Date()
+      },
+      { new: true }
+    );
+    res.json(serializeDoc(submission));
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 app.get("/instructor/stats", authenticate, authorize(["instructor", "admin"]), async (req, res) => {
   try {
     const courses = await Course.find({ author_id: req.user.id });
@@ -1535,8 +1591,132 @@ app.get("/quiz-attempts/me", authenticate, authorize(["student", "admin"]), asyn
   }
 });
 
+// --- LEARNING ROUTES ---
+app.get("/courses/:id", authenticate, async (req, res) => {
+  try {
+    const course = await Course.findById(req.params.id).populate("author_id", "display_name");
+    res.json(serializeDoc(course));
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.get("/courses/:id/modules", authenticate, async (req, res) => {
+  try {
+    const modules = await Module.find({ course_id: req.params.id }).sort({ order: 1 });
+    res.json(serializeCollection(modules));
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.get("/courses/:id/lessons", authenticate, async (req, res) => {
+  try {
+    const lessons = await Lesson.find({ course_id: req.params.id }).sort({ order: 1 });
+    res.json(serializeCollection(lessons));
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.get("/courses/:id/quizzes", authenticate, async (req, res) => {
+  try {
+    const quizzes = await Quiz.find({ course_id: req.params.id }).sort({ order: 1 });
+    res.json(serializeCollection(quizzes));
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.get("/courses/:id/assignments", authenticate, async (req, res) => {
+  try {
+    const assignments = await Assignment.find({ course_id: req.params.id });
+    res.json(serializeCollection(assignments));
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.get("/quizzes/:id/questions", authenticate, async (req, res) => {
+  try {
+    const questions = await QuizQuestion.find({ quiz_id: req.params.id }).sort({ order: 1 });
+    res.json(serializeCollection(questions));
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post("/lesson-progress", authenticate, async (req, res) => {
+  try {
+    const progress = await LessonProgress.findOneAndUpdate(
+      { user_id: req.user.id, lesson_id: req.body.lesson_id },
+      { ...req.body, user_id: req.user.id, completed_at: new Date() },
+      { upsert: true, new: true }
+    );
+    res.json(serializeDoc(progress));
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.get("/lesson-progress/:courseId", authenticate, async (req, res) => {
+  try {
+    const progress = await LessonProgress.find({ user_id: req.user.id, course_id: req.params.courseId, completed: true });
+    res.json(serializeCollection(progress));
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post("/quiz-attempts", authenticate, async (req, res) => {
+  try {
+    const attempt = new QuizAttempt({ ...req.body, user_id: req.user.id });
+    await attempt.save();
+    res.json(serializeDoc(attempt));
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.get("/quiz-attempts/me", authenticate, async (req, res) => {
+  try {
+    const attempts = await QuizAttempt.find({ user_id: req.user.id });
+    res.json(serializeCollection(attempts));
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post("/submissions", authenticate, async (req, res) => {
+  try {
+    const submission = new Submission({ ...req.body, student_id: req.user.id });
+    await submission.save();
+    res.json(serializeDoc(submission));
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.get("/submissions/me", authenticate, async (req, res) => {
+  try {
+    const submissions = await Submission.find({ student_id: req.user.id });
+    res.json(serializeCollection(submissions));
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.get("/enrollments/check/:courseId", authenticate, async (req, res) => {
+  try {
+    const enrollment = await Enrollment.findOne({ student_id: req.user.id, course_id: req.params.courseId });
+    res.json(serializeDoc(enrollment));
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // --- COURSES ---
-app.get("/courses", async (req, res) => {
+app.get(\"/courses\", async (req, res) => {
   try {
     const { search, level, category } = req.query;
     const query = { published: true, status: "approved" };

@@ -102,7 +102,7 @@ const CreateCourse = () => {
                 method: "POST",
                 body: JSON.stringify({
                   title: lesson.title,
-                  lesson_type: lesson.type || "content",
+                  content: lesson.content || `Detailed academic content for ${lesson.title}.`,
                   order: lIdx
                 })
               });

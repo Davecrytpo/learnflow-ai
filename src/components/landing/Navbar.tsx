@@ -146,7 +146,7 @@ const Navbar = () => {
           </div>
           <div className="flex items-center gap-6">
             <Link to="/campus/events" className="text-white/60 hover:text-white transition-colors">Events</Link>
-            <Link to="/instructor/register" className="text-white/60 hover:text-white transition-colors font-bold text-primary-foreground/90">Teach at GUI</Link>
+            <Link to="/teach" className="text-white/60 hover:text-white transition-colors font-bold text-primary-foreground/90">Teach at GUI</Link>
             <Link to="/giving" className="text-white/60 hover:text-white transition-colors">Give</Link>
             <Link to="/contact" className="text-white/60 hover:text-white transition-colors">Contact</Link>
           </div>

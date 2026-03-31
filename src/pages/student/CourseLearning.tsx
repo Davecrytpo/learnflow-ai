@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
+import { apiClient } from "@/lib/api-client";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
@@ -17,7 +17,6 @@ import GraduationCapIcon from "@/components/icons/GraduationCapIcon";
 import DOMPurify from "dompurify";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import DiscussionBoard from "@/components/discussion/DiscussionBoard";
-import { Tables } from "@/integrations/supabase/types";
 import { Dialog, DialogContent, DialogFooter } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
@@ -29,21 +28,21 @@ const CourseLearning = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  const [course, setCourse] = useState<Tables<"courses"> | null>(null);
-  const [modules, setModules] = useState<Tables<"modules">[]>([]);
-  const [lessons, setLessons] = useState<Tables<"lessons">[]>([]);
-  const [quizzes, setQuizzes] = useState<Tables<"quizzes">[]>([]);
-  const [assignments, setAssignments] = useState<Tables<"assignments">[]>([]);
+  const [course, setCourse] = useState<any>(null);
+  const [modules, setModules] = useState<any[]>([]);
+  const [lessons, setLessons] = useState<any[]>([]);
+  const [quizzes, setQuizzes] = useState<any[]>([]);
+  const [assignments, setAssignments] = useState<any[]>([]);
   const [resources, setResources] = useState<any[]>([]);
   const [submissions, setSubmissions] = useState<any[]>([]);
   const [completedLessons, setCompletedLessons] = useState<Set<string>>(new Set());
-  const [quizAttempts, setQuizAttempts] = useState<Tables<"quiz_attempts">[]>([]);
+  const [quizAttempts, setQuizAttempts] = useState<any[]>([]);
   
-  const [activeLesson, setActiveLesson] = useState<Tables<"lessons"> | null>(null);
-  const [activeQuiz, setActiveQuiz] = useState<Tables<"quizzes"> | null>(null);
-  const [activeAssignment, setActiveAssignment] = useState<Tables<"assignments"> | null>(null);
+  const [activeLesson, setActiveLesson] = useState<any>(null);
+  const [activeQuiz, setActiveQuiz] = useState<any>(null);
+  const [activeAssignment, setActiveAssignment] = useState<any>(null);
   
-  const [quizQuestions, setQuizQuestions] = useState<Tables<"quiz_questions">[]>([]);
+  const [quizQuestions, setQuizQuestions] = useState<any[]>([]);
   const [quizAnswers, setQuizAnswers] = useState<Record<string, string>>({});
   const [submittingQuiz, setSubmittingQuiz] = useState(false);
   const [quizResult, setQuizResult] = useState<{ score: number; total: number; passed: boolean } | null>(null);
@@ -58,84 +57,42 @@ const CourseLearning = () => {
   const [isViewingCertificate, setIsViewingCertificate] = useState(false);
 
   useEffect(() => {
-    if (activeQuiz && activeQuiz.time_limit_minutes && !quizResult) {
-      // Set initial time (in seconds)
-      setTimeLeft(activeQuiz.time_limit_minutes * 60);
-    } else {
-      setTimeLeft(null);
-    }
-  }, [activeQuiz, quizResult]);
-
-  useEffect(() => {
-    if (timeLeft === null || timeLeft <= 0) {
-      if (timeLeft === 0 && !submittingQuiz && !quizResult) {
-        submitQuiz();
-        toast({ title: "Time's up!", description: "Quiz submitted automatically." });
-      }
-      return;
-    }
-
-    const timer = setInterval(() => {
-      setTimeLeft((prev) => (prev !== null ? prev - 1 : null));
-    }, 1000);
-
-    return () => clearInterval(timer);
-  }, [timeLeft, submittingQuiz, quizResult]);
-
-  useEffect(() => {
     if (!courseId || !user) return;
     const fetchAll = async () => {
       setLoading(true);
       try {
-        // 1. Strict Enrollment Verification
-        const { data: enrollment, error: enrollErr } = await supabase
-          .from("enrollments")
-          .select("*")
-          .eq("course_id", courseId)
-          .eq("student_id", user.id)
-          .maybeSingle();
-
-        const hasActiveEnrollment = enrollment && ["active", "approved", "completed"].includes(enrollment.status || "");
-
-        if (!hasActiveEnrollment) {
-          toast({ 
-            title: "Access Denied", 
-            description: enrollment
-              ? "Your course enrollment is not active yet."
-              : "You need to enroll in this course before you can enter the learning portal.", 
-            variant: "destructive" 
-          });
-          navigate("/dashboard");
+        // 1. Enrollment Check
+        const enrollment = await apiClient.fetch(`/enrollments/check/${courseId}`);
+        if (!enrollment || !["active", "approved", "completed"].includes(enrollment.status)) {
+          toast({ title: "Access Denied", description: "This academic program is not yet active for your account.", variant: "destructive" });
+          navigate("/dashboard/student");
           return;
         }
 
-        const [courseRes, modRes, lessonRes, quizRes, assignRes, resRes, progressRes, attemptsRes, subRes] = await Promise.all([
-          supabase.from("courses").select("*").eq("id", courseId).single(),
-          supabase.from("modules").select("*").eq("course_id", courseId).order("order"),
-          supabase.from("lessons").select("*").eq("course_id", courseId).eq("published", true).order("order"),
-          supabase.from("quizzes").select("*").eq("course_id", courseId).eq("published", true).order("order"),
-          supabase.from("assignments").select("*").eq("course_id", courseId).order("created_at"),
-          (supabase.from as any)("course_resources").select("*").eq("course_id", courseId).order("created_at"),
-          supabase.from("lesson_progress").select("lesson_id").eq("user_id", user.id).eq("course_id", courseId).eq("completed", true),
-          supabase.from("quiz_attempts").select("*").eq("user_id", user.id),
-          supabase.from("submissions").select("*").eq("student_id", user.id),
+        const [courseRes, modRes, lessonRes, quizRes, assignRes, progressRes, attemptsRes, subRes] = await Promise.all([
+          apiClient.fetch(`/courses/${courseId}`),
+          apiClient.fetch(`/courses/${courseId}/modules`),
+          apiClient.fetch(`/courses/${courseId}/lessons`),
+          apiClient.fetch(`/courses/${courseId}/quizzes`),
+          apiClient.fetch(`/courses/${courseId}/assignments`),
+          apiClient.fetch(`/lesson-progress/${courseId}`),
+          apiClient.fetch(`/quiz-attempts/me`),
+          apiClient.fetch(`/submissions/me`),
         ]);
 
-        setCourse(courseRes.data);
-        setModules(modRes.data || []);
-        setLessons(lessonRes.data || []);
-        setQuizzes(quizRes.data || []);
-        setAssignments(assignRes.data || []);
-        setResources(resRes.data || []);
-        setSubmissions(subRes.data || []);
-        setCompletedLessons(new Set((progressRes.data || []).map((p: any) => p.lesson_id)));
-        setQuizAttempts(attemptsRes.data || []);
+        setCourse(courseRes);
+        setModules(modRes || []);
+        setLessons(lessonRes || []);
+        setQuizzes(quizRes || []);
+        setAssignments(assignRes || []);
+        setSubmissions(subRes || []);
+        setCompletedLessons(new Set((progressRes || []).map((p: any) => p.lesson_id)));
+        setQuizAttempts(attemptsRes || []);
 
-        // Set first incomplete lesson as active
-        const completed = new Set((progressRes.data || []).map((p: any) => p.lesson_id));
-        const firstIncomplete = (lessonRes.data || []).find((l: any) => !completed.has(l.id));
+        const firstIncomplete = (lessonRes || []).find((l: any) => !new Set((progressRes || []).map((p: any) => p.lesson_id)).has(l.id || l._id));
         if (firstIncomplete) setActiveLesson(firstIncomplete);
-        else if (lessonRes.data?.[0]) setActiveLesson(lessonRes.data[0]);
+        else if (lessonRes?.[0]) setActiveLesson(lessonRes[0]);
+
       } catch (err: any) {
         console.error("Course learning fetch error:", err);
       } finally {
@@ -148,134 +105,123 @@ const CourseLearning = () => {
   const markLessonComplete = async (lessonId: string) => {
     if (!user || !courseId) return;
     setMarkingComplete(true);
-    await supabase.from("lesson_progress").upsert({
-      user_id: user.id,
-      lesson_id: lessonId,
-      course_id: courseId,
-      completed: true,
-      completed_at: new Date().toISOString(),
-    }, { onConflict: "user_id,lesson_id" });
-
-    setCompletedLessons((prev) => new Set([...prev, lessonId]));
-    setMarkingComplete(false);
-
-    // Auto advance to next lesson
-    const idx = lessons.findIndex((l) => l.id === lessonId);
-    if (idx < lessons.length - 1) {
-      setActiveLesson(lessons[idx + 1]);
+    try {
+      await apiClient.fetch("/lesson-progress", {
+        method: "POST",
+        body: JSON.stringify({
+          lesson_id: lessonId,
+          course_id: courseId,
+          completed: true
+        })
+      });
+      setCompletedLessons((prev) => new Set([...prev, lessonId]));
+      
+      const idx = lessons.findIndex((l) => (l.id || l._id) === lessonId);
+      if (idx < lessons.length - 1) {
+        setActiveLesson(lessons[idx + 1]);
+      }
+      toast({ title: "Module finalized." });
+    } catch (err) {
+      toast({ title: "Sync failed", variant: "destructive" });
+    } finally {
+      setMarkingComplete(false);
     }
-    toast({ title: "Lesson completed!" });
   };
 
   const startQuiz = async (quiz: any) => {
     setActiveLesson(null);
     setActiveQuiz(quiz);
     setQuizResult(null);
-    if (quiz.time_limit_minutes) {
-      setTimeLeft(quiz.time_limit_minutes * 60);
-    } else {
-      setTimeLeft(null);
-    }
+    if (quiz.time_limit_minutes) setTimeLeft(quiz.time_limit_minutes * 60);
     setQuizAnswers({});
-    const { data } = await supabase
-      .from("quiz_questions")
-      .select("*")
-      .eq("quiz_id", quiz.id)
-      .order("order");
-    setQuizQuestions(data || []);
+    try {
+      const questions = await apiClient.fetch(`/quizzes/${quiz.id || quiz._id}/questions`);
+      setQuizQuestions(questions || []);
+    } catch (err) {
+      toast({ title: "Failed to load assessment questions.", variant: "destructive" });
+    }
   };
 
   const submitQuiz = async () => {
     if (!activeQuiz || !user) return;
     setSubmittingQuiz(true);
+    try {
+      let score = 0;
+      let total = 0;
+      quizQuestions.forEach((q) => {
+        total += q.points;
+        if (quizAnswers[q.id || q._id]?.trim().toLowerCase() === q.correct_answer.trim().toLowerCase()) {
+          score += q.points;
+        }
+      });
 
-    let score = 0;
-    let total = 0;
-    quizQuestions.forEach((q) => {
-      total += q.points;
-      if (quizAnswers[q.id]?.trim().toLowerCase() === q.correct_answer.trim().toLowerCase()) {
-        score += q.points;
-      }
-    });
+      const passed = total > 0 ? (score / total) * 100 >= activeQuiz.passing_score : false;
+      const attempt = await apiClient.fetch("/quiz-attempts", {
+        method: "POST",
+        body: JSON.stringify({
+          quiz_id: activeQuiz.id || activeQuiz._id,
+          score,
+          total_points: total,
+          passed,
+          answers: quizAnswers
+        })
+      });
 
-    const passed = total > 0 ? (score / total) * 100 >= activeQuiz.passing_score : false;
-
-    const { data } = await supabase.from("quiz_attempts").insert({
-      quiz_id: activeQuiz.id,
-      user_id: user.id,
-      score,
-      total_points: total,
-      passed,
-      answers: quizAnswers,
-      completed_at: new Date().toISOString(),
-    }).select().single();
-
-    setQuizAttempts((prev) => [...prev, data]);
-    setQuizResult({ score, total, passed });
-    setSubmittingQuiz(false);
+      setQuizAttempts((prev) => [...prev, attempt]);
+      setQuizResult({ score, total, passed });
+    } catch (err) {
+      toast({ title: "Submission failed.", variant: "destructive" });
+    } finally {
+      setSubmittingQuiz(false);
+    }
   };
 
   const submitAssignment = async () => {
     if (!activeAssignment || !user) return;
     setSubmittingAssignment(true);
-
-    const { data, error } = await supabase.from("submissions").insert({
-      assignment_id: activeAssignment.id,
-      student_id: user.id,
-      content: submissionContent,
-      file_url: submissionFileUrl || null,
-      submitted_at: new Date().toISOString(),
-    }).select().single();
-
-    if (error) {
-      toast({ title: "Error", description: error.message, variant: "destructive" });
-    } else {
-      toast({ title: "Assignment submitted!", description: "Your instructor will grade it soon." });
-      setSubmissions((prev) => [...prev, data]);
+    try {
+      const sub = await apiClient.fetch("/submissions", {
+        method: "POST",
+        body: JSON.stringify({
+          assignment_id: activeAssignment.id || activeAssignment._id,
+          content: submissionContent,
+          file_url: submissionFileUrl || null
+        })
+      });
+      toast({ title: "Assignment committed.", description: "Academic review pending." });
+      setSubmissions((prev) => [...prev, sub]);
       setSubmissionContent("");
       setSubmissionFileUrl("");
+    } catch (error: any) {
+      toast({ title: "Submission error", description: error.message, variant: "destructive" });
+    } finally {
+      setSubmittingAssignment(false);
     }
-    setSubmittingAssignment(false);
   };
 
   const totalLessons = lessons.length;
   const completedCount = completedLessons.size;
   const progressPercent = totalLessons > 0 ? Math.round((completedCount / totalLessons) * 100) : 0;
 
-  // Check certificate eligibility
-  const allLessonsComplete = totalLessons > 0 && completedCount === totalLessons;
-  const requiredQuizzes = quizzes.filter((q) => q.quiz_type === "exam" || q.quiz_type === "test");
-  const allRequiredPassed = requiredQuizzes.every((q) =>
-    quizAttempts.some((a) => a.quiz_id === q.id && a.passed)
-  );
-  const canGetCertificate = allLessonsComplete && (requiredQuizzes.length === 0 || allRequiredPassed);
-
   const earnCertificate = async () => {
     if (!user || !courseId) return;
-    // Check if already has certificate
-    const { data: existing } = await supabase
-      .from("certificates")
-      .select("id")
-      .eq("user_id", user.id)
-      .eq("course_id", courseId)
-      .maybeSingle();
-
-    if (existing) {
-      toast({ title: "Certificate already earned!" });
-      return;
+    try {
+      await apiClient.fetch("/db/query/certificates", {
+        method: "POST",
+        body: JSON.stringify({
+          operation: "insert",
+          payload: {
+            user_id: user.id,
+            course_id: courseId,
+            verification_code: `GUI-${Math.random().toString(36).substr(2, 9).toUpperCase()}`
+          }
+        })
+      });
+      toast({ title: "Academic Credential Earned!" });
+      setIsViewingCertificate(true);
+    } catch (err) {
+      toast({ title: "Credential generation failed.", variant: "destructive" });
     }
-
-    await supabase.from("certificates").insert({
-      user_id: user.id,
-      course_id: courseId,
-    });
-
-    // Mark enrollment as completed
-    await supabase.from("enrollments").update({ completed_at: new Date().toISOString() })
-      .eq("student_id", user.id)
-      .eq("course_id", courseId);
-
-    toast({ title: "Certificate earned!", description: "Congratulations on completing the course!" });
   };
 
   if (loading) {

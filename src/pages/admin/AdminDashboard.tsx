@@ -245,7 +245,7 @@ const AdminDashboard = () => {
               <motion.div 
                 initial={{ opacity: 0 }} 
                 animate={{ opacity: 1 }} 
-                className="prose prose-invert max-w-none bg-white/5 p-6 rounded-2xl border border-white/10 text-slate-900"
+                className="prose prose-invert max-w-none bg-white/5 p-8 rounded-3xl border border-white/10 text-indigo-50"
                 dangerouslySetInnerHTML={{ __html: aiReport }}
               />
             ) : (
