@@ -11,7 +11,7 @@ import {
   BookOpen, Award, TrendingUp, Calendar, 
   Search, ArrowRight, Target, Users,
   Sparkles, QrCode, Play, CheckCircle2,
-  Clock, Loader2
+  Clock, Loader2, Star
 } from "lucide-react";
 import { BarChart, Bar, XAxis, Tooltip, ResponsiveContainer } from "recharts";
 import { motion, AnimatePresence } from "framer-motion";

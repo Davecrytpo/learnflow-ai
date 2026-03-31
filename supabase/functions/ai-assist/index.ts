@@ -52,31 +52,28 @@ serve(async (req) => {
       case "generate_course_draft": {
         const { topic } = payload;
         result = await callAI(
-          "You are a master curriculum architect. Always respond with valid JSON only, no markdown fences.",
-          `Create a COMPREHENSIVE and DETAILED professional course draft for an LMS about "${topic}".
-Include a full academic syllabus with detailed modules and lessons.
-The "description" must be a thorough Syllabus Narrative (at least 500 words) formatted in professional HTML with <h2>, <h3>, <p>, <ul>, and <li> tags.
-Provide the response in the following JSON format:
-{
-  "title": "Clear Academic Course Title",
-  "summary": "One sentence punchy executive summary",
-  "description": "Thorough HTML narrative description (500+ words)",
-  "category": "Technology, Science, Mathematics, Business, Arts, Health, Engineering, or Humanities",
-  "level": "Undergraduate, Graduate, Doctoral, Certificate, or Online",
-  "credits": 3,
-  "duration": "12 Weeks",
-  "image_search_term": "A specific search term for a high-quality academic Unsplash image",
-  "syllabus": [
-    {
-      "title": "Module Title",
-      "lessons": [
-        { "title": "Lesson Title", "type": "content|video|quiz|assignment" }
-      ]
-    }
-  ]
-}
-Create 6 substantial modules, each with 4 detailed lessons. Ensure the flow is academically rigorous. Only return the JSON object.`,
-          4096
+          "You are a master academic curriculum architect and pedagogical expert. Always respond with valid JSON only, no markdown fences.",
+          `Create an EXHAUSTIVE professional course draft for an LMS about "${topic}".
+The output MUST be a high-quality academic curriculum ready for university accreditation.
+
+Include:
+1. "title": A formal academic title.
+2. "summary": A compelling one-sentence executive summary.
+3. "description": A minimum 1000-word "Course Narrative and Learning Outcomes" in professional HTML. Use <h2> for sections like "Course Overview", "Learning Objectives", "Prerequisites", and "Career Impact". Use <ul> and <li> for lists. This must be DETAILED and authoritative.
+4. "category": Choose the most appropriate academic department (e.g., Computer Science, Theoretical Physics, Business Administration).
+5. "level": One of: Undergraduate, Graduate, Doctoral, Professional Certificate.
+6. "credits": 3 or 4.
+7. "duration": "12-15 Weeks".
+8. "image_search_term": A highly specific search term for a stunning Unsplash image representing this field of study.
+9. "syllabus": An array of exactly 8 modules. Each module must have:
+   - "title": A substantial module title.
+   - "lessons": Exactly 5 lessons per module. Each lesson must have:
+     - "title": A detailed lesson title.
+     - "type": "content", "video", "quiz", or "assignment".
+     - "content": A 300-word summary of what this specific lesson covers.
+
+Ensure the progression is logical and advanced. Only return the JSON object.`,
+          8192
         );
         break;
       }
