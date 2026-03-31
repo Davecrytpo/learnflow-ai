@@ -1716,7 +1716,7 @@ app.get("/enrollments/check/:courseId", authenticate, async (req, res) => {
 });
 
 // --- COURSES ---
-app.get(\"/courses\", async (req, res) => {
+app.get("/courses", async (req, res) => {
   try {
     const { search, level, category } = req.query;
     const query = { published: true, status: "approved" };
