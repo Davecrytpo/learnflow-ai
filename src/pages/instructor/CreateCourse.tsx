@@ -12,7 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/hooks/use-toast";
 import RichTextEditor from "@/components/ui/rich-text-editor";
 import { Loader2, Sparkles, CheckCircle2, ChevronRight, BookOpen } from "lucide-react";
-import { generateCourseDraft, generateAssessment } from "@/lib/ai-service";
+import { formatAssignmentDescription, generateCourseDraft, generateAssessment } from "@/lib/ai-service";
 import { apiClient } from "@/lib/api-client";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -49,8 +49,8 @@ const CreateCourse = () => {
       const draft = await generateCourseDraft(form.title);
       const imageUrl = `https://images.unsplash.com/photo-1497633762265-9d179a990aa6?auto=format&fit=crop&q=80&w=800&q=${encodeURIComponent(draft.image_search_term || form.title)}`;
       
-      setForm({
-        ...form,
+      setForm((current) => ({
+        ...current,
         title: draft.title || form.title,
         summary: draft.summary || "",
         description: draft.description || "",
@@ -59,7 +59,7 @@ const CreateCourse = () => {
         credits: draft.credits || 3,
         duration: draft.duration || "12 Weeks",
         cover_image_url: imageUrl
-      });
+      }));
       if (draft.syllabus) {
         setSyllabus(draft.syllabus);
       }
@@ -86,7 +86,7 @@ const CreateCourse = () => {
 
       // 2. If syllabus exists, create modules, lessons, and assessments
       if (syllabus.length > 0) {
-        toast({ title: "Building Curriculum", description: "Creating your modules and lessons..." });
+        toast({ title: "Building Curriculum", description: "Creating your modules, lessons, and assessments..." });
         for (const [mIdx, mod] of syllabus.entries()) {
           const moduleRes = await apiClient.fetch(`/instructor/courses/${newCourseId}/modules`, {
             method: "POST",
@@ -105,7 +105,7 @@ const CreateCourse = () => {
                   body: JSON.stringify({
                     course_id: newCourseId,
                     title: assignmentDraft.title || lesson.title,
-                    description: assignmentDraft.description || `Applied coursework for ${lesson.title}.`,
+                    description: formatAssignmentDescription(assignmentDraft),
                     max_score: assignmentDraft.max_score || 100
                   })
                 });
@@ -135,6 +135,7 @@ const CreateCourse = () => {
                 body: JSON.stringify({
                   title: lesson.title,
                   content: lesson.content || `Detailed academic content for ${lesson.title}.`,
+                  video_url: lesson.video_url || "",
                   order: lIdx
                 })
               });
@@ -168,7 +169,7 @@ const CreateCourse = () => {
                 Curriculum Architect
               </div>
               <h1 className="font-display text-4xl md:text-5xl font-bold">New Scholarly Course</h1>
-              <p className="mt-4 text-slate-400 max-w-xl text-lg font-medium leading-relaxed">
+              <p className="mt-4 max-w-xl text-lg font-medium leading-relaxed text-slate-400">
                 Design a rigorous academic experience. Use AI to scaffold your entire curriculum in seconds.
               </p>
             </div>
@@ -261,8 +262,8 @@ const CreateCourse = () => {
                           </h3>
                           <div className="mt-4 ml-11 space-y-2">
                             {mod.lessons?.map((lesson: any, lIdx: number) => (
-                              <div key={lIdx} className="flex items-center justify-between text-sm text-slate-500 font-medium bg-slate-50 px-4 py-2 rounded-xl border border-slate-100">
-                                <span>{lesson.title}</span>
+                              <div key={lIdx} className="flex items-center justify-between gap-3 text-sm text-slate-500 font-medium bg-slate-50 px-4 py-2 rounded-xl border border-slate-100">
+                                <span className="min-w-0 flex-1 break-words">{lesson.title}</span>
                                 <span className="text-[10px] uppercase font-black text-indigo-400">{lesson.type || "content"}</span>
                               </div>
                             ))}

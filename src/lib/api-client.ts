@@ -1,6 +1,37 @@
 
 const API_URL = typeof window !== "undefined" ? window.location.origin : "http://localhost:8787";
 
+const normalizeDbResult = (result: any) => {
+  if (!result || typeof result !== "object" || !("data" in result)) {
+    return result;
+  }
+
+  const value = result.data;
+  if (Array.isArray(value)) {
+    Object.defineProperties(value, {
+      data: { value, enumerable: false },
+      error: { value: result.error ?? null, enumerable: false },
+      count: { value: result.count ?? value.length, enumerable: false },
+    });
+    return value;
+  }
+
+  if (value && typeof value === "object") {
+    Object.defineProperties(value, {
+      data: { value, enumerable: false },
+      error: { value: result.error ?? null, enumerable: false },
+      count: { value: result.count ?? null, enumerable: false },
+    });
+    return value;
+  }
+
+  return {
+    data: value ?? null,
+    error: result.error ?? null,
+    count: result.count ?? null,
+  };
+};
+
 export const apiClient = {
   async fetch(endpoint: string, options: RequestInit = {}) {
     const token = localStorage.getItem('auth_token');
@@ -99,7 +130,7 @@ export const apiClient = {
                   options: { single: _single }
                 }),
               });
-              return res;
+              return normalizeDbResult(res);
             },
             // Add thenable support for await
             then(onfulfilled?: (value: any) => any, onrejected?: (reason: any) => any) {
@@ -112,7 +143,7 @@ export const apiClient = {
         insert(payload: any) {
           return {
             async execute() {
-              return apiClient.fetch(`/db/query/${table}`, {
+              const res = await apiClient.fetch(`/db/query/${table}`, {
                 method: 'POST',
                 body: JSON.stringify({
                   operation: 'insert',
@@ -120,6 +151,7 @@ export const apiClient = {
                   options: { single: !Array.isArray(payload) }
                 }),
               });
+              return normalizeDbResult(res);
             },
             then(onfulfilled?: (value: any) => any, onrejected?: (reason: any) => any) {
               return this.execute().then(onfulfilled, onrejected);
@@ -135,7 +167,7 @@ export const apiClient = {
               return builder;
             },
             async execute() {
-              return apiClient.fetch(`/db/query/${table}`, {
+              const res = await apiClient.fetch(`/db/query/${table}`, {
                 method: 'POST',
                 body: JSON.stringify({
                   operation: 'update',
@@ -143,6 +175,7 @@ export const apiClient = {
                   payload
                 }),
               });
+              return normalizeDbResult(res);
             },
             then(onfulfilled?: (value: any) => any, onrejected?: (reason: any) => any) {
               return this.execute().then(onfulfilled, onrejected);
@@ -159,13 +192,14 @@ export const apiClient = {
               return builder;
             },
             async execute() {
-              return apiClient.fetch(`/db/query/${table}`, {
+              const res = await apiClient.fetch(`/db/query/${table}`, {
                 method: 'POST',
                 body: JSON.stringify({
                   operation: 'delete',
                   filters: _filters
                 }),
               });
+              return normalizeDbResult(res);
             },
             then(onfulfilled?: (value: any) => any, onrejected?: (reason: any) => any) {
               return this.execute().then(onfulfilled, onrejected);

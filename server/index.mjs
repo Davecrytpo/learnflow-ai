@@ -636,13 +636,28 @@ const buildCourseDraft = (topic) => {
   ];
   const category = categoryHints.find((hint) => hint.match.test(normalizedTopic))?.category || "General";
   
-  // Generating a rich academic structure
-  const modules = Array.from({ length: 8 }, (_, i) => ({
-    title: `Module ${i + 1}: ${normalizedTopic} Advancement ${i === 0 ? 'Foundations' : i === 7 ? 'Capstone' : 'Core'}`,
-    lessons: Array.from({ length: 5 }, (_, j) => ({
-      title: `Lesson ${j + 1}: Detailed Exploration of ${normalizedTopic} Segment ${i}.${j}`,
-      type: j === 4 ? "assignment" : j === 3 ? "quiz" : "content"
-    }))
+  const modules = Array.from({ length: 6 }, (_, i) => ({
+    title: `Module ${i + 1}: ${normalizedTopic} ${i === 0 ? "Foundations" : i === 5 ? "Capstone Strategy" : "Applied Practice"}`,
+    lessons: Array.from({ length: 4 }, (_, j) => {
+      const lessonTitle = `Lesson ${j + 1}: ${normalizedTopic} Segment ${i + 1}.${j + 1}`;
+      const type = j === 3 ? (i % 2 === 0 ? "assignment" : "quiz") : "content";
+      return {
+        title: lessonTitle,
+        type,
+        content: type === "content" ? buildLessonContent(normalizedTopic, lessonTitle) : "",
+        video_url: type === "content" ? "https://www.youtube.com/watch?v=ysz5S6PUM-U" : "",
+        image_url: type === "content"
+          ? `https://images.unsplash.com/photo-1497633762265-9d179a990aa6?auto=format&fit=crop&w=1200&q=80&topic=${encodeURIComponent(normalizedTopic)}`
+          : "",
+        reading_materials: type === "content"
+          ? [
+              `${normalizedTopic} lecture guide`,
+              `${normalizedTopic} worked example`,
+              `${normalizedTopic} reflection prompt`
+            ]
+          : []
+      };
+    })
   }));
 
   return {
@@ -680,25 +695,25 @@ const buildCurriculumOutline = (courseTitle) => ({
     {
       title: `Foundations of ${courseTitle}`,
       lessons: [
-        { title: "Orientation and learning goals" },
-        { title: `Core principles of ${courseTitle}` },
-        { title: "Key terminology and frameworks" }
+        { title: "Orientation and learning goals", type: "content", content: buildLessonContent(courseTitle, "Orientation and learning goals") },
+        { title: `Core principles of ${courseTitle}`, type: "content", content: buildLessonContent(courseTitle, `Core principles of ${courseTitle}`) },
+        { title: "Key terminology and frameworks", type: "quiz" }
       ]
     },
     {
       title: `${courseTitle} in practice`,
       lessons: [
-        { title: "Applied workflows and use cases" },
-        { title: "Case study review" },
-        { title: "Hands-on exercise" }
+        { title: "Applied workflows and use cases", type: "content", content: buildLessonContent(courseTitle, "Applied workflows and use cases") },
+        { title: "Case study review", type: "assignment" },
+        { title: "Hands-on exercise", type: "content", content: buildLessonContent(courseTitle, "Hands-on exercise") }
       ]
     },
     {
       title: `Advanced ${courseTitle}`,
       lessons: [
-        { title: "Evaluation and quality standards" },
-        { title: "Common risks and mitigation" },
-        { title: "Final project preparation" }
+        { title: "Evaluation and quality standards", type: "content", content: buildLessonContent(courseTitle, "Evaluation and quality standards") },
+        { title: "Common risks and mitigation", type: "test" },
+        { title: "Final project preparation", type: "content", content: buildLessonContent(courseTitle, "Final project preparation") }
       ]
     }
   ]
@@ -716,6 +731,16 @@ const buildLessonContent = (courseTitle, lessonTitle) => `
   <h3>Instruction</h3>
   <p>Start with a concise explanation of the topic, then demonstrate how it appears in real instructional or professional settings.</p>
   <p>Use one worked example, one reflective prompt, and one short activity to reinforce mastery.</p>
+  <h3>Worked Example</h3>
+  <p>Model how an instructor or practitioner would apply ${lessonTitle} by identifying the context, evaluating evidence, and selecting an appropriate response.</p>
+  <h3>Practice Task</h3>
+  <ol>
+    <li>Summarize the idea in one paragraph.</li>
+    <li>Compare one strong application and one weak application of the concept.</li>
+    <li>Write a short reflection on how this lesson connects to the wider course.</li>
+  </ol>
+  <h3>Suggested Media</h3>
+  <p>Pair this lesson with one explainer video, one visual diagram, and one short reading excerpt to support multimodal learning.</p>
   <h3>Check for Understanding</h3>
   <p>Ask students to summarize the concept, identify one challenge, and propose a practical response.</p>
 `.trim();
@@ -773,6 +798,20 @@ const buildAssessment = (topic, type = "quiz") => {
       description: `A practical assignment that asks students to apply the core concepts from ${normalizedTopic}.`,
       due_in_days: 7,
       max_score: 100,
+      prompts: [
+        {
+          question: `Explain the central principles of ${normalizedTopic}.`,
+          expected_answer: `A strong answer defines the concept clearly, identifies its key components, and explains why those components matter in practice.`
+        },
+        {
+          question: `Analyze a realistic case where ${normalizedTopic} should be applied.`,
+          expected_answer: `A strong answer evaluates the context, identifies constraints, compares options, and justifies the chosen approach.`
+        },
+        {
+          question: `Recommend one improvement strategy for implementing ${normalizedTopic}.`,
+          expected_answer: `A strong answer proposes a concrete improvement plan, includes measurable steps, and addresses quality or ethical considerations.`
+        }
+      ],
       rubric: [
         "Concept accuracy and depth",
         "Use of evidence or examples",

@@ -17,10 +17,21 @@ import { useToast } from "@/hooks/use-toast";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { generateCurriculumOutline, generateLessonContent, generateQuiz, generateCourseDraft, generateAssessment } from "@/lib/ai-service";
+import { formatAssignmentDescription, generateCurriculumOutline, generateLessonContent, generateQuiz, generateCourseDraft, generateAssessment } from "@/lib/ai-service";
 import RichTextEditor from "@/components/ui/rich-text-editor";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { apiClient } from "@/lib/api-client";
+
+const buildNarrativeFromOutline = (courseTitle: string, modules: any[] = []) => `
+  <h2>${courseTitle}</h2>
+  <p>This syllabus narrative was generated from the current AI outline and can be refined by the instructor.</p>
+  <h3>Module Arc</h3>
+  <ol>
+    ${modules.map((module) => `<li><strong>${module.title}</strong>: ${module.lessons?.map((lesson: any) => lesson.title).join(", ") || "Lessons to be added."}</li>`).join("")}
+  </ol>
+  <h3>Learning Expectations</h3>
+  <p>Learners are expected to progress from foundational understanding to applied analysis, then complete assessments that measure real mastery.</p>
+`.trim();
 
 const EditCourse = () => {
   const { courseId } = useParams();
@@ -131,6 +142,12 @@ const EditCourse = () => {
     setAiLoading(true);
     try {
       const outline = await generateCurriculumOutline(course.title);
+      if (outline?.modules?.length) {
+        setCourse((current: any) => ({
+          ...current,
+          description: current?.description || buildNarrativeFromOutline(course.title, outline.modules)
+        }));
+      }
       for (const [sIdx, mod] of outline.modules.entries()) {
         const section = await apiClient.fetch(`/instructor/courses/${courseId}/modules`, {
           method: "POST",
@@ -145,6 +162,7 @@ const EditCourse = () => {
               method: "POST",
               body: JSON.stringify({
                 title: lesson.title,
+                content: lesson.content || "",
                 order: lIdx
               })
             });
@@ -167,6 +185,12 @@ const EditCourse = () => {
       toast({ title: "Generation Started", description: "AI is crafting your entire course. This may take a minute..." });
       
       const fullDraft = await generateCourseDraft(course.title);
+      setCourse((current: any) => ({
+        ...current,
+        title: fullDraft.title || current.title,
+        summary: fullDraft.summary || current.summary,
+        description: fullDraft.description || current.description
+      }));
       
       for (const [sIdx, mod] of (fullDraft.syllabus || []).entries()) {
         const section = await apiClient.fetch(`/instructor/courses/${courseId}/modules`, {
@@ -186,7 +210,7 @@ const EditCourse = () => {
                 body: JSON.stringify({
                   course_id: courseId,
                   title: assignmentDraft.title || lesson.title,
-                  description: assignmentDraft.description || `Assignment for ${lesson.title}`,
+                  description: formatAssignmentDescription(assignmentDraft),
                   max_score: assignmentDraft.max_score || 100
                 })
               });
@@ -211,19 +235,28 @@ const EditCourse = () => {
               continue;
             }
 
-            const content = await generateLessonContent(course.title, lesson.title);
+            const content = lesson.content || await generateLessonContent(course.title, lesson.title);
             await apiClient.fetch(`/instructor/modules/${section.id}/lessons`, {
               method: "POST",
               body: JSON.stringify({
                 title: lesson.title,
                 content: content,
+                video_url: lesson.video_url || "",
                 order: lIdx
               })
             });
           }
         }
       }
-      toast({ title: "Course Fully Generated!", description: "All modules and lessons are ready." });
+      await apiClient.fetch(`/instructor/courses/${courseId}`, {
+        method: "PATCH",
+        body: JSON.stringify({
+          title: fullDraft.title || course.title,
+          summary: fullDraft.summary || course.summary,
+          description: fullDraft.description || course.description
+        })
+      });
+      toast({ title: "Course Fully Generated!", description: "Modules, lessons, quizzes, and assignments are ready." });
       fetchCourseData();
     } catch (err: any) {
       toast({ title: "AI Full Generation Failed", description: err.message, variant: "destructive" });
@@ -381,7 +414,7 @@ const EditCourse = () => {
                         <div key={lesson.id} className="flex items-center justify-between p-3 rounded-lg border border-border bg-card group hover:border-primary/30 transition-all">
                           <div className="flex items-center gap-3">
                             {lesson.lesson_type === 'quiz' ? <Sparkles className="h-4 w-4 text-indigo-500" /> : lesson.video_url ? <Video className="h-4 w-4 text-blue-500" /> : <FileText className="h-4 w-4 text-emerald-500" />}
-                            <span className="text-sm font-medium">{lesson.title}</span>
+                            <span className="min-w-0 break-words text-sm font-medium">{lesson.title}</span>
                           </div>
                           <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                             <Button variant="ghost" size="icon" className="h-8 w-8 text-primary" onClick={() => { setEditingLesson(lesson); setIsLessonModalOpen(true); }}>

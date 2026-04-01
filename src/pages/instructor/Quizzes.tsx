@@ -107,10 +107,10 @@ const InstructorQuizzes = () => {
           passing_score: draft.passing_score || 70,
           max_attempts: draft.max_attempts || 3,
           questions: draft.questions?.map((q: any, idx: number) => ({
-            question_text: q.question,
-            question_type: "multiple_choice",
-            options: q.options,
-            correct_answer: q.options[q.correct_index],
+            question_text: q.question_text,
+            question_type: q.question_type || "multiple_choice",
+            options: q.options || [],
+            correct_answer: q.correct_answer || "",
             points: q.points || 10,
             order: idx,
             explanation: q.explanation

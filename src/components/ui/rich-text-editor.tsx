@@ -9,6 +9,7 @@ import {
   Heading1, Heading2, Link as LinkIcon, Image as ImageIcon, Video, Undo, Redo 
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { useEffect } from 'react'
 
 interface RichTextEditorProps {
   content: string
@@ -180,12 +181,12 @@ const RichTextEditor = ({ content, onChange, className, editable = true }: RichT
     },
   })
 
-  // Update content if it changes externally
-  /* useEffect(() => {
+  // Keep editor state in sync when AI or remote data updates the source value.
+  useEffect(() => {
     if (editor && content !== editor.getHTML()) {
-      editor.commands.setContent(content)
+      editor.commands.setContent(content || '', false)
     }
-  }, [content, editor]) */
+  }, [content, editor])
 
   return (
     <div className={cn("flex min-h-[200px] w-full flex-col rounded-md border border-input bg-transparent shadow-sm", className)}>
