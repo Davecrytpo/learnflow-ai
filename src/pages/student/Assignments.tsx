@@ -8,7 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { Calendar, FileCheck2, UploadCloud, Loader2, Search, FileText, ChevronRight, BookOpen, Clock } from "lucide-react";
+import { Calendar, FileCheck2, Loader2, Search, FileText, ChevronRight, Clock, CheckCircle2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { motion, AnimatePresence } from "framer-motion";

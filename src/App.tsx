@@ -106,6 +106,7 @@ const ScormImport = lazy(() => import("./pages/instructor/ScormImport"));
 const Surveys = lazy(() => import("./pages/instructor/Surveys"));
 const InstructorLogin = lazy(() => import("./pages/instructor/InstructorLogin"));
 const InstructorRegister = lazy(() => import("./pages/instructor/InstructorRegister"));
+const InstructorProfile = lazy(() => import("./pages/instructor/Profile"));
 
 // Admin
 const AdminDashboard = lazy(() => import("./pages/admin/AdminDashboard"));
@@ -328,6 +329,7 @@ const App = () => (
                   <Route path="/instructor/integrity" element={<Integrity />} />
                   <Route path="/instructor/live-sessions" element={<LiveSessions />} />
                   <Route path="/instructor/messages" element={<InstructorMessages />} />
+                  <Route path="/instructor/profile" element={<InstructorProfile />} />
                   <Route path="/instructor/office-hours" element={<OfficeHours />} />
                   <Route path="/instructor/outcome-analytics" element={<OutcomeAnalytics />} />
                   <Route path="/instructor/portfolio-reviews" element={<PortfolioReviews />} />

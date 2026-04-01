@@ -12,13 +12,29 @@ const InstructorAnalytics = () => {
   const { user } = useAuth();
   const [loading, setLoading] = useState(true);
   const [chartData, setChartData] = useState<any[]>([]);
+  const [summary, setSummary] = useState({ averageCohort: 0, completionRate: 0, engagementIndex: 0 });
 
   useEffect(() => {
     if (!user) return;
     const fetch = async () => {
       try {
-        const data = await apiClient.fetch("/instructor/analytics/enrollments");
-        setChartData(data || []);
+        const [data, performance] = await Promise.all([
+          apiClient.fetch("/instructor/analytics/enrollments"),
+          apiClient.fetch("/instructor/performance-data")
+        ]);
+        const enrollmentData = data || [];
+        setChartData(enrollmentData);
+
+        const totalStudents = enrollmentData.reduce((total: number, item: any) => total + (item.students || 0), 0);
+        const averageCohort = enrollmentData.length > 0 ? Math.round((totalStudents / enrollmentData.length) * 10) / 10 : 0;
+        const completionRate = performance.students > 0 ? Math.min(100, Math.round((performance.submissions / performance.students) * 100)) : 0;
+        const engagementIndex = Math.min(100, Math.round(((performance.attendance || 0) + (performance.submissions || 0)) / Math.max(performance.students || 1, 1) * 10));
+
+        setSummary({
+          averageCohort,
+          completionRate,
+          engagementIndex
+        });
       } catch (err) {
         console.error(err);
       } finally {
@@ -62,7 +78,7 @@ const InstructorAnalytics = () => {
                  <TrendingUp className="h-4 w-4 text-emerald-500" />
               </div>
               <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Avg. Cohort Size</p>
-              <h3 className="text-3xl font-black text-slate-900">42.5</h3>
+              <h3 className="text-3xl font-black text-slate-900">{summary.averageCohort}</h3>
            </Card>
            <Card className="border-none shadow-sm bg-white rounded-[2.5rem] p-8">
               <div className="flex items-center justify-between mb-4">
@@ -72,7 +88,7 @@ const InstructorAnalytics = () => {
                  <TrendingUp className="h-4 w-4 text-emerald-500" />
               </div>
               <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Completion Rate</p>
-              <h3 className="text-3xl font-black text-slate-900">94.2%</h3>
+              <h3 className="text-3xl font-black text-slate-900">{summary.completionRate}%</h3>
            </Card>
            <Card className="border-none shadow-sm bg-white rounded-[2.5rem] p-8">
               <div className="flex items-center justify-between mb-4">
@@ -82,7 +98,7 @@ const InstructorAnalytics = () => {
                  <TrendingUp className="h-4 w-4 text-emerald-500" />
               </div>
               <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Engagement Index</p>
-              <h3 className="text-3xl font-black text-slate-900">A+</h3>
+              <h3 className="text-3xl font-black text-slate-900">{summary.engagementIndex}%</h3>
            </Card>
         </div>
 

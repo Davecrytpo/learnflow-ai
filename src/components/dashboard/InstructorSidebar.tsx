@@ -1,15 +1,16 @@
-import { 
-  LayoutDashboard, BookOpen, Users, 
-  MessageSquare, BarChart, Settings, 
-  PlusCircle, Calendar,
-  ClipboardCheck, Bell, User, ListChecks,
-  FileText, MessageSquareQuote, FileStack,
-  Video, Star, BrainCircuit, Activity,
-  FileCheck, HeartHandshake, CalendarDays,
-  PieChart, ScrollText, ListPlus, UploadCloud,
-  ShieldCheck, Briefcase
+import {
+  LayoutDashboard,
+  BookOpen,
+  MessageSquare,
+  BarChart,
+  PlusCircle,
+  ClipboardCheck,
+  User,
+  ListChecks,
+  FileStack,
+  Video,
+  CalendarDays
 } from "lucide-react";
-import GraduationCapIcon from "@/components/icons/GraduationCapIcon";
 import { NavLink } from "@/components/NavLink";
 import { Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarHeader } from "@/components/ui/sidebar";
 
@@ -24,7 +25,7 @@ const items = [
   { title: "Live Sessions", url: "/instructor/live-sessions", icon: Video },
   { title: "Messages", url: "/instructor/messages", icon: MessageSquare },
   { title: "Attendance", url: "/instructor/attendance", icon: CalendarDays },
-  { title: "Profile", url: "/dashboard/profile", icon: User },
+  { title: "Profile", url: "/instructor/profile", icon: User },
 ];
 
 const InstructorSidebar = () => (

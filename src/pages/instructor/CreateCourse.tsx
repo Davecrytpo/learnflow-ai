@@ -12,7 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/hooks/use-toast";
 import RichTextEditor from "@/components/ui/rich-text-editor";
 import { Loader2, Sparkles, CheckCircle2, ChevronRight, BookOpen } from "lucide-react";
-import { generateCourseDraft } from "@/lib/ai-service";
+import { generateCourseDraft, generateAssessment } from "@/lib/ai-service";
 import { apiClient } from "@/lib/api-client";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -84,7 +84,7 @@ const CreateCourse = () => {
       
       const newCourseId = data.id || data._id;
 
-      // 2. If syllabus exists, create modules and lessons
+      // 2. If syllabus exists, create modules, lessons, and assessments
       if (syllabus.length > 0) {
         toast({ title: "Building Curriculum", description: "Creating your modules and lessons..." });
         for (const [mIdx, mod] of syllabus.entries()) {
@@ -98,6 +98,38 @@ const CreateCourse = () => {
           
           if (moduleRes && mod.lessons) {
             for (const [lIdx, lesson] of mod.lessons.entries()) {
+              if (lesson.type === "assignment") {
+                const assignmentDraft = await generateAssessment(lesson.title, "assignment");
+                await apiClient.fetch("/instructor/assignments", {
+                  method: "POST",
+                  body: JSON.stringify({
+                    course_id: newCourseId,
+                    title: assignmentDraft.title || lesson.title,
+                    description: assignmentDraft.description || `Applied coursework for ${lesson.title}.`,
+                    max_score: assignmentDraft.max_score || 100
+                  })
+                });
+                continue;
+              }
+
+              if (lesson.type === "quiz" || lesson.type === "test") {
+                const quizDraft = await generateAssessment(lesson.title, lesson.type === "test" ? "test" : "quiz");
+                await apiClient.fetch("/instructor/quizzes", {
+                  method: "POST",
+                  body: JSON.stringify({
+                    course_id: newCourseId,
+                    title: quizDraft.title || lesson.title,
+                    description: quizDraft.description || "",
+                    quiz_type: quizDraft.quiz_type || (lesson.type === "test" ? "test" : "quiz"),
+                    time_limit_minutes: quizDraft.time_limit_minutes || 15,
+                    passing_score: quizDraft.passing_score || 70,
+                    max_attempts: quizDraft.max_attempts || 3,
+                    questions: quizDraft.questions || []
+                  })
+                });
+                continue;
+              }
+
               await apiClient.fetch(`/instructor/modules/${moduleRes.id || moduleRes._id}/lessons`, {
                 method: "POST",
                 body: JSON.stringify({

@@ -763,6 +763,36 @@ const buildQuiz = (lessonTitle, difficulty = "medium") => {
   };
 };
 
+const buildAssessment = (topic, type = "quiz") => {
+  const normalizedTopic = topic?.trim() || "Course Topic";
+  const assessmentType = String(type || "quiz").toLowerCase();
+
+  if (assessmentType === "assignment") {
+    return {
+      title: `${normalizedTopic} Applied Assignment`,
+      description: `A practical assignment that asks students to apply the core concepts from ${normalizedTopic}.`,
+      due_in_days: 7,
+      max_score: 100,
+      rubric: [
+        "Concept accuracy and depth",
+        "Use of evidence or examples",
+        "Clarity, structure, and professional presentation"
+      ]
+    };
+  }
+
+  if (assessmentType === "test") {
+    return {
+      ...buildQuiz(`${normalizedTopic} Summative Test`, "hard"),
+      quiz_type: "test",
+      time_limit_minutes: 30,
+      max_attempts: 1
+    };
+  }
+
+  return buildQuiz(normalizedTopic, "medium");
+};
+
 const buildPerformanceAnalysis = (studentData) => {
   const courses = Number(studentData?.courses || 0);
   const students = Number(studentData?.students || 0);
@@ -1515,6 +1545,199 @@ app.get("/instructor/performance-data", authenticate, authorize(["instructor", "
   }
 });
 
+app.get("/instructor/analytics/enrollments", authenticate, authorize(["instructor", "admin"]), async (req, res) => {
+  try {
+    const courseQuery = req.user.role === "admin" ? {} : { author_id: req.user.id };
+    const courses = await Course.find(courseQuery).select("_id title");
+
+    const chartData = await Promise.all(
+      courses.map(async (course) => {
+        const students = await Enrollment.countDocuments({
+          course_id: course._id,
+          status: { $in: ["approved", "active", "completed"] }
+        });
+        return {
+          name: course.title.length > 18 ? `${course.title.slice(0, 16)}..` : course.title,
+          fullTitle: course.title,
+          students
+        };
+      })
+    );
+
+    res.json(chartData);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.get("/instructor/attendance/courses/:courseId/sessions", authenticate, authorize(["instructor", "admin"]), async (req, res) => {
+  try {
+    const course = await ensureInstructorCourse(req.params.courseId, req.user);
+    if (!course) return res.status(404).json({ error: "Course not found." });
+
+    const sessions = await DynamicRecord.find({
+      table: "attendance_sessions",
+      course_id: course._id.toString()
+    }).sort({ date: -1, created_at: -1 });
+
+    res.json(serializeCollection(sessions));
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post("/instructor/attendance/courses/:courseId/sessions", authenticate, authorize(["instructor", "admin"]), async (req, res) => {
+  try {
+    const course = await ensureInstructorCourse(req.params.courseId, req.user);
+    if (!course) return res.status(404).json({ error: "Course not found." });
+    if (!req.body.date) return res.status(400).json({ error: "Session date is required." });
+
+    const existing = await DynamicRecord.findOne({
+      table: "attendance_sessions",
+      course_id: course._id.toString(),
+      date: req.body.date
+    });
+
+    if (existing) {
+      return res.json(serializeDoc(existing));
+    }
+
+    const session = await DynamicRecord.create({
+      table: "attendance_sessions",
+      course_id: course._id.toString(),
+      date: req.body.date,
+      created_by: req.user.id
+    });
+
+    res.status(201).json(serializeDoc(session));
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.get("/instructor/attendance/sessions/:sessionId", authenticate, authorize(["instructor", "admin"]), async (req, res) => {
+  try {
+    if (!isValidObjectId(req.params.sessionId)) return res.status(404).json({ error: "Session not found." });
+
+    const session = await DynamicRecord.findOne({
+      _id: req.params.sessionId,
+      table: "attendance_sessions"
+    });
+    if (!session) return res.status(404).json({ error: "Session not found." });
+
+    const course = await ensureInstructorCourse(session.course_id, req.user);
+    if (!course) return res.status(404).json({ error: "Course not found." });
+
+    const enrollments = await Enrollment.find({
+      course_id: course._id,
+      status: { $in: ["approved", "active", "completed"] }
+    }).populate("student_id", "display_name avatar_url email");
+
+    const records = await DynamicRecord.find({
+      table: "attendance_records",
+      session_id: session._id.toString()
+    }).sort({ created_at: 1 });
+
+    res.json({
+      session: serializeDoc(session),
+      students: enrollments.map((enrollment) => ({
+        id: enrollment._id.toString(),
+        student_id: serializeDoc(enrollment.student_id)
+      })),
+      records: serializeCollection(records)
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post("/instructor/attendance/sessions/:sessionId/records", authenticate, authorize(["instructor", "admin"]), async (req, res) => {
+  try {
+    if (!isValidObjectId(req.params.sessionId)) return res.status(404).json({ error: "Session not found." });
+    const session = await DynamicRecord.findOne({
+      _id: req.params.sessionId,
+      table: "attendance_sessions"
+    });
+    if (!session) return res.status(404).json({ error: "Session not found." });
+
+    const course = await ensureInstructorCourse(session.course_id, req.user);
+    if (!course) return res.status(404).json({ error: "Course not found." });
+
+    const enrollment = await Enrollment.findOne({
+      course_id: course._id,
+      student_id: req.body.student_id,
+      status: { $in: ["approved", "active", "completed"] }
+    });
+    if (!enrollment) return res.status(404).json({ error: "Student is not enrolled in this course." });
+
+    const record = await DynamicRecord.findOneAndUpdate(
+      {
+        table: "attendance_records",
+        session_id: session._id.toString(),
+        student_id: String(req.body.student_id)
+      },
+      {
+        table: "attendance_records",
+        course_id: course._id.toString(),
+        session_id: session._id.toString(),
+        student_id: String(req.body.student_id),
+        status: ["present", "late", "absent"].includes(req.body.status) ? req.body.status : "present",
+        updated_at: new Date()
+      },
+      { upsert: true, new: true }
+    );
+
+    res.json(serializeDoc(record));
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post("/instructor/attendance/sessions/:sessionId/records/bulk", authenticate, authorize(["instructor", "admin"]), async (req, res) => {
+  try {
+    if (!isValidObjectId(req.params.sessionId)) return res.status(404).json({ error: "Session not found." });
+    const session = await DynamicRecord.findOne({
+      _id: req.params.sessionId,
+      table: "attendance_sessions"
+    });
+    if (!session) return res.status(404).json({ error: "Session not found." });
+
+    const course = await ensureInstructorCourse(session.course_id, req.user);
+    if (!course) return res.status(404).json({ error: "Course not found." });
+
+    const enrollments = await Enrollment.find({
+      course_id: course._id,
+      status: { $in: ["approved", "active", "completed"] }
+    }).select("student_id");
+
+    const status = ["present", "late", "absent"].includes(req.body.status) ? req.body.status : "present";
+    await Promise.all(
+      enrollments.map((enrollment) =>
+        DynamicRecord.findOneAndUpdate(
+          {
+            table: "attendance_records",
+            session_id: session._id.toString(),
+            student_id: enrollment.student_id.toString()
+          },
+          {
+            table: "attendance_records",
+            course_id: course._id.toString(),
+            session_id: session._id.toString(),
+            student_id: enrollment.student_id.toString(),
+            status,
+            updated_at: new Date()
+          },
+          { upsert: true, new: true }
+        )
+      )
+    );
+
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 app.get("/enrollments/me", authenticate, authorize(["student", "admin"]), async (req, res) => {
   try {
     const enrollments = await Enrollment.find({ student_id: req.user.id, status: { $in: ["approved", "active", "completed"] } })
@@ -1928,6 +2151,8 @@ app.post("/ai/assist", authenticate, authorize(["admin", "instructor"]), async (
         return res.json({ result: buildLessonContent(payload?.courseTitle || "Course", payload?.lessonTitle || "Lesson") });
       case "generate_quiz":
         return res.json({ result: JSON.stringify(buildQuiz(payload?.lessonTitle || "Lesson", payload?.difficulty || "medium")) });
+      case "generate_assessment":
+        return res.json({ result: JSON.stringify(buildAssessment(payload?.topic || "Lesson", payload?.type || "quiz")) });
       case "analyze_student_performance":
         return res.json({ result: buildPerformanceAnalysis(payload?.studentData || {}) });
       case "generate_institutional_report":

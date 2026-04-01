@@ -13,6 +13,7 @@ const StudentGrades = () => {
   const [loading, setLoading] = useState(true);
   const [submissions, setSubmissions] = useState<any[]>([]);
   const [attempts, setAttempts] = useState<any[]>([]);
+  const [summary, setSummary] = useState({ average: 0, credits: 0, completionRate: 0 });
 
   useEffect(() => {
     if (!user) return;
@@ -25,6 +26,23 @@ const StudentGrades = () => {
         ]);
         setSubmissions(subs || []);
         setAttempts(quizAttempts || []);
+
+        const scoredValues = [
+          ...(subs || []).map((item: any) => item.score).filter((value: number | null | undefined) => typeof value === "number"),
+          ...(quizAttempts || []).map((item: any) => item.score).filter((value: number | null | undefined) => typeof value === "number")
+        ];
+        const average = scoredValues.length > 0
+          ? Math.round((scoredValues.reduce((total: number, value: number) => total + value, 0) / scoredValues.length) * 10) / 10
+          : 0;
+        const completedAssignments = (subs || []).filter((item: any) => typeof item.score === "number").length;
+        const completedQuizzes = (quizAttempts || []).filter((item: any) => typeof item.score === "number").length;
+        const totalEvaluations = (subs || []).length + (quizAttempts || []).length;
+
+        setSummary({
+          average,
+          credits: completedAssignments * 3,
+          completionRate: totalEvaluations > 0 ? Math.round(((completedAssignments + completedQuizzes) / totalEvaluations) * 100) : 0
+        });
       } catch (err) {
         console.error("Failed to fetch grades", err);
       } finally {
@@ -176,20 +194,22 @@ const StudentGrades = () => {
               <div className="relative z-10 grid md:grid-cols-3 gap-12 text-center md:text-left">
                  <div className="space-y-2">
                     <p className="text-[10px] font-black uppercase tracking-[0.3em] text-sky-400">Cumulative GPA Index</p>
-                    <h3 className="text-6xl font-display font-bold">3.85</h3>
+                    <h3 className="text-6xl font-display font-bold">{summary.average ? summary.average : "N/A"}</h3>
                     <p className="text-slate-400 text-xs font-bold uppercase tracking-widest pt-2 flex items-center justify-center md:justify-start gap-2">
-                       <TrendingUp className="h-3 w-3 text-emerald-500" /> Top 5% GUI Scholars
+                       <TrendingUp className="h-3 w-3 text-emerald-500" /> Based on graded assignments and quiz attempts
                     </p>
                  </div>
                  <div className="space-y-2">
                     <p className="text-[10px] font-black uppercase tracking-[0.3em] text-sky-400">Credits Certified</p>
-                    <h3 className="text-6xl font-display font-bold">42</h3>
-                    <p className="text-slate-400 text-xs font-bold uppercase tracking-widest pt-2">Scholastic Milestone Reached</p>
+                    <h3 className="text-6xl font-display font-bold">{summary.credits}</h3>
+                    <p className="text-slate-400 text-xs font-bold uppercase tracking-widest pt-2">Calculated from completed assignment records</p>
                  </div>
                  <div className="flex flex-col justify-center items-center md:items-end">
-                    <Button className="bg-sky-600 hover:bg-sky-700 text-white font-black h-16 px-10 rounded-2xl shadow-xl transition-all hover:scale-105 active:scale-95 text-lg">
-                       Full Official Transcript
-                    </Button>
+                    <div className="text-center md:text-right">
+                      <p className="text-[10px] font-black uppercase tracking-[0.3em] text-sky-400">Completion Rate</p>
+                      <h3 className="mt-2 text-6xl font-display font-bold">{summary.completionRate}%</h3>
+                      <p className="pt-2 text-xs font-bold uppercase tracking-widest text-slate-400">Coverage across all recorded evaluations</p>
+                    </div>
                  </div>
               </div>
            </Card>

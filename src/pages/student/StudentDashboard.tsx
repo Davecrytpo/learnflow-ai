@@ -39,15 +39,17 @@ const StudentDashboard = () => {
   const [enrollments, setEnrollments] = useState<EnrolledCourse[]>([]);
   const [progressData, setProgressData] = useState<{ name: string; progress: number }[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedQr, setSelectedQr] = useState<any>(null);
-
   useEffect(() => {
     if (!user) return;
     const fetchDashboardData = async () => {
       setLoading(true);
       try {
-        const enrollsRes = await apiClient.fetch("/enrollments/me");
-        
+        const [enrollsRes, lessonProgress] = await Promise.all([
+          apiClient.fetch("/enrollments/me"),
+          apiClient.db.from("lesson_progress").select("*").eq("user_id", user.id).execute()
+        ]);
+        const progressItems = lessonProgress.data || [];
+
         const enrolls = enrollsRes.map((enr: any) => ({
           id: enr._id || enr.id,
           course_id: enr.course_id?._id || enr.course_id,
@@ -59,7 +61,14 @@ const StudentDashboard = () => {
             cover_image_url: enr.course_id?.cover_image_url,
             category: enr.course_id?.category
           },
-          progress: Math.floor(Math.random() * 60) + 20 // Mock progress for distinct UI feel
+          progress: (() => {
+            const courseProgress = progressItems.filter((item: any) => (item.course_id?._id || item.course_id?.id || item.course_id) === (enr.course_id?._id || enr.course_id));
+            if (courseProgress.length === 0) {
+              return 0;
+            }
+            const completed = courseProgress.filter((item: any) => item.completed).length;
+            return Math.round((completed / courseProgress.length) * 100);
+          })()
         }));
 
         setEnrollments(enrolls);

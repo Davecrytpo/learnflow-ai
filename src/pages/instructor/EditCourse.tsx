@@ -17,7 +17,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { generateCurriculumOutline, generateLessonContent, generateQuiz } from "@/lib/ai-service";
+import { generateCurriculumOutline, generateLessonContent, generateQuiz, generateCourseDraft, generateAssessment } from "@/lib/ai-service";
 import RichTextEditor from "@/components/ui/rich-text-editor";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { apiClient } from "@/lib/api-client";
@@ -166,9 +166,9 @@ const EditCourse = () => {
     try {
       toast({ title: "Generation Started", description: "AI is crafting your entire course. This may take a minute..." });
       
-      const fullDraft = await generateCurriculumOutline(course.title); 
+      const fullDraft = await generateCourseDraft(course.title);
       
-      for (const [sIdx, mod] of fullDraft.modules.entries()) {
+      for (const [sIdx, mod] of (fullDraft.syllabus || []).entries()) {
         const section = await apiClient.fetch(`/instructor/courses/${courseId}/modules`, {
           method: "POST",
           body: JSON.stringify({
@@ -179,6 +179,38 @@ const EditCourse = () => {
         
         if (section) {
           for (const [lIdx, lesson] of mod.lessons.entries()) {
+            if (lesson.type === "assignment") {
+              const assignmentDraft = await generateAssessment(lesson.title, "assignment");
+              await apiClient.fetch("/instructor/assignments", {
+                method: "POST",
+                body: JSON.stringify({
+                  course_id: courseId,
+                  title: assignmentDraft.title || lesson.title,
+                  description: assignmentDraft.description || `Assignment for ${lesson.title}`,
+                  max_score: assignmentDraft.max_score || 100
+                })
+              });
+              continue;
+            }
+
+            if (lesson.type === "quiz" || lesson.type === "test") {
+              const quizDraft = await generateAssessment(lesson.title, lesson.type === "test" ? "test" : "quiz");
+              await apiClient.fetch("/instructor/quizzes", {
+                method: "POST",
+                body: JSON.stringify({
+                  course_id: courseId,
+                  title: quizDraft.title || lesson.title,
+                  description: quizDraft.description || "",
+                  quiz_type: quizDraft.quiz_type || lesson.type,
+                  time_limit_minutes: quizDraft.time_limit_minutes || 15,
+                  passing_score: quizDraft.passing_score || 70,
+                  max_attempts: quizDraft.max_attempts || 3,
+                  questions: quizDraft.questions || []
+                })
+              });
+              continue;
+            }
+
             const content = await generateLessonContent(course.title, lesson.title);
             await apiClient.fetch(`/instructor/modules/${section.id}/lessons`, {
               method: "POST",
@@ -221,13 +253,17 @@ const EditCourse = () => {
     setAiLoading(true);
     try {
       const draft = await generateQuiz(section.title);
-      await apiClient.fetch(`/instructor/modules/${sectionId}/lessons`, {
+      await apiClient.fetch("/instructor/quizzes", {
         method: "POST",
         body: JSON.stringify({
-          title: `Assessment: ${draft.title || section.title}`,
-          lesson_type: "quiz",
-          content: JSON.stringify(draft),
-          order: section.lessons?.length || 0
+          course_id: courseId,
+          title: draft.title || `Assessment: ${section.title}`,
+          description: draft.description || "",
+          quiz_type: draft.quiz_type || "quiz",
+          time_limit_minutes: draft.time_limit_minutes || 10,
+          passing_score: draft.passing_score || 70,
+          max_attempts: draft.max_attempts || 3,
+          questions: draft.questions || []
         })
       });
       toast({ title: "AI Assessment Generated", description: "A quiz with points and answers has been added." });
