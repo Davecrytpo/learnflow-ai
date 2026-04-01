@@ -67,7 +67,7 @@ const StudentPortfolio = () => (
         </Card>
       </div>
 
-      <div className="grid gap-4 lg:grid-cols-2">
+      <div className="grid gap-4 grid-cols-1 lg:grid-cols-2">
         {artifacts.map((item) => (
           <Card key={item.id} className="p-4">
             <CardContent className="flex flex-wrap items-center justify-between gap-4 p-0">
@@ -90,3 +90,4 @@ const StudentPortfolio = () => (
 );
 
 export default StudentPortfolio;
+entPortfolio;

@@ -167,52 +167,52 @@ const AdminDashboard = () => {
 
   return (
     <DashboardLayout allowedRoles={["admin"]} sidebar={<AdminSidebar />}>
-      <div className="space-y-6">
-        <section className="relative overflow-hidden rounded-3xl border border-border/70 bg-card/90 p-6 shadow-sm">
+      <div className="space-y-6 pb-20">
+        <section className="relative overflow-hidden rounded-2xl md:rounded-3xl border border-border/70 bg-card/90 p-6 md:p-8 shadow-sm">
           <div className="absolute inset-0 bg-aurora opacity-60" />
           <div className="relative">
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary">University Administration</p>
-            <h1 className="mt-2 font-display text-3xl font-bold text-primary">
+            <p className="text-[10px] md:text-xs font-semibold uppercase tracking-[0.2em] text-primary">University Administration</p>
+            <h1 className="mt-2 font-display text-2xl md:text-3xl font-bold text-primary">
               Institutional Command Center
             </h1>
-            <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
+            <p className="mt-2 max-w-2xl text-xs md:text-sm text-muted-foreground">
               Welcome back, {user?.display_name || "Administrator"}. Managing {stats.users} students and {stats.activeInstructors} faculty.
             </p>
           </div>
         </section>
 
         {/* Actionable Stats */}
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
           <Card className="border-primary/20 bg-primary/5">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-[10px] font-bold uppercase text-primary tracking-widest">Pending Accreditation</CardTitle>
+            <CardHeader className="pb-2 p-4 md:p-6">
+              <CardTitle className="text-[9px] md:text-[10px] font-bold uppercase text-primary tracking-widest">Pending Accreditation</CardTitle>
             </CardHeader>
-            <CardContent>
-              <p className="text-3xl font-bold text-primary">{stats.pendingCourses}</p>
+            <CardContent className="p-4 md:p-6 pt-0">
+              <p className="text-2xl md:text-3xl font-bold text-primary">{stats.pendingCourses}</p>
             </CardContent>
           </Card>
           <Card className="border-accent/20 bg-accent/5">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-[10px] font-bold uppercase text-accent tracking-widest">Admissions Waiting</CardTitle>
+            <CardHeader className="pb-2 p-4 md:p-6">
+              <CardTitle className="text-[9px] md:text-[10px] font-bold uppercase text-accent tracking-widest">Admissions Waiting</CardTitle>
             </CardHeader>
-            <CardContent>
-              <p className="text-3xl font-bold text-accent">{stats.pendingEnr}</p>
+            <CardContent className="p-4 md:p-6 pt-0">
+              <p className="text-2xl md:text-3xl font-bold text-accent">{stats.pendingEnr}</p>
             </CardContent>
           </Card>
           <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-[10px] font-bold uppercase text-muted-foreground tracking-widest">Active Students</CardTitle>
+            <CardHeader className="pb-2 p-4 md:p-6">
+              <CardTitle className="text-[9px] md:text-[10px] font-bold uppercase text-muted-foreground tracking-widest">Active Students</CardTitle>
             </CardHeader>
-            <CardContent>
-              <p className="text-3xl font-bold">{stats.users}</p>
+            <CardContent className="p-4 md:p-6 pt-0">
+              <p className="text-2xl md:text-3xl font-bold">{stats.users}</p>
             </CardContent>
           </Card>
           <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-[10px] font-bold uppercase text-muted-foreground tracking-widest">Faculty Members</CardTitle>
+            <CardHeader className="pb-2 p-4 md:p-6">
+              <CardTitle className="text-[9px] md:text-[10px] font-bold uppercase text-muted-foreground tracking-widest">Faculty Members</CardTitle>
             </CardHeader>
-            <CardContent>
-              <p className="text-3xl font-bold">{stats.activeInstructors}</p>
+            <CardContent className="p-4 md:p-6 pt-0">
+              <p className="text-2xl md:text-3xl font-bold">{stats.activeInstructors}</p>
             </CardContent>
           </Card>
         </div>
@@ -222,34 +222,34 @@ const AdminDashboard = () => {
           <div className="absolute top-0 right-0 p-8 opacity-10 pointer-events-none">
             <TrendingUp className="h-32 w-32 text-white" />
           </div>
-          <CardHeader>
-            <div className="flex items-center justify-between">
+          <CardHeader className="p-6 md:p-8">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
               <div>
-                <CardTitle className="text-2xl font-display font-bold flex items-center gap-2">
-                  <Sparkles className="h-6 w-6 text-primary" /> AI Institutional Report
+                <CardTitle className="text-xl md:text-2xl font-display font-bold flex items-center gap-2">
+                  <Sparkles className="h-5 w-5 md:h-6 md:w-6 text-primary" /> AI Institutional Report
                 </CardTitle>
-                <CardDescription className="text-slate-400">Generate an executive analysis of institutional health and growth.</CardDescription>
+                <CardDescription className="text-slate-400 text-sm md:text-base">Generate an executive analysis of institutional health and growth.</CardDescription>
               </div>
               <Button 
                 onClick={handleGenerateReport} 
                 disabled={generatingReport}
-                className="bg-primary hover:bg-primary/90 text-white font-bold"
+                className="bg-primary hover:bg-primary/90 text-white font-bold h-12 md:h-auto w-full md:w-auto"
               >
                 {generatingReport ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Sparkles className="mr-2 h-4 w-4" />}
                 Generate Executive Report
               </Button>
             </div>
           </CardHeader>
-          <CardContent>
+          <CardContent className="p-6 md:p-8 pt-0">
             {aiReport ? (
               <motion.div 
                 initial={{ opacity: 0 }} 
                 animate={{ opacity: 1 }} 
-                className="prose prose-invert max-w-none bg-white/5 p-8 rounded-3xl border border-white/10 text-indigo-50"
+                className="prose prose-invert max-w-none bg-white/5 p-6 md:p-8 rounded-2xl md:rounded-3xl border border-white/10 text-indigo-50 text-sm md:text-base"
                 dangerouslySetInnerHTML={{ __html: aiReport }}
               />
             ) : (
-              <div className="text-center py-8 text-slate-400 italic">
+              <div className="text-center py-8 text-slate-400 italic text-sm md:text-base">
                 Click the button to analyze system-wide trends, faculty productivity, and enrollment growth.
               </div>
             )}
@@ -257,12 +257,14 @@ const AdminDashboard = () => {
         </Card>
 
         <Tabs defaultValue="course-approvals" className="space-y-6">
-          <TabsList className="bg-muted/50 p-1">
-            <TabsTrigger value="course-approvals">Course Accreditation ({stats.pendingCourses})</TabsTrigger>
-            <TabsTrigger value="faculty-apps">Faculty Applications ({pendingInstructors.length})</TabsTrigger>
-            <TabsTrigger value="enrollments">Tuition Verification ({stats.pendingEnr})</TabsTrigger>
-            <TabsTrigger value="instructors">Active Faculty</TabsTrigger>
-          </TabsList>
+          <div className="overflow-x-auto pb-2 scrollbar-hide">
+            <TabsList className="bg-muted/50 p-1 inline-flex w-auto min-w-full md:min-w-0">
+              <TabsTrigger value="course-approvals" className="whitespace-nowrap px-4 py-2">Course Accreditation ({stats.pendingCourses})</TabsTrigger>
+              <TabsTrigger value="faculty-apps" className="whitespace-nowrap px-4 py-2">Faculty Applications ({pendingInstructors.length})</TabsTrigger>
+              <TabsTrigger value="enrollments" className="whitespace-nowrap px-4 py-2">Tuition Verification ({stats.pendingEnr})</TabsTrigger>
+              <TabsTrigger value="instructors" className="whitespace-nowrap px-4 py-2">Active Faculty</TabsTrigger>
+            </TabsList>
+          </div>
 
           <TabsContent value="faculty-apps">
             <Card className="border-none shadow-sm shadow-slate-200">

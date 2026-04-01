@@ -101,18 +101,18 @@ const StudentProgress = () => {
   return (
     <DashboardLayout allowedRoles={["student"]} sidebar={<StudentSidebar />}>
       <div className="space-y-6">
-        <section className="relative overflow-hidden rounded-3xl border border-border/70 bg-card/90 p-8">
+        <section className="relative overflow-hidden rounded-[2rem] md:rounded-3xl border border-border/70 bg-card/90 p-6 md:p-8 text-center md:text-left">
           <div className="absolute inset-0 bg-aurora opacity-40" />
-          <div className="relative flex flex-wrap items-center justify-between gap-6">
+          <div className="relative flex flex-col md:flex-row items-center justify-between gap-6">
             <div className="max-w-xl">
-              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary">Progress Tracking</p>
-              <h1 className="mt-3 font-display text-4xl font-bold text-foreground">Learning momentum</h1>
-              <p className="mt-3 text-base text-muted-foreground leading-relaxed">
+              <p className="text-[10px] md:text-xs font-semibold uppercase tracking-[0.2em] text-primary">Progress Tracking</p>
+              <h1 className="mt-2 md:mt-3 font-display text-2xl md:text-4xl font-bold text-foreground leading-tight">Learning momentum</h1>
+              <p className="mt-2 md:mt-3 text-sm md:text-base text-muted-foreground leading-relaxed">
                 Monitor your mastery, assignment completion, and academic progress across all enrolled tracks.
               </p>
             </div>
-            <div className="h-16 w-16 rounded-2xl bg-primary/10 flex items-center justify-center text-primary">
-              <TrendingUp className="h-10 w-10" />
+            <div className="h-12 w-12 md:h-16 md:w-16 rounded-xl md:rounded-2xl bg-primary/10 flex items-center justify-center text-primary shrink-0">
+              <TrendingUp className="h-8 w-8 md:h-10 md:w-10" />
             </div>
           </div>
         </section>
@@ -121,7 +121,7 @@ const StudentProgress = () => {
           <div className="flex justify-center py-20"><Loader2 className="h-10 w-10 animate-spin text-primary" /></div>
         ) : (
           <>
-            <div className="grid gap-6 md:grid-cols-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
               <Card className="border-none shadow-lg bg-card/50 backdrop-blur">
                 <CardHeader className="flex flex-row items-center justify-between pb-2">
                   <CardTitle className="text-sm font-medium text-muted-foreground">Average completion</CardTitle>
@@ -131,8 +131,8 @@ const StudentProgress = () => {
                 </CardHeader>
                 <CardContent>
                   <div className="flex items-baseline gap-2">
-                    <p className="text-3xl font-bold">{stats.avgCompletion}%</p>
-                    <Badge className="bg-emerald-500/10 text-emerald-600 border-none" variant="outline">Good standing</Badge>
+                    <p className="text-2xl md:text-3xl font-bold">{stats.avgCompletion}%</p>
+                    <Badge className="bg-emerald-500/10 text-emerald-600 border-none text-[10px]" variant="outline">Good standing</Badge>
                   </div>
                   <p className="mt-1 text-xs text-muted-foreground">Across all enrolled tracks</p>
                 </CardContent>
@@ -147,14 +147,14 @@ const StudentProgress = () => {
                 </CardHeader>
                 <CardContent>
                   <div className="flex items-baseline gap-2">
-                    <p className="text-3xl font-bold">{stats.lessonsDone}</p>
+                    <p className="text-2xl md:text-3xl font-bold">{stats.lessonsDone}</p>
                     <p className="text-sm font-medium text-muted-foreground">/ {stats.totalLessons}</p>
                   </div>
                   <p className="mt-1 text-xs text-muted-foreground">Completed learning units</p>
                 </CardContent>
               </Card>
 
-              <Card className="border-none shadow-lg bg-card/50 backdrop-blur">
+              <Card className="border-none shadow-lg bg-card/50 backdrop-blur sm:col-span-2 lg:col-span-1">
                 <CardHeader className="flex flex-row items-center justify-between pb-2">
                   <CardTitle className="text-sm font-medium text-muted-foreground">Study streak</CardTitle>
                   <div className="p-2 rounded-lg bg-amber-500/10 text-amber-600">
@@ -163,8 +163,8 @@ const StudentProgress = () => {
                 </CardHeader>
                 <CardContent>
                   <div className="flex items-baseline gap-2">
-                    <p className="text-3xl font-bold">{stats.streak} days</p>
-                    <Badge className="bg-amber-500/10 text-amber-600 border-none" variant="outline">On fire</Badge>
+                    <p className="text-2xl md:text-3xl font-bold">{stats.streak} days</p>
+                    <Badge className="bg-amber-500/10 text-amber-600 border-none text-[10px]" variant="outline">On fire</Badge>
                   </div>
                   <p className="mt-1 text-xs text-muted-foreground">Keep up the daily momentum!</p>
                 </CardContent>
@@ -185,18 +185,18 @@ const StudentProgress = () => {
                     <div key={track.id} className="p-6 transition-colors hover:bg-muted/20">
                       <div className="flex flex-wrap items-center justify-between gap-4 mb-4">
                         <div className="space-y-1">
-                          <p className="font-bold text-lg text-foreground">{track.title}</p>
-                          <p className="text-xs text-muted-foreground uppercase tracking-wider">Module ID: {track.id.substring(0, 8)}</p>
+                          <p className="font-bold text-base md:text-lg text-foreground">{track.title}</p>
+                          <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Module ID: {track.id.substring(0, 8)}</p>
                         </div>
-                        <Badge className={`${badgeFor(track.progress)} border-none px-3 py-1 font-semibold`} variant="outline">
+                        <Badge className={`${badgeFor(track.progress)} border-none px-3 py-1 font-semibold text-[10px]`} variant="outline">
                           {track.status}
                         </Badge>
                       </div>
                       <div className="flex items-center gap-6">
                         <div className="flex-1">
-                          <Progress value={track.progress} className="h-3 rounded-full bg-muted shadow-inner" />
+                          <Progress value={track.progress} className="h-2 md:h-3 rounded-full bg-muted shadow-inner" />
                         </div>
-                        <span className="text-sm font-bold tabular-nums min-w-[3ch]">{track.progress}%</span>
+                        <span className="text-xs md:text-sm font-bold tabular-nums min-w-[3ch]">{track.progress}%</span>
                       </div>
                     </div>
                   ))

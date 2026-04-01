@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+﻿import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import AdminSidebar from "@/components/dashboard/AdminSidebar";
@@ -116,7 +116,7 @@ const AdminAccreditation = () => {
                       required 
                     />
                   </div>
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label>Status</Label>
                       <Select value={newAccreditation.status} onValueChange={(v) => setNewAccreditation({...newAccreditation, status: v})}>
@@ -228,3 +228,4 @@ const AdminAccreditation = () => {
 };
 
 export default AdminAccreditation;
+

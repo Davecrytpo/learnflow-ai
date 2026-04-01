@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+﻿import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import InstructorSidebar from "@/components/dashboard/InstructorSidebar";
@@ -141,39 +141,39 @@ const Attendance = () => {
       <div className="space-y-10 pb-32 max-w-6xl mx-auto">
         
         {/* Professional Header */}
-        <section className="relative overflow-hidden rounded-[3rem] border border-slate-800 bg-slate-950 p-12 text-white shadow-2xl">
+        <section className="relative overflow-hidden rounded-[2rem] md:rounded-[3rem] border border-slate-800 bg-slate-950 p-6 md:p-12 text-white shadow-2xl">
           <div className="absolute inset-0 bg-gradient-to-br from-indigo-950/50 via-slate-950 to-slate-950" />
-          <div className="relative z-10 flex items-center gap-8">
-            <div className="h-20 w-20 rounded-3xl bg-emerald-600/20 border border-emerald-500/30 flex items-center justify-center">
-              <Calendar className="h-10 w-10 text-emerald-400" />
+          <div className="relative z-10 flex flex-col md:flex-row items-center gap-6 md:gap-8 text-center md:text-left">
+            <div className="h-16 w-16 md:h-20 md:w-20 rounded-2xl md:rounded-3xl bg-emerald-600/20 border border-emerald-500/30 flex items-center justify-center shrink-0">
+              <Calendar className="h-8 w-8 md:h-10 md:w-10 text-emerald-400" />
             </div>
             <div>
               <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-400 text-[9px] font-black uppercase tracking-[0.2em] mb-3 border border-emerald-500/20">
                 Attendance Registry
               </div>
-              <h1 className="font-display text-4xl font-bold">Scholar Presence Tracker</h1>
-              <p className="mt-2 text-slate-400 font-medium max-w-xl">
+              <h1 className="font-display text-2xl md:text-4xl font-bold">Scholar Presence Tracker</h1>
+              <p className="mt-2 text-sm md:text-base text-slate-400 font-medium max-w-xl">
                 Monitor and certify student engagement. Maintain precise academic records for institutional compliance and performance analysis.
               </p>
             </div>
           </div>
         </section>
 
-        <div className="grid gap-10 lg:grid-cols-12">
+        <div className="grid gap-8 lg:grid-cols-12">
           {/* Controls */}
-          <div className="lg:col-span-4 space-y-8">
-            <Card className="border-none shadow-sm bg-white rounded-[2.5rem] overflow-hidden">
-              <CardHeader className="p-8 pb-4">
-                <CardTitle className="text-xl flex items-center gap-2">
+          <div className="lg:col-span-4 space-y-6 md:space-y-8">
+            <Card className="border-none shadow-sm bg-white rounded-[2rem] md:rounded-[2.5rem] overflow-hidden">
+              <CardHeader className="p-6 md:p-8 pb-2 md:pb-4">
+                <CardTitle className="text-lg md:text-xl flex items-center gap-2">
                   <BookOpen className="h-5 w-5 text-indigo-600" />
                   Select Program
                 </CardTitle>
               </CardHeader>
-              <CardContent className="p-8 pt-0 space-y-6">
+              <CardContent className="p-6 md:p-8 pt-0 space-y-6">
                 <div className="space-y-3">
                   <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Current Course</label>
                   <Select value={selectedCourse} onValueChange={setSelectedCourse}>
-                    <SelectTrigger className="h-14 rounded-2xl bg-slate-50 border-slate-100 shadow-inner font-bold"><SelectValue placeholder="Select course" /></SelectTrigger>
+                    <SelectTrigger className="h-12 md:h-14 rounded-xl md:rounded-2xl bg-slate-50 border-slate-100 shadow-inner font-bold"><SelectValue placeholder="Select course" /></SelectTrigger>
                     <SelectContent className="rounded-2xl border-slate-100">
                       {courses.map(c => <SelectItem key={c._id || c.id} value={c._id || c.id} className="rounded-xl">{c.title}</SelectItem>)}
                     </SelectContent>
@@ -185,8 +185,8 @@ const Attendance = () => {
                     <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Initialize New Session</label>
                   </div>
                   <div className="space-y-4">
-                    <Input type="date" value={newDate} onChange={e => setNewDate(e.target.value)} className="h-14 rounded-2xl bg-slate-50 border-slate-100 shadow-inner font-bold" />
-                    <Button onClick={createSession} disabled={creating || !newDate} className="w-full h-14 rounded-2xl bg-slate-950 hover:bg-indigo-600 font-black transition-all shadow-lg">
+                    <Input type="date" value={newDate} onChange={e => setNewDate(e.target.value)} className="h-12 md:h-14 rounded-xl md:rounded-2xl bg-slate-50 border-slate-100 shadow-inner font-bold" />
+                    <Button onClick={createSession} disabled={creating || !newDate} className="w-full h-12 md:h-14 rounded-xl md:rounded-2xl bg-slate-950 hover:bg-indigo-600 font-black transition-all shadow-lg">
                       {creating ? <Loader2 className="animate-spin mr-2" /> : <Plus className="mr-2 h-5 w-5" />}
                       Create Log Entry
                     </Button>
@@ -196,16 +196,16 @@ const Attendance = () => {
             </Card>
 
             {sessions.length > 0 && (
-              <Card className="border-none shadow-sm bg-white rounded-[2.5rem] overflow-hidden">
-                <CardHeader className="p-8 pb-4">
-                  <CardTitle className="text-xl flex items-center gap-2">
+              <Card className="border-none shadow-sm bg-white rounded-[2rem] md:rounded-[2.5rem] overflow-hidden">
+                <CardHeader className="p-6 md:p-8 pb-2 md:pb-4">
+                  <CardTitle className="text-lg md:text-xl flex items-center gap-2">
                     <Clock className="h-5 w-5 text-indigo-600" />
                     Session Archive
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="p-8 pt-0">
+                <CardContent className="p-6 md:p-8 pt-0">
                   <Select value={selectedSession} onValueChange={setSelectedSession}>
-                    <SelectTrigger className="h-14 rounded-2xl bg-slate-50 border-slate-100 shadow-inner font-bold"><SelectValue /></SelectTrigger>
+                    <SelectTrigger className="h-12 md:h-14 rounded-xl md:rounded-2xl bg-slate-50 border-slate-100 shadow-inner font-bold"><SelectValue /></SelectTrigger>
                     <SelectContent className="rounded-2xl border-slate-100">
                       {sessions.map(s => <SelectItem key={s._id || s.id} value={s._id || s.id} className="rounded-xl">{s.date}</SelectItem>)}
                     </SelectContent>
@@ -220,19 +220,19 @@ const Attendance = () => {
           <div className="lg:col-span-8 space-y-8">
             {selectedSession ? (
               <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }}>
-                <Card className="border-none shadow-sm bg-white rounded-[3rem] overflow-hidden">
-                  <CardHeader className="p-10 pb-6 flex flex-row items-center justify-between">
+                <Card className="border-none shadow-sm bg-white rounded-[1.5rem] md:rounded-[2.5rem] md:rounded-[3rem] overflow-hidden">
+                  <CardHeader className="p-6 md:p-10 pb-4 md:pb-6 flex flex-col md:flex-row items-center justify-between text-center md:text-left gap-4">
                     <div>
-                      <CardTitle className="text-2xl">Session Registry: <span className="text-indigo-600">{sessions.find(s => (s._id || s.id) === selectedSession)?.date}</span></CardTitle>
-                      <CardDescription>Direct status override for all enrolled scholars.</CardDescription>
+                      <CardTitle className="text-xl md:text-2xl">Session Registry: <span className="text-indigo-600">{sessions.find(s => (s._id || s.id) === selectedSession)?.date}</span></CardTitle>
+                      <CardDescription className="text-sm md:text-base">Direct status override for all enrolled scholars.</CardDescription>
                     </div>
                     <div className="flex gap-2">
                       <Button size="sm" variant="outline" onClick={() => markAll('present')} className="rounded-xl border-emerald-100 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 font-bold px-4 h-10">Mark All Present</Button>
                     </div>
                   </CardHeader>
-                  <CardContent className="p-0 px-4 pb-10">
+                  <CardContent className="p-0 px-2 md:px-4 pb-6 md:pb-10">
                     <div className="overflow-x-auto">
-                      <Table>
+                      <Table className="min-w-[600px]">
                         <TableHeader>
                           <TableRow className="border-none hover:bg-transparent">
                             <TableHead className="text-[10px] font-black uppercase tracking-widest text-slate-400 px-6">Scholar Identity</TableHead>
@@ -243,14 +243,14 @@ const Attendance = () => {
                         <TableBody>
                           {students.length === 0 ? (
                             <TableRow>
-                              <TableCell colSpan={3} className="py-20 text-center text-slate-400 italic">No scholars currently enrolled in this program.</TableCell>
+                              <TableCell colSpan={3} className="py-10 md:py-20 text-center text-slate-400 italic">No scholars currently enrolled in this program.</TableCell>
                             </TableRow>
                           ) : students.map((s, idx) => {
                             const sid = s.student_id?._id || s.student_id;
                             const status = attendanceMap[sid];
                             return (
                               <TableRow key={sid} className="group border-b border-slate-50 last:border-none hover:bg-slate-50/50 transition-colors">
-                                <TableCell className="py-6 px-6">
+                                <TableCell className="py-4 md:py-6 px-6">
                                   <div className="flex items-center gap-4">
                                     <div className="h-10 w-10 rounded-xl bg-slate-100 flex items-center justify-center font-black text-slate-400 shadow-inner group-hover:bg-indigo-50 group-hover:text-indigo-400 transition-colors">
                                       {s.student_id?.display_name?.charAt(0) || "S"}
@@ -267,7 +267,7 @@ const Attendance = () => {
                                     }`}>
                                       {status}
                                     </span>
-                                  ) : <span className="text-slate-200 font-black">—</span>}
+                                  ) : <span className="text-slate-200 font-black">â€”</span>}
                                 </TableCell>
                                 <TableCell className="text-right px-6">
                                   <div className="flex justify-end gap-2">
@@ -292,12 +292,12 @@ const Attendance = () => {
                 </Card>
               </motion.div>
             ) : (
-              <div className="h-full flex flex-col items-center justify-center py-32 bg-slate-50/50 rounded-[3.5rem] border-4 border-dashed border-slate-100 px-10 text-center">
-                 <div className="h-24 w-24 bg-white rounded-full flex items-center justify-center mb-8 shadow-sm">
-                    <Users className="h-10 w-10 text-slate-200" />
+              <div className="h-full flex flex-col items-center justify-center py-20 md:py-32 bg-slate-50/50 rounded-[1.5rem] md:rounded-[2.5rem] md:rounded-[3.5rem] border-4 border-dashed border-slate-100 px-6 md:px-10 text-center">
+                 <div className="h-20 w-20 md:h-24 md:w-24 bg-white rounded-full flex items-center justify-center mb-6 md:mb-8 shadow-sm">
+                    <Users className="h-8 w-8 md:h-10 md:w-10 text-slate-200" />
                  </div>
-                 <h3 className="text-2xl font-black text-slate-300">Awaiting Registry Initialization</h3>
-                 <p className="mt-4 text-slate-400 font-medium max-w-sm">Select an existing session or create a new entry to begin certifying scholar presence.</p>
+                 <h3 className="text-xl md:text-2xl font-black text-slate-300">Awaiting Registry Initialization</h3>
+                 <p className="mt-4 text-sm md:text-base text-slate-400 font-medium max-w-sm">Select an existing session or create a new entry to begin certifying scholar presence.</p>
               </div>
             )}
           </div>
@@ -308,3 +308,4 @@ const Attendance = () => {
 };
 
 export default Attendance;
+

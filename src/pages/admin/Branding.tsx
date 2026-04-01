@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+﻿import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import AdminSidebar from "@/components/dashboard/AdminSidebar";
@@ -139,7 +139,7 @@ const AdminBranding = () => {
               
               <div className="pt-4">
                 <Label>Theme Presets</Label>
-                <div className="grid grid-cols-2 gap-3 mt-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-3">
                   <button 
                     className="border rounded-lg p-3 text-left hover:border-primary transition-colors flex flex-col gap-2"
                     onClick={() => setTheme({...theme, primary_color: "#0f172a"})}
@@ -172,3 +172,4 @@ const AdminBranding = () => {
 };
 
 export default AdminBranding;
+

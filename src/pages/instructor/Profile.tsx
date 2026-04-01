@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+﻿import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import InstructorSidebar from "@/components/dashboard/InstructorSidebar";
@@ -83,13 +83,13 @@ const InstructorProfile = () => {
   return (
     <DashboardLayout allowedRoles={["instructor"]} sidebar={<InstructorSidebar />}>
       <div className="mx-auto max-w-6xl space-y-8 pb-24">
-        <section className="relative overflow-hidden rounded-[3rem] border border-slate-800 bg-slate-950 p-10 text-white shadow-2xl">
+        <section className="relative overflow-hidden rounded-[2rem] md:rounded-[3rem] border border-slate-800 bg-slate-950 p-6 md:p-10 text-white shadow-2xl">
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(99,102,241,0.22),transparent_40%),linear-gradient(135deg,rgba(15,23,42,0.95),rgba(2,6,23,1))]" />
           <div className="relative z-10 flex flex-col gap-8 lg:flex-row lg:items-end lg:justify-between">
-            <div className="flex items-center gap-6">
-              <Avatar className="h-24 w-24 border-4 border-white/10">
+            <div className="flex flex-col md:flex-row items-center md:items-start gap-6 text-center md:text-left">
+              <Avatar className="h-20 w-20 md:h-24 md:w-24 border-4 border-white/10">
                 <AvatarImage src={profile?.avatar_url} />
-                <AvatarFallback className="bg-indigo-500/20 text-3xl text-indigo-100">
+                <AvatarFallback className="bg-indigo-500/20 text-2xl md:text-3xl text-indigo-100">
                   {profile?.display_name?.charAt(0) || "I"}
                 </AvatarFallback>
               </Avatar>
@@ -97,14 +97,14 @@ const InstructorProfile = () => {
                 <Badge className="border-none bg-indigo-500/15 px-3 py-1 text-[10px] font-black uppercase tracking-[0.2em] text-indigo-200">
                   Faculty Identity
                 </Badge>
-                <h1 className="mt-4 font-display text-4xl font-bold">{profile?.display_name || user?.display_name || "Instructor"}</h1>
-                <p className="mt-2 max-w-2xl text-slate-300">
+                <h1 className="mt-4 font-display text-2xl md:text-4xl font-bold">{profile?.display_name || user?.display_name || "Instructor"}</h1>
+                <p className="mt-2 max-w-2xl text-sm md:text-base text-slate-300">
                   Maintain your faculty profile, instructional summary, and teaching metadata in one place.
                 </p>
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:grid-cols-3">
               <Card className="border border-white/10 bg-white/5 text-white shadow-none">
                 <CardContent className="p-4">
                   <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Courses</p>
@@ -235,3 +235,4 @@ const InstructorProfile = () => {
 };
 
 export default InstructorProfile;
+

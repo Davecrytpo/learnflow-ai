@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+﻿import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
@@ -160,16 +160,16 @@ const CreateCourse = () => {
 
   return (
     <DashboardLayout allowedRoles={["instructor"]} sidebar={<InstructorSidebar />}>
-      <div className="mx-auto max-w-5xl space-y-10 pb-32">
-        <header className="relative overflow-hidden rounded-[3rem] border border-slate-800 bg-slate-950 p-12 text-white shadow-2xl">
+      <div className="mx-auto max-w-5xl space-y-8 md:space-y-10 pb-24 md:pb-32">
+        <header className="relative overflow-hidden rounded-[2rem] md:rounded-[3rem] border border-slate-800 bg-slate-950 p-8 md:p-12 text-white shadow-2xl">
           <div className="absolute inset-0 bg-gradient-to-br from-indigo-950/50 via-slate-950 to-slate-950" />
           <div className="relative z-10 flex flex-col md:flex-row justify-between items-center gap-8 text-center md:text-left">
             <div className="flex-1">
-              <div className="inline-flex items-center gap-2 px-4 py-1 rounded-full bg-indigo-500/10 text-indigo-400 text-[10px] font-black uppercase tracking-[0.3em] mb-6 border border-indigo-500/20">
+              <div className="inline-flex items-center gap-2 px-4 py-1 rounded-full bg-indigo-500/10 text-indigo-400 text-[9px] md:text-[10px] font-black uppercase tracking-[0.3em] mb-4 md:mb-6 border border-indigo-500/20">
                 Curriculum Architect
               </div>
-              <h1 className="font-display text-4xl md:text-5xl font-bold">New Scholarly Course</h1>
-              <p className="mt-4 max-w-xl text-lg font-medium leading-relaxed text-slate-400">
+              <h1 className="font-display text-2xl md:text-5xl font-bold">New Scholarly Course</h1>
+              <p className="mt-3 md:mt-4 max-w-xl text-sm md:text-lg font-medium leading-relaxed text-slate-400">
                 Design a rigorous academic experience. Use AI to scaffold your entire curriculum in seconds.
               </p>
             </div>
@@ -181,19 +181,19 @@ const CreateCourse = () => {
           </div>
         </header>
 
-        <form onSubmit={handleSubmit} className="grid gap-10 lg:grid-cols-12">
-          <div className="lg:col-span-8 space-y-10">
+        <form onSubmit={handleSubmit} className="grid gap-8 md:gap-10 lg:grid-cols-12">
+          <div className="lg:col-span-8 space-y-8 md:space-y-10">
             {/* Core Details */}
-            <Card className="border-none shadow-sm shadow-slate-200 rounded-[2.5rem] overflow-hidden">
-              <CardHeader className="p-8 pb-0 flex flex-row items-center justify-between">
-                <div>
-                  <CardTitle className="text-2xl">Core Details</CardTitle>
-                  <CardDescription>Foundational information for your curriculum.</CardDescription>
+            <Card className="border-none shadow-sm shadow-slate-200 rounded-[2rem] md:rounded-[2.5rem] overflow-hidden">
+              <CardHeader className="p-6 md:p-8 pb-0 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div className="text-center sm:text-left">
+                  <CardTitle className="text-xl md:text-2xl">Core Details</CardTitle>
+                  <CardDescription className="text-xs md:text-sm">Foundational information for your curriculum.</CardDescription>
                 </div>
                 <Button 
                   type="button" 
                   variant="outline" 
-                  className="gap-2 border-indigo-200 bg-indigo-50 text-indigo-600 hover:bg-indigo-100 rounded-2xl h-12 px-6 font-bold"
+                  className="w-full sm:w-auto gap-2 border-indigo-200 bg-indigo-50 text-indigo-600 hover:bg-indigo-100 rounded-xl md:rounded-2xl h-12 px-6 font-bold"
                   onClick={handleAIAssist}
                   disabled={aiLoading}
                 >
@@ -201,21 +201,21 @@ const CreateCourse = () => {
                   Auto-Generate Syllabus
                 </Button>
               </CardHeader>
-              <CardContent className="p-8 space-y-8">
+              <CardContent className="p-6 md:p-8 space-y-6 md:space-y-8">
                 <div className="space-y-3">
-                  <Label htmlFor="title" className="text-sm font-black text-slate-400 uppercase tracking-widest">Course Title / Topic</Label>
+                  <Label htmlFor="title" className="text-[10px] md:text-sm font-black text-slate-400 uppercase tracking-widest">Course Title / Topic</Label>
                   <Input 
                     id="title" 
                     placeholder="e.g. Advanced Quantum Mechanics" 
                     value={form.title} 
                     onChange={(e) => setForm({ ...form, title: e.target.value })} 
                     required 
-                    className="h-14 text-xl font-bold rounded-2xl bg-slate-50 border-slate-100 focus:bg-white transition-all shadow-inner"
+                    className="h-12 md:h-14 text-lg md:text-xl font-bold rounded-xl md:rounded-2xl bg-slate-50 border-slate-100 focus:bg-white transition-all shadow-inner"
                   />
                 </div>
                 
                 <div className="space-y-3">
-                  <Label htmlFor="summary" className="text-sm font-black text-slate-400 uppercase tracking-widest">Executive Summary</Label>
+                  <Label htmlFor="summary" className="text-[10px] md:text-sm font-black text-slate-400 uppercase tracking-widest">Executive Summary</Label>
                   <Input 
                     id="summary" 
                     placeholder="A precise summary for institutional indexing" 
@@ -226,8 +226,8 @@ const CreateCourse = () => {
                 </div>
 
                 <div className="space-y-3">
-                  <Label htmlFor="description" className="text-sm font-black text-slate-400 uppercase tracking-widest">Syllabus Narrative</Label>
-                  <div className="min-h-[300px] border rounded-2xl overflow-hidden bg-white">
+                  <Label htmlFor="description" className="text-[10px] md:text-sm font-black text-slate-400 uppercase tracking-widest">Syllabus Narrative</Label>
+                  <div className="min-h-[250px] md:min-h-[300px] border rounded-xl md:rounded-2xl overflow-hidden bg-white">
                     <RichTextEditor 
                       content={form.description} 
                       onChange={(html) => setForm({ ...form, description: html })} 
@@ -245,7 +245,7 @@ const CreateCourse = () => {
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: 20 }}
                 >
-                  <Card className="border-none shadow-sm shadow-slate-200 rounded-[2.5rem] overflow-hidden bg-indigo-50/30">
+                  <Card className="border-none shadow-sm shadow-slate-200 rounded-[1.5rem] md:rounded-[2.5rem] overflow-hidden bg-indigo-50/30">
                     <CardHeader className="p-8">
                       <CardTitle className="flex items-center gap-2">
                         <CheckCircle2 className="h-6 w-6 text-emerald-500" />
@@ -279,7 +279,7 @@ const CreateCourse = () => {
 
           <div className="lg:col-span-4 space-y-10">
             {/* Metadata */}
-            <Card className="border-none shadow-sm shadow-slate-200 rounded-[2.5rem]">
+            <Card className="border-none shadow-sm shadow-slate-200 rounded-[1.5rem] md:rounded-[2.5rem]">
               <CardHeader className="p-8 pb-0">
                 <CardTitle>Institutional Specs</CardTitle>
               </CardHeader>
@@ -304,7 +304,7 @@ const CreateCourse = () => {
                   </Select>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-3">
                     <Label className="text-sm font-black text-slate-400 uppercase tracking-widest">Credits</Label>
                     <Input 
@@ -341,7 +341,7 @@ const CreateCourse = () => {
             </Card>
 
             <div className="sticky top-24 space-y-6">
-               <Button type="submit" disabled={loading} className="w-full h-20 text-xl font-black bg-indigo-600 hover:bg-indigo-700 text-white rounded-[2rem] shadow-2xl shadow-indigo-500/20 group transition-all">
+               <Button type="submit" disabled={loading} className="w-full h-16 md:h-20 text-lg md:text-xl font-black bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl md:rounded-[2rem] shadow-2xl shadow-indigo-500/20 group transition-all">
                 {loading ? <Loader2 className="mr-3 h-6 w-6 animate-spin" /> : (
                   <>
                     Initialize Curriculum
@@ -361,3 +361,4 @@ const CreateCourse = () => {
 };
 
 export default CreateCourse;
+

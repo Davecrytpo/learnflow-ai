@@ -31,52 +31,55 @@ const AdminAnalytics = () => {
 
   return (
     <DashboardLayout allowedRoles={["admin"]} sidebar={<AdminSidebar />}>
-      <div className="space-y-6">
-        <section className="relative overflow-hidden rounded-3xl border border-border/70 bg-card/90 p-6">
+      <div className="space-y-6 pb-20">
+        <section className="relative overflow-hidden rounded-2xl md:rounded-3xl border border-border/70 bg-card/90 p-6 md:p-8 shadow-sm">
           <div className="absolute inset-0 bg-aurora opacity-60" />
           <div className="relative">
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary">Analytics</p>
-            <h1 className="mt-2 font-display text-3xl font-bold text-foreground">Platform analytics</h1>
-            <p className="mt-2 text-sm text-muted-foreground">Live metrics from the current backend data store.</p>
+            <p className="text-[10px] md:text-xs font-semibold uppercase tracking-[0.2em] text-primary">Analytics</p>
+            <h1 className="mt-2 font-display text-2xl md:text-3xl font-bold text-foreground">Platform analytics</h1>
+            <p className="mt-2 text-xs md:text-sm text-muted-foreground">Live metrics from the current backend data store.</p>
           </div>
         </section>
 
-        <div className="grid gap-4 md:grid-cols-3">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Students</CardTitle>
+        <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 md:grid-cols-3">
+          <Card className="border-none shadow-sm">
+            <CardHeader className="flex flex-row items-center justify-between pb-2 p-4 md:p-6">
+              <CardTitle className="text-xs md:text-sm font-medium text-muted-foreground">Students</CardTitle>
               <Users className="h-4 w-4 text-primary" />
             </CardHeader>
-            <CardContent>
-              <p className="text-2xl font-bold">{stats.users}</p>
+            <CardContent className="p-4 md:p-6 pt-0">
+              <p className="text-2xl md:text-3xl font-bold">{stats.users}</p>
             </CardContent>
           </Card>
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Courses</CardTitle>
+          <Card className="border-none shadow-sm">
+            <CardHeader className="flex flex-row items-center justify-between pb-2 p-4 md:p-6">
+              <CardTitle className="text-xs md:text-sm font-medium text-muted-foreground">Courses</CardTitle>
               <BookOpen className="h-4 w-4 text-primary" />
             </CardHeader>
-            <CardContent>
-              <p className="text-2xl font-bold">{stats.courses}</p>
+            <CardContent className="p-4 md:p-6 pt-0">
+              <p className="text-2xl md:text-3xl font-bold">{stats.courses}</p>
             </CardContent>
           </Card>
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Enrollments</CardTitle>
+          <Card className="border-none shadow-sm">
+            <CardHeader className="flex flex-row items-center justify-between pb-2 p-4 md:p-6">
+              <CardTitle className="text-xs md:text-sm font-medium text-muted-foreground">Enrollments</CardTitle>
               <BarChart3 className="h-4 w-4 text-primary" />
             </CardHeader>
-            <CardContent>
-              <p className="text-2xl font-bold">{stats.enrollments}</p>
+            <CardContent className="p-4 md:p-6 pt-0">
+              <p className="text-2xl md:text-3xl font-bold">{stats.enrollments}</p>
             </CardContent>
           </Card>
         </div>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle className="text-lg">Enrollments by course</CardTitle>
-            <BarChart3 className="h-4 w-4 text-primary" />
+        <Card className="border-none shadow-sm">
+          <CardHeader className="flex flex-row items-center justify-between p-6">
+            <div>
+              <CardTitle className="text-lg md:text-xl">Enrollments by course</CardTitle>
+              <p className="text-xs text-muted-foreground">Visualizing student distribution across the curriculum.</p>
+            </div>
+            <BarChart3 className="h-5 w-5 text-primary" />
           </CardHeader>
-          <CardContent>
+          <CardContent className="p-2 md:p-6">
             {loading ? (
               <div className="flex justify-center py-8"><Loader2 className="h-6 w-6 animate-spin" /></div>
             ) : (

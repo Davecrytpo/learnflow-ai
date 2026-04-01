@@ -1,4 +1,4 @@
-import { useState } from "react";
+﻿import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -50,7 +50,7 @@ const InstructorLogin = () => {
           animate={{ opacity: 1, scale: 1 }}
           className="w-full max-w-lg"
         >
-          <div className="bg-white rounded-[2.5rem] shadow-2xl overflow-hidden border border-white/10">
+          <div className="bg-white rounded-[1.5rem] md:rounded-[2.5rem] shadow-2xl overflow-hidden border border-white/10">
             <div className="p-8 md:p-12">
               <div className="text-center mb-10">
                 <div className="h-16 w-16 bg-primary/10 rounded-2xl flex items-center justify-center mx-auto mb-6 text-primary">
@@ -83,7 +83,7 @@ const InstructorLogin = () => {
                     <Input 
                       id="password" 
                       type={showPass ? "text" : "password"} 
-                      placeholder="••••••••" 
+                      placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢" 
                       value={password} 
                       onChange={(e) => setPassword(e.target.value)} 
                       required 
@@ -135,3 +135,4 @@ const InstructorLogin = () => {
 };
 
 export default InstructorLogin;
+

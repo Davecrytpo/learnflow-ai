@@ -63,35 +63,35 @@ const AdminUsers = () => {
 
   return (
     <DashboardLayout allowedRoles={["admin"]} sidebar={<AdminSidebar />}>
-      <div className="space-y-6">
-        <section className="relative overflow-hidden rounded-3xl border border-border/70 bg-card/90 p-6">
+      <div className="space-y-6 pb-20">
+        <section className="relative overflow-hidden rounded-2xl md:rounded-3xl border border-border/70 bg-card/90 p-6 md:p-8 shadow-sm">
           <div className="absolute inset-0 bg-aurora opacity-60" />
           <div className="relative">
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary">Governance</p>
-            <h1 className="mt-2 font-display text-3xl font-bold text-foreground">User Management</h1>
-            <p className="mt-2 text-sm text-muted-foreground">Manage identities, roles, and institutional access.</p>
+            <p className="text-[10px] md:text-xs font-semibold uppercase tracking-[0.2em] text-primary">Governance</p>
+            <h1 className="mt-2 font-display text-2xl md:text-3xl font-bold text-foreground">User Management</h1>
+            <p className="mt-2 text-xs md:text-sm text-muted-foreground">Manage identities, roles, and institutional access.</p>
           </div>
         </section>
 
-        <Card>
-          <CardHeader>
+        <Card className="border-none shadow-sm">
+          <CardHeader className="p-4 md:p-6">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div>
                 <CardTitle className="text-lg">Registered Users</CardTitle>
-                <CardDescription>All students, instructors, and staff.</CardDescription>
+                <CardDescription className="text-sm">All students, instructors, and staff.</CardDescription>
               </div>
               <div className="relative w-full sm:w-72">
                 <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                <Input placeholder="Search name or email..." value={search} onChange={(e) => setSearch(e.target.value)} className="pl-10" />
+                <Input placeholder="Search name or email..." value={search} onChange={(e) => setSearch(e.target.value)} className="pl-10 h-10" />
               </div>
             </div>
           </CardHeader>
-          <CardContent>
+          <CardContent className="p-0 sm:p-6 sm:pt-0">
             {loading ? (
               <div className="flex justify-center py-12"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>
             ) : (
-              <div className="rounded-xl border border-border overflow-hidden">
-                <table className="w-full text-sm">
+              <div className="border-t sm:border border-border sm:rounded-xl overflow-x-auto scrollbar-hide">
+                <table className="w-full text-sm min-w-[600px] sm:min-w-0">
                   <thead className="bg-secondary/40 text-muted-foreground font-medium border-b border-border">
                     <tr>
                       <th className="text-left p-4">User</th>
@@ -100,7 +100,7 @@ const AdminUsers = () => {
                       <th className="text-right p-4">Actions</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-border/60">
+                  <tbody className="divide-y divide-border/60 bg-white">
                     {filtered.map(u => (
                       <tr key={u._id} className="hover:bg-accent/5 transition-colors group">
                         <td className="p-4">

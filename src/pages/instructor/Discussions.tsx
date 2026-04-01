@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+﻿import { useEffect, useState } from "react";
 import { apiClient } from "@/lib/api-client";
 import { useAuth } from "@/hooks/useAuth";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
@@ -53,31 +53,30 @@ const InstructorDiscussions = () => {
       <div className="space-y-10 pb-32 max-w-6xl mx-auto">
         
         {/* Professional Header */}
-        <section className="relative overflow-hidden rounded-[3rem] border border-slate-800 bg-slate-950 p-12 text-white shadow-2xl">
+        <section className="relative overflow-hidden rounded-[2rem] md:rounded-[3rem] border border-slate-800 bg-slate-950 p-6 md:p-12 text-white shadow-2xl">
           <div className="absolute inset-0 bg-gradient-to-br from-indigo-950/50 via-slate-950 to-slate-950" />
           <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-8">
             <div className="flex items-center gap-8">
-              <div className="h-20 w-20 rounded-3xl bg-amber-600/20 border border-amber-500/30 flex items-center justify-center">
+              <div className="h-16 md:h-20 w-16 md:w-20 rounded-3xl bg-amber-600/20 border border-amber-500/30 flex items-center justify-center">
                 <MessageSquare className="h-10 w-10 text-amber-400" />
               </div>
               <div>
                 <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/10 text-amber-400 text-[9px] font-black uppercase tracking-[0.2em] mb-3 border border-amber-500/20">
                   Scholarly Discourse
                 </div>
-                <h1 className="font-display text-4xl font-bold">Dialogue Management</h1>
+                <h1 className="font-display text-2xl md:text-4xl font-bold">Dialogue Management</h1>     
                 <p className="mt-2 text-slate-400 font-medium max-w-xl">
                   Moderate intellectual exchanges and guide scholastic debate. Certify high-quality contributions and maintain academic integrity.
                 </p>
               </div>
             </div>
-            <Button className="bg-indigo-600 hover:bg-indigo-500 text-white font-black h-16 px-10 rounded-2xl shadow-2xl shadow-indigo-500/20 transition-all hover:scale-105 active:scale-95 text-lg">
+            <Button className="bg-indigo-600 hover:bg-indigo-500 text-white font-black h-14 md:h-16 px-10 rounded-2xl shadow-2xl shadow-indigo-500/20 transition-all hover:scale-105 active:scale-95 text-lg">     
               <MessageSquare className="mr-3 h-6 w-6" /> Faculty Announcement
-            </Button>
-          </div>
+            </Button>          </div>
         </section>
 
         <div className="grid gap-8 grid-cols-1 md:grid-cols-3">
-          <Card className="border-none shadow-sm bg-white rounded-[2.5rem] p-8">
+          <Card className="border-none shadow-sm bg-white rounded-[1.5rem] md:rounded-[2.5rem] p-8">
             <div className="flex items-center justify-between mb-4">
               <div className="h-12 w-12 rounded-2xl bg-indigo-50 flex items-center justify-center">
                 <MessageSquare className="h-6 w-6 text-indigo-600" />
@@ -87,7 +86,7 @@ const InstructorDiscussions = () => {
             <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Active Threads</p>
             <h3 className="text-3xl font-black text-slate-900">{stats.openThreads}</h3>
           </Card>
-          <Card className="border-none shadow-sm bg-white rounded-[2.5rem] p-8">
+          <Card className="border-none shadow-sm bg-white rounded-[1.5rem] md:rounded-[2.5rem] p-8">
             <div className="flex items-center justify-between mb-4">
               <div className="h-12 w-12 rounded-2xl bg-rose-50 flex items-center justify-center">
                 <Flag className="h-6 w-6 text-rose-600" />
@@ -97,7 +96,7 @@ const InstructorDiscussions = () => {
             <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Flags for Review</p>
             <h3 className="text-3xl font-black text-slate-900">{stats.flagged}</h3>
           </Card>
-          <Card className="border-none shadow-sm bg-white rounded-[2.5rem] p-8">
+          <Card className="border-none shadow-sm bg-white rounded-[1.5rem] md:rounded-[2.5rem] p-8">
             <div className="flex items-center justify-between mb-4">
               <div className="h-12 w-12 rounded-2xl bg-emerald-50 flex items-center justify-center">
                 <ShieldCheck className="h-6 w-6 text-emerald-600" />
@@ -115,7 +114,7 @@ const InstructorDiscussions = () => {
             <p className="text-slate-500 font-black uppercase tracking-widest text-[10px]">Accessing Discourse Matrix...</p>
           </div>
         ) : courses.length === 0 ? (
-          <Card className="p-24 border-none shadow-sm bg-white rounded-[3rem] text-center">
+          <Card className="p-8 md:p-24 border-none shadow-sm bg-white rounded-[2rem] md:rounded-[3rem] text-center">
             <div className="h-24 w-24 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-8 shadow-inner">
                <BookOpen className="h-12 w-12 text-slate-200" />
             </div>
@@ -151,8 +150,8 @@ const InstructorDiscussions = () => {
             <div className="space-y-8">
               {selectedCourseId ? (
                 <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }}>
-                   <Card className="border-none shadow-sm bg-white rounded-[3rem] overflow-hidden">
-                      <CardContent className="p-10">
+                   <Card className="border-none shadow-sm bg-white rounded-[2rem] md:rounded-[3rem] overflow-hidden">
+                      <CardContent className="p-6 md:p-10">
                          <DiscussionBoard courseId={selectedCourseId} />
                       </CardContent>
                    </Card>
@@ -175,3 +174,5 @@ const InstructorDiscussions = () => {
 };
 
 export default InstructorDiscussions;
+
+

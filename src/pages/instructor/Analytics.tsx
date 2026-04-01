@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+﻿import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import InstructorSidebar from "@/components/dashboard/InstructorSidebar";
@@ -51,68 +51,68 @@ const InstructorAnalytics = () => {
       <div className="space-y-10 pb-32 max-w-6xl mx-auto">
         
         {/* Professional Header */}
-        <section className="relative overflow-hidden rounded-[3rem] border border-slate-800 bg-slate-950 p-12 text-white shadow-2xl">
+        <section className="relative overflow-hidden rounded-[2rem] md:rounded-[3rem] border border-slate-800 bg-slate-950 p-6 md:p-12 text-white shadow-2xl">
           <div className="absolute inset-0 bg-gradient-to-br from-indigo-950/50 via-slate-950 to-slate-950" />
-          <div className="relative z-10 flex items-center gap-8">
-            <div className="h-20 w-20 rounded-3xl bg-indigo-600/20 border border-indigo-500/30 flex items-center justify-center">
-              <BarChart3 className="h-10 w-10 text-indigo-400" />
+          <div className="relative z-10 flex flex-col md:flex-row items-center gap-6 md:gap-8 text-center md:text-left">
+            <div className="h-16 w-16 md:h-20 md:w-20 rounded-2xl md:rounded-3xl bg-indigo-600/20 border border-indigo-500/30 flex items-center justify-center shrink-0">
+              <BarChart3 className="h-8 w-8 md:h-10 md:w-10 text-indigo-400" />
             </div>
             <div>
               <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-500/10 text-indigo-400 text-[9px] font-black uppercase tracking-[0.2em] mb-3 border border-indigo-500/20">
                 Performance Intelligence
               </div>
-              <h1 className="font-display text-4xl font-bold">Instructional Analytics</h1>
-              <p className="mt-2 text-slate-400 font-medium max-w-xl">
+              <h1 className="font-display text-2xl md:text-4xl font-bold">Instructional Analytics</h1>
+              <p className="mt-2 text-sm md:text-base text-slate-400 font-medium max-w-xl">
                 Deep-dive into enrollment velocity and curriculum engagement. Visualize institutional growth and cohort success metrics.
               </p>
             </div>
           </div>
         </section>
 
-        <div className="grid gap-8 grid-cols-1 md:grid-cols-3">
-           <Card className="border-none shadow-sm bg-white rounded-[2.5rem] p-8">
+        <div className="grid gap-6 md:gap-8 grid-cols-1 sm:grid-cols-2 md:grid-cols-3">
+           <Card className="border-none shadow-sm bg-white rounded-[2rem] md:rounded-[2.5rem] p-6 md:p-8 text-center md:text-left">
               <div className="flex items-center justify-between mb-4">
-                 <div className="h-12 w-12 rounded-2xl bg-indigo-50 flex items-center justify-center">
-                    <Users className="h-6 w-6 text-indigo-600" />
+                 <div className="h-10 w-10 md:h-12 md:w-12 rounded-xl md:rounded-2xl bg-indigo-50 flex items-center justify-center">
+                    <Users className="h-5 w-5 md:h-6 md:w-6 text-indigo-600" />
                  </div>
                  <TrendingUp className="h-4 w-4 text-emerald-500" />
               </div>
-              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Avg. Cohort Size</p>
-              <h3 className="text-3xl font-black text-slate-900">{summary.averageCohort}</h3>
+              <p className="text-[9px] md:text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Avg. Cohort Size</p>
+              <h3 className="text-2xl md:text-3xl font-black text-slate-900">{summary.averageCohort}</h3>
            </Card>
-           <Card className="border-none shadow-sm bg-white rounded-[2.5rem] p-8">
+           <Card className="border-none shadow-sm bg-white rounded-[2rem] md:rounded-[2.5rem] p-6 md:p-8 text-center md:text-left">
               <div className="flex items-center justify-between mb-4">
-                 <div className="h-12 w-12 rounded-2xl bg-emerald-50 flex items-center justify-center">
-                    <Award className="h-6 w-6 text-emerald-600" />
+                 <div className="h-10 w-10 md:h-12 md:w-12 rounded-xl md:rounded-2xl bg-emerald-50 flex items-center justify-center">
+                    <Award className="h-5 w-5 md:h-6 md:w-6 text-emerald-600" />
                  </div>
                  <TrendingUp className="h-4 w-4 text-emerald-500" />
               </div>
-              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Completion Rate</p>
-              <h3 className="text-3xl font-black text-slate-900">{summary.completionRate}%</h3>
+              <p className="text-[9px] md:text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Completion Rate</p>
+              <h3 className="text-2xl md:text-3xl font-black text-slate-900">{summary.completionRate}%</h3>
            </Card>
-           <Card className="border-none shadow-sm bg-white rounded-[2.5rem] p-8">
+           <Card className="border-none shadow-sm bg-white rounded-[2rem] md:rounded-[2.5rem] p-6 md:p-8 text-center md:text-left sm:col-span-2 md:col-span-1">
               <div className="flex items-center justify-between mb-4">
-                 <div className="h-12 w-12 rounded-2xl bg-amber-50 flex items-center justify-center">
-                    <PieChart className="h-6 w-6 text-amber-600" />
+                 <div className="h-10 w-10 md:h-12 md:w-12 rounded-xl md:rounded-2xl bg-amber-50 flex items-center justify-center">
+                    <PieChart className="h-5 w-5 md:h-6 md:w-6 text-amber-600" />
                  </div>
                  <TrendingUp className="h-4 w-4 text-emerald-500" />
               </div>
-              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Engagement Index</p>
-              <h3 className="text-3xl font-black text-slate-900">{summary.engagementIndex}%</h3>
+              <p className="text-[9px] md:text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Engagement Index</p>
+              <h3 className="text-2xl md:text-3xl font-black text-slate-900">{summary.engagementIndex}%</h3>
            </Card>
         </div>
 
-        <Card className="border-none shadow-sm bg-white rounded-[3rem] overflow-hidden">
-          <CardHeader className="p-10 pb-6 flex flex-row items-center justify-between">
+        <Card className="border-none shadow-sm bg-white rounded-[1.5rem] md:rounded-[2.5rem] md:rounded-[3rem] overflow-hidden">
+          <CardHeader className="p-6 md:p-10 pb-4 md:pb-6 flex flex-col md:flex-row items-center justify-between text-center md:text-left gap-4">
             <div>
-              <CardTitle className="text-2xl font-bold">Enrollment Distribution</CardTitle>
-              <CardDescription>Comparative analysis of student enrollment across active curriculum.</CardDescription>
+              <CardTitle className="text-xl md:text-2xl font-bold">Enrollment Distribution</CardTitle>
+              <CardDescription className="text-sm md:text-base">Comparative analysis of student enrollment across active curriculum.</CardDescription>
             </div>
-            <div className="h-10 w-10 rounded-xl bg-slate-50 flex items-center justify-center border border-slate-100 shadow-inner">
+            <div className="h-10 w-10 rounded-xl bg-slate-50 flex items-center justify-center border border-slate-100 shadow-inner shrink-0">
                <TrendingUp className="h-5 w-5 text-slate-300" />
             </div>
           </CardHeader>
-          <CardContent className="p-10 pt-4">
+          <CardContent className="p-6 md:p-10 pt-2 md:pt-4">
             {loading ? (
               <div className="flex flex-col items-center justify-center py-20 gap-4">
                  <Loader2 className="h-10 w-10 animate-spin text-indigo-500" />
@@ -160,3 +160,4 @@ const InstructorAnalytics = () => {
 };
 
 export default InstructorAnalytics;
+

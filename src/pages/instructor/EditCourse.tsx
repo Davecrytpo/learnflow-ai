@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+﻿import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
@@ -464,7 +464,7 @@ const EditCourse = () => {
             </DialogHeader>
             {editingLesson && (
               <div className="space-y-6 pt-4">
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label>Lesson Title</Label>
                     <Input value={editingLesson.title} onChange={e => setEditingLesson({...editingLesson, title: e.target.value})} />
@@ -523,3 +523,4 @@ const EditCourse = () => {
 };
 
 export default EditCourse;
+

@@ -711,36 +711,36 @@ const CourseLearning = () => {
         </main>
 
         <Dialog open={isViewingCertificate} onOpenChange={setIsViewingCertificate}>
-          <DialogContent className="max-w-3xl bg-white p-0 overflow-hidden border-8 border-double border-amber-200">
-            <div className="p-12 text-center space-y-8 bg-[url('https://www.transparenttextures.com/patterns/paper-fibers.png')]">
+          <DialogContent className="max-w-[95vw] md:max-w-3xl bg-white p-0 overflow-hidden border-4 md:border-8 border-double border-amber-200">
+            <div className="p-6 md:p-12 text-center space-y-6 md:space-y-8 bg-[url('https://www.transparenttextures.com/patterns/paper-fibers.png')]">
               <div className="space-y-2">
-                <div className="mx-auto w-20 h-20 bg-gradient-to-br from-amber-400 to-amber-600 rounded-full flex items-center justify-center shadow-lg mb-4">
-                  <Award className="h-10 w-10 text-white" />
+                <div className="mx-auto w-16 h-16 md:w-20 md:h-20 bg-gradient-to-br from-amber-400 to-amber-600 rounded-full flex items-center justify-center shadow-lg mb-2 md:mb-4">
+                  <Award className="h-8 w-8 md:h-10 md:w-10 text-white" />
                 </div>
-                <h3 className="font-serif text-sm tracking-[0.3em] uppercase text-amber-700">Certificate of Completion</h3>
+                <h3 className="font-serif text-[10px] md:text-sm tracking-[0.2em] md:tracking-[0.3em] uppercase text-amber-700">Certificate of Completion</h3>
               </div>
               
               <div className="space-y-4">
-                <p className="font-serif italic text-slate-500">This is to certify that</p>
-                <h2 className="text-4xl font-serif font-bold text-slate-900 border-b-2 border-slate-200 pb-2 inline-block px-12">
+                <p className="font-serif italic text-sm md:text-base text-slate-500">This is to certify that</p>
+                <h2 className="text-2xl md:text-4xl font-serif font-bold text-slate-900 border-b-2 border-slate-200 pb-2 inline-block px-6 md:px-12">
                   {user?.user_metadata?.display_name || user?.email?.split('@')[0]}
                 </h2>
-                <p className="font-serif italic text-slate-500">has successfully completed the course</p>
-                <h1 className="text-3xl font-bold text-slate-800 uppercase tracking-tight">{course?.title}</h1>
+                <p className="font-serif italic text-sm md:text-base text-slate-500">has successfully completed the course</p>
+                <h1 className="text-xl md:text-3xl font-bold text-slate-800 uppercase tracking-tight">{course?.title}</h1>
               </div>
 
-              <div className="grid grid-cols-2 gap-12 pt-8">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-8 md:gap-12 pt-6 md:pt-8">
                 <div className="border-t border-slate-300 pt-2">
-                  <p className="text-xs font-serif uppercase tracking-widest text-slate-400">Date Issued</p>
-                  <p className="font-medium text-slate-700">{new Date().toLocaleDateString()}</p>
+                  <p className="text-[10px] font-serif uppercase tracking-widest text-slate-400">Date Issued</p>
+                  <p className="text-sm md:text-base font-medium text-slate-700">{new Date().toLocaleDateString()}</p>
                 </div>
                 <div className="border-t border-slate-300 pt-2">
-                  <p className="text-xs font-serif uppercase tracking-widest text-slate-400">Verify Authenticity</p>
+                  <p className="text-[10px] font-serif uppercase tracking-widest text-slate-400">Verify Authenticity</p>
                   <p className="text-[10px] font-mono text-slate-400 truncate max-w-[150px] mx-auto">LF-AI-{courseId?.slice(0,8)}</p>
                 </div>
               </div>
 
-              <div className="pt-4">
+              <div className="pt-2 md:pt-4">
                 <div className="flex justify-center gap-2">
                   <div className="h-1 w-1 bg-amber-400 rounded-full" />
                   <div className="h-1 w-1 bg-amber-400 rounded-full" />
@@ -748,11 +748,11 @@ const CourseLearning = () => {
                 </div>
               </div>
             </div>
-            <DialogFooter className="p-4 bg-slate-50 border-t flex justify-center sm:justify-center">
-              <Button onClick={() => window.print()} variant="outline" className="gap-2">
+            <DialogFooter className="p-4 bg-slate-50 border-t flex flex-col sm:flex-row justify-center gap-2">
+              <Button onClick={() => window.print()} variant="outline" className="gap-2 w-full sm:w-auto">
                 <Download className="h-4 w-4" /> Print Certificate
               </Button>
-              <Button onClick={() => setIsViewingCertificate(false)}>Close</Button>
+              <Button onClick={() => setIsViewingCertificate(false)} className="w-full sm:w-auto">Close</Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>

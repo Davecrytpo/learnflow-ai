@@ -67,7 +67,7 @@ const StudentDiscussions = () => {
               {selectedCourseId ? (
                 <DiscussionBoard courseId={selectedCourseId} />
               ) : (
-                <Card className="p-12 text-center text-muted-foreground italic">
+                <Card className="p-6 md:p-12 text-center text-muted-foreground italic">
                   Select a course to view discussions.
                 </Card>
               )}

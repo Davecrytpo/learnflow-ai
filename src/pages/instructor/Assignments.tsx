@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+﻿import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
@@ -96,19 +96,19 @@ const InstructorAssignments = () => {
       <div className="space-y-10 pb-32 max-w-6xl mx-auto">
         
         {/* Professional Header */}
-        <section className="relative overflow-hidden rounded-[3rem] border border-slate-800 bg-slate-950 p-12 text-white shadow-2xl">
+        <section className="relative overflow-hidden rounded-[2rem] md:rounded-[3rem] border border-slate-800 bg-slate-950 p-6 md:p-12 text-white shadow-2xl">
           <div className="absolute inset-0 bg-gradient-to-br from-indigo-950/50 via-slate-950 to-slate-950" />
           <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-8">
-            <div className="flex items-center gap-8">
-              <div className="h-20 w-20 rounded-3xl bg-indigo-600/20 border border-indigo-500/30 flex items-center justify-center">
-                <FileCheck2 className="h-10 w-10 text-indigo-400" />
+            <div className="flex flex-col md:flex-row items-center gap-6 md:gap-8 text-center md:text-left">
+              <div className="h-16 w-16 md:h-20 md:w-20 rounded-2xl md:rounded-3xl bg-indigo-600/20 border border-indigo-500/30 flex items-center justify-center shrink-0">
+                <FileCheck2 className="h-8 w-8 md:h-10 md:w-10 text-indigo-400" />
               </div>
               <div>
                 <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-500/10 text-indigo-400 text-[9px] font-black uppercase tracking-[0.2em] mb-3 border border-indigo-500/20">
                   Instructional Controls
                 </div>
-                <h1 className="font-display text-4xl font-bold">Coursework Registry</h1>
-                <p className="mt-2 text-slate-400 font-medium max-w-xl">
+                <h1 className="font-display text-2xl md:text-4xl font-bold">Coursework Registry</h1>
+                <p className="mt-2 text-sm md:text-base text-slate-400 font-medium max-w-xl">
                   Orchestrate academic submissions and maintain scholarly standards across your institutional programs.
                 </p>
               </div>
@@ -116,20 +116,20 @@ const InstructorAssignments = () => {
 
             <Dialog open={open} onOpenChange={setOpen}>
               <DialogTrigger asChild>
-                <Button className="bg-indigo-600 hover:bg-indigo-500 text-white font-black h-16 px-10 rounded-2xl shadow-2xl shadow-indigo-500/20 transition-all hover:scale-105 active:scale-95 text-lg">
-                  <PlusCircle className="mr-3 h-6 w-6" /> Create Assignment
+                <Button className="bg-slate-950 hover:bg-indigo-500 text-white font-black h-14 md:h-16 px-8 md:px-10 rounded-xl md:rounded-2xl shadow-2xl shadow-indigo-500/20 transition-all hover:scale-105 active:scale-95 text-base md:text-lg w-full md:w-auto">
+                  <PlusCircle className="mr-3 h-5 w-5 md:h-6 md:w-6" /> Create Assignment
                 </Button>
               </DialogTrigger>
-              <DialogContent className="rounded-[2.5rem] p-10 max-w-lg border-slate-800 bg-slate-950 text-white">
+              <DialogContent className="rounded-[2rem] md:rounded-[2.5rem] p-6 md:p-10 max-w-lg border-slate-800 bg-slate-950 text-white">
                 <DialogHeader className="space-y-4">
-                  <DialogTitle className="text-3xl font-display font-bold">New Scholarly Task</DialogTitle>
-                  <DialogDescription className="text-slate-400">Establish a new submission node for student evaluation.</DialogDescription>
+                  <DialogTitle className="text-2xl md:text-3xl font-display font-bold text-center md:text-left">New Scholarly Task</DialogTitle>
+                  <DialogDescription className="text-slate-400 text-center md:text-left">Establish a new submission node for student evaluation.</DialogDescription>
                 </DialogHeader>
-                <form onSubmit={handleCreate} className="space-y-8 pt-6">
+                <form onSubmit={handleCreate} className="space-y-6 md:space-y-8 pt-4 md:pt-6">
                   <div className="space-y-3">
                     <Label className="text-[10px] font-black uppercase tracking-widest text-slate-500">Target Program</Label>
                     <Select value={newAsgn.course_id} onValueChange={(v) => setNewAsgn({...newAsgn, course_id: v})}>
-                      <SelectTrigger className="h-14 rounded-2xl bg-slate-900 border-slate-800 font-bold"><SelectValue placeholder="Select course" /></SelectTrigger>
+                      <SelectTrigger className="h-12 md:h-14 rounded-xl md:rounded-2xl bg-slate-900 border-slate-800 font-bold"><SelectValue placeholder="Select course" /></SelectTrigger>
                       <SelectContent className="bg-slate-900 border-slate-800 text-white rounded-xl">
                         {courses.map(c => <SelectItem key={c._id || c.id} value={c._id || c.id} className="rounded-lg">{c.title}</SelectItem>)}
                       </SelectContent>
@@ -137,21 +137,21 @@ const InstructorAssignments = () => {
                   </div>
                   <div className="space-y-3">
                     <Label className="text-[10px] font-black uppercase tracking-widest text-slate-500">Assignment Identity</Label>
-                    <Input placeholder="e.g. Critical Research Thesis" value={newAsgn.title} onChange={e => setNewAsgn({...newAsgn, title: e.target.value})} required className="h-14 rounded-2xl bg-slate-900 border-slate-800 font-bold" />
+                    <Input placeholder="e.g. Critical Research Thesis" value={newAsgn.title} onChange={e => setNewAsgn({...newAsgn, title: e.target.value})} required className="h-12 md:h-14 rounded-xl md:rounded-2xl bg-slate-900 border-slate-800 font-bold" />
                   </div>
-                  <div className="grid grid-cols-2 gap-6">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-6">
                     <div className="space-y-3">
                       <Label className="text-[10px] font-black uppercase tracking-widest text-slate-500">Scholastic Deadline</Label>
-                      <Input type="date" value={newAsgn.due_date} onChange={e => setNewAsgn({...newAsgn, due_date: e.target.value})} className="h-14 rounded-2xl bg-slate-900 border-slate-800 font-bold" />
+                      <Input type="date" value={newAsgn.due_date} onChange={e => setNewAsgn({...newAsgn, due_date: e.target.value})} className="h-12 md:h-14 rounded-xl md:rounded-2xl bg-slate-900 border-slate-800 font-bold" />
                     </div>
                     <div className="space-y-3">
                       <Label className="text-[10px] font-black uppercase tracking-widest text-slate-500">Max Score</Label>
-                      <Input type="number" value={newAsgn.max_score} onChange={e => setNewAsgn({...newAsgn, max_score: e.target.value})} className="h-14 rounded-2xl bg-slate-900 border-slate-800 font-bold" />
+                      <Input type="number" value={newAsgn.max_score} onChange={e => setNewAsgn({...newAsgn, max_score: e.target.value})} className="h-12 md:h-14 rounded-xl md:rounded-2xl bg-slate-900 border-slate-800 font-bold" />
                     </div>
                   </div>
-                  <DialogFooter className="gap-4 pt-4">
-                    <Button variant="ghost" type="button" onClick={() => setOpen(false)} className="h-14 rounded-2xl text-slate-500 font-bold">Discard</Button>
-                    <Button type="submit" disabled={saving} className="h-14 rounded-2xl bg-white text-slate-950 hover:bg-slate-100 font-black flex-1">
+                  <DialogFooter className="gap-4 pt-4 flex-col sm:flex-row">
+                    <Button variant="ghost" type="button" onClick={() => setOpen(false)} className="h-12 md:h-14 rounded-xl md:rounded-2xl text-slate-500 font-bold w-full sm:w-auto">Discard</Button>
+                    <Button type="submit" disabled={saving} className="h-12 md:h-14 rounded-xl md:rounded-2xl bg-white text-slate-950 hover:bg-slate-100 font-black flex-1">
                       {saving ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : "Initialize Task"}
                     </Button>
                   </DialogFooter>
@@ -161,34 +161,34 @@ const InstructorAssignments = () => {
           </div>
         </section>
 
-        <Card className="border-none shadow-sm bg-white rounded-[3rem] overflow-hidden">
-          <CardHeader className="p-10 pb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-8">
+        <Card className="border-none shadow-sm bg-white rounded-[1.5rem] md:rounded-[2.5rem] md:rounded-[3rem] overflow-hidden">
+          <CardHeader className="p-6 md:p-10 pb-4 md:pb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-8">
             <div>
-              <CardTitle className="text-2xl font-bold flex items-center gap-3">
-                <Layout className="h-6 w-6 text-indigo-600" />
+              <CardTitle className="text-xl md:text-2xl font-bold flex items-center gap-3">
+                <Layout className="h-5 w-5 md:h-6 md:w-6 text-indigo-600" />
                 Instructional Registry
               </CardTitle>
-              <CardDescription>Oversight of {assignments.length} curriculum submission nodes.</CardDescription>
+              <CardDescription className="text-sm md:text-base">Oversight of {assignments.length} curriculum submission nodes.</CardDescription>
             </div>
             <div className="relative w-full sm:w-80">
               <Search className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-300" />
-              <Input placeholder="Filter registry entries..." value={search} onChange={e => setSearch(e.target.value)} className="h-14 pl-12 rounded-2xl bg-slate-50 border-slate-100 shadow-inner font-medium" />
+              <Input placeholder="Filter registry entries..." value={search} onChange={e => setSearch(e.target.value)} className="h-12 md:h-14 pl-12 rounded-xl md:rounded-2xl bg-slate-50 border-slate-100 shadow-inner font-medium" />
             </div>
           </CardHeader>
-          <CardContent className="p-10 pt-4">
+          <CardContent className="p-6 md:p-10 pt-2 md:pt-4">
             {loading ? (
               <div className="flex flex-col items-center justify-center py-20 gap-4">
                  <Loader2 className="h-10 w-10 animate-spin text-indigo-500" />
                  <p className="text-slate-400 font-black uppercase tracking-widest text-[9px]">Synchronizing Records...</p>
               </div>
             ) : filtered.length === 0 ? (
-              <div className="text-center py-24 bg-slate-50 rounded-[2.5rem] border-4 border-dashed border-slate-100">
+              <div className="text-center py-24 bg-slate-50 rounded-[2rem] border-4 border-dashed border-slate-100">
                 <FileCheck2 className="h-16 w-16 text-slate-200 mx-auto mb-4" />
                 <p className="text-slate-400 font-bold">No scholastic tasks found in the active registry.</p>
               </div>
             ) : (
-              <div className="rounded-[2rem] border border-slate-100 overflow-hidden shadow-inner">
-                <table className="w-full text-sm">
+              <div className="rounded-[1.5rem] md:rounded-[2rem] border border-slate-100 overflow-x-auto shadow-inner">
+                <table className="w-full text-sm min-w-[600px]">
                   <thead className="bg-slate-50 text-slate-400 border-b border-slate-100">
                     <tr>
                       <th className="text-left p-6 font-black uppercase tracking-widest text-[10px]">Assignment Node</th>
@@ -243,3 +243,4 @@ const InstructorAssignments = () => {
 };
 
 export default InstructorAssignments;
+

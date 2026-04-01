@@ -76,38 +76,38 @@ const StudentAssignments = () => {
       <div className="space-y-12 pb-32 max-w-6xl mx-auto">
         
         {/* Scholar Header */}
-        <section className="relative overflow-hidden rounded-[3rem] border border-sky-100 bg-white p-12 shadow-2xl shadow-sky-500/10">
+        <section className="relative overflow-hidden rounded-[2rem] md:rounded-[3rem] border border-sky-100 bg-white p-6 md:p-12 shadow-2xl shadow-sky-500/10">
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(186,230,253,0.4),transparent)]" />
-          <div className="relative z-10 flex items-center gap-8">
-            <div className="h-20 w-20 rounded-3xl bg-sky-600 shadow-xl shadow-sky-200 flex items-center justify-center">
-              <FileCheck2 className="h-10 w-10 text-white" />
+          <div className="relative z-10 flex flex-col md:flex-row items-center gap-6 md:gap-8 text-center md:text-left">
+            <div className="h-16 w-16 md:h-20 md:w-20 rounded-2xl md:rounded-3xl bg-sky-600 shadow-xl shadow-sky-200 flex items-center justify-center">
+              <FileCheck2 className="h-8 w-8 md:h-10 md:w-10 text-white" />
             </div>
             <div>
               <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-sky-100 text-sky-700 text-[10px] font-black uppercase tracking-[0.2em] mb-3 border border-sky-200">
                 Scholarly Tasks
               </div>
-              <h1 className="font-display text-4xl font-bold text-slate-900">Academic Assignments</h1>
-              <p className="mt-2 text-slate-500 font-medium max-w-xl">
+              <h1 className="font-display text-2xl md:text-4xl font-bold text-slate-900">Academic Assignments</h1>
+              <p className="mt-2 text-slate-500 font-medium max-w-xl text-sm md:text-base">
                 Direct oversight of your curriculum tasks. Submit research entries and track institutional certifications.
               </p>
             </div>
           </div>
         </section>
 
-        <div className="grid gap-8 md:grid-cols-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 md:gap-8">
           {[
             { label: "Action Required", count: upcoming.length, color: "bg-amber-50 text-amber-700", icon: Clock },
             { label: "Certified Nodes", count: completed.length, color: "bg-emerald-50 text-emerald-700", icon: CheckCircle2 },
             { label: "Term Expired", count: overdue.length, color: "bg-rose-50 text-rose-700", icon: Calendar }
           ].map((stat, i) => (
-            <Card key={i} className="border-none shadow-sm bg-white rounded-[2.5rem] p-8">
+            <Card key={i} className="border-none shadow-sm bg-white rounded-[2rem] md:rounded-[2.5rem] p-6 md:p-8">
                <div className="flex items-center justify-between">
-                  <div className={`h-12 w-12 rounded-2xl ${stat.color.split(' ')[0]} flex items-center justify-center`}>
-                     <stat.icon className="h-6 w-6" />
+                  <div className={`h-10 w-10 md:h-12 md:w-12 rounded-xl md:rounded-2xl ${stat.color.split(' ')[0]} flex items-center justify-center`}>
+                     <stat.icon className="h-5 w-5 md:h-6 md:w-6" />
                   </div>
-                  <h3 className="text-4xl font-black text-slate-900">{stat.count}</h3>
+                  <h3 className="text-3xl md:text-4xl font-black text-slate-900">{stat.count}</h3>
                </div>
-               <p className="mt-4 text-[10px] font-black uppercase tracking-widest text-slate-400">{stat.label}</p>
+               <p className="mt-4 text-[9px] md:text-[10px] font-black uppercase tracking-widest text-slate-400">{stat.label}</p>
             </Card>
           ))}
         </div>

@@ -155,7 +155,7 @@ const Gradebook = () => {
                 </Link>
               </Button>
               <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary">Gradebook</p>
-              <h1 className="mt-2 font-display text-3xl font-bold text-foreground">{course?.title}</h1>
+              <h1 className="mt-2 font-display text-2xl md:text-3xl font-bold text-foreground">{course?.title}</h1>
               <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
                 Review performance by assignment and quiz, and export results anytime.
               </p>

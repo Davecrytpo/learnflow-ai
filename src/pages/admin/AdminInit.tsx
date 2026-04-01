@@ -1,4 +1,4 @@
-import { useState } from "react";
+﻿import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Shield, Loader2, KeyRound, Mail, Lock, ArrowLeft } from "lucide-react";
 import { motion } from "framer-motion";
@@ -50,7 +50,7 @@ const AdminInit = () => {
           <span className="text-[10px] font-bold uppercase tracking-[0.2em]">System Bootstrap</span>
         </div>
 
-        <div className="bg-slate-900 border border-slate-800 p-10 rounded-[2.5rem] shadow-2xl relative overflow-hidden">
+        <div className="bg-slate-900 border border-slate-800 p-6 md:p-10 rounded-[1.5rem] md:rounded-[2.5rem] shadow-2xl relative overflow-hidden">
           <div className="absolute top-0 right-0 p-8 opacity-10">
             <Shield className="h-24 w-24 text-primary" />
           </div>
@@ -105,3 +105,4 @@ const AdminInit = () => {
 };
 
 export default AdminInit;
+

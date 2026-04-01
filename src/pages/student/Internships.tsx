@@ -66,7 +66,7 @@ const StudentInternships = () => (
         </Card>
       </div>
 
-      <div className="grid gap-4 lg:grid-cols-2">
+      <div className="grid gap-4 grid-cols-1 lg:grid-cols-2">
         {internships.map((item) => (
           <Card key={item.id} className="p-4">
             <CardContent className="flex items-center justify-between gap-4 p-0">
@@ -87,3 +87,4 @@ const StudentInternships = () => (
 );
 
 export default StudentInternships;
+tInternships;

@@ -55,40 +55,40 @@ const AdminCourses = () => {
 
   return (
     <DashboardLayout allowedRoles={["admin"]} sidebar={<AdminSidebar />}>
-      <div className="space-y-6">
-        <section className="relative overflow-hidden rounded-3xl border border-border/70 bg-card/90 p-6">
+      <div className="space-y-6 pb-20">
+        <section className="relative overflow-hidden rounded-2xl md:rounded-3xl border border-border/70 bg-card/90 p-6 md:p-8 shadow-sm">
           <div className="absolute inset-0 bg-aurora opacity-60" />
           <div className="relative">
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary">Catalog Control</p>
-            <h1 className="mt-2 font-display text-3xl font-bold text-foreground">Course catalog</h1>
-            <p className="mt-2 text-sm text-muted-foreground">Review course publication status and approval state.</p>
+            <p className="text-[10px] md:text-xs font-semibold uppercase tracking-[0.2em] text-primary">Catalog Control</p>
+            <h1 className="mt-2 font-display text-2xl md:text-3xl font-bold text-foreground">Course catalog</h1>
+            <p className="mt-2 text-xs md:text-sm text-muted-foreground">Review course publication status and approval state.</p>
           </div>
         </section>
 
-        <Card>
-          <CardHeader>
+        <Card className="border-none shadow-sm">
+          <CardHeader className="p-4 md:p-6">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
               <div>
                 <CardTitle className="text-lg">All courses</CardTitle>
-                <CardDescription>{courses.length} total course records</CardDescription>
+                <CardDescription className="text-sm">{courses.length} total course records</CardDescription>
               </div>
               <div className="relative w-full sm:w-72">
                 <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Filter by title or category" className="pl-10" />
+                <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Filter by title or category" className="pl-10 h-10" />
               </div>
             </div>
           </CardHeader>
-          <CardContent>
+          <CardContent className="p-0 sm:p-6 sm:pt-0">
             {loading ? (
               <div className="flex items-center justify-center py-12"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>
             ) : filtered.length === 0 ? (
-              <div className="rounded-xl border-2 border-dashed py-12 text-center">
+              <div className="mx-4 sm:mx-0 rounded-xl border-2 border-dashed py-12 text-center">
                 <BookOpen className="mx-auto h-12 w-12 text-muted-foreground/30" />
                 <p className="mt-2 text-sm text-muted-foreground">No courses found.</p>
               </div>
             ) : (
-              <div className="rounded-xl border border-border overflow-hidden">
-                <table className="w-full text-sm">
+              <div className="border-t sm:border border-border sm:rounded-xl overflow-x-auto scrollbar-hide">
+                <table className="w-full text-sm min-w-[600px] sm:min-w-0">
                   <thead className="border-b border-border bg-secondary/40 text-muted-foreground">
                     <tr>
                       <th className="p-4 text-left">Course</th>
@@ -97,7 +97,7 @@ const AdminCourses = () => {
                       <th className="p-4 text-right">Action</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-border/60">
+                  <tbody className="divide-y divide-border/60 bg-white">
                     {filtered.map((course) => (
                       <tr key={course.id || course._id} className="hover:bg-accent/5">
                         <td className="p-4">

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+﻿import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import InstructorSidebar from "@/components/dashboard/InstructorSidebar";
@@ -69,7 +69,7 @@ const InstructorAssessments = () => {
   return (
     <DashboardLayout allowedRoles={["instructor"]} sidebar={<InstructorSidebar />}>
       <div className="space-y-8 pb-24">
-        <section className="rounded-[2.5rem] border border-slate-800 bg-slate-950 p-8 text-white">
+        <section className="rounded-[1.5rem] md:rounded-[2.5rem] border border-slate-800 bg-slate-950 p-8 text-white">
           <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.2em] text-indigo-300">Assessments</p>
@@ -135,7 +135,7 @@ const InstructorAssessments = () => {
                 <Loader2 className="h-8 w-8 animate-spin text-primary" />
               </div>
             ) : assessments.length === 0 ? (
-              <div className="rounded-2xl border border-dashed p-10 text-center text-sm text-muted-foreground">
+              <div className="rounded-2xl border border-dashed p-6 md:p-10 text-center text-sm text-muted-foreground">
                 No assessments found for the current search.
               </div>
             ) : (
@@ -164,3 +164,4 @@ const InstructorAssessments = () => {
 };
 
 export default InstructorAssessments;
+

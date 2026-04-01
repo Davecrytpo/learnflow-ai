@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+﻿import { useEffect, useState } from "react";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import AdminSidebar from "@/components/dashboard/AdminSidebar";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -88,7 +88,7 @@ const DataPipelines = () => {
                     <Label>Pipeline Name</Label>
                     <Input placeholder="e.g. Student SIS Sync" value={newPipeline.name} onChange={(e) => setNewPipeline({ ...newPipeline, name: e.target.value })} required />
                   </div>
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label>Source</Label>
                       <Input placeholder="Origin system" value={newPipeline.source} onChange={(e) => setNewPipeline({ ...newPipeline, source: e.target.value })} required />
@@ -164,3 +164,4 @@ const DataPipelines = () => {
 };
 
 export default DataPipelines;
+

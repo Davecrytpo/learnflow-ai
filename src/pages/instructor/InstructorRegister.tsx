@@ -1,4 +1,4 @@
-import { useState } from "react";
+﻿import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -101,7 +101,7 @@ const InstructorRegister = () => {
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-sm font-bold tracking-wide uppercase">
               <School className="h-4 w-4" /> Faculty Recruitment
             </div>
-            <h1 className="text-4xl xl:text-5xl font-display font-bold text-slate-900 leading-tight">
+            <h1 className="text-2xl md:text-4xl xl:text-5xl font-display font-bold text-slate-900 leading-tight">
               Shape the Future of <br />
               <span className="text-primary">Global Education</span>
             </h1>
@@ -154,7 +154,7 @@ const InstructorRegister = () => {
               </div>
 
               <form onSubmit={handleRegister} className="space-y-5">
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="firstName">First Name</Label>
                     <Input 
@@ -192,7 +192,7 @@ const InstructorRegister = () => {
                   />
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="password">Password</Label>
                     <Input 
@@ -268,3 +268,4 @@ const InstructorRegister = () => {
 };
 
 export default InstructorRegister;
+

@@ -22,24 +22,24 @@ const AlumniNetwork = () => {
       description="Stay connected with a global community of leaders, innovators, and changemakers."
       backgroundImage="https://images.unsplash.com/photo-1523580494863-6f3031224c94?auto=format&fit=crop&q=80&w=2000"
     >
-      <div className="container mx-auto px-4 py-20">
+      <div className="container mx-auto px-4 py-10 md:py-20">
         <div className="max-w-6xl mx-auto">
           
-          <div className="grid md:grid-cols-4 gap-8 mb-24">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-8 mb-16 md:mb-24">
             {stats.map((stat, i) => (
-              <div key={i} className="text-center p-8 bg-slate-50 rounded-[2rem] border border-slate-100">
-                <p className="text-4xl font-bold text-primary mb-2">{stat.value}</p>
-                <p className="text-sm font-bold text-slate-500 uppercase tracking-widest">{stat.label}</p>
+              <div key={i} className="text-center p-4 md:p-8 bg-slate-50 rounded-[1.5rem] md:rounded-[2rem] border border-slate-100">
+                <p className="text-2xl md:text-4xl font-bold text-primary mb-2">{stat.value}</p>
+                <p className="text-[10px] md:text-sm font-bold text-slate-500 uppercase tracking-widest">{stat.label}</p>
               </div>
             ))}
           </div>
 
-          <div className="grid lg:grid-cols-2 gap-16 items-center mb-24">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-center mb-24">
             <div className="space-y-8">
-              <h2 className="text-4xl font-display font-bold text-slate-900 leading-tight">
+              <h2 className="text-3xl md:text-4xl font-display font-bold text-slate-900 leading-tight">
                 A lifelong <span className="text-primary italic">connection</span> to excellence.
               </h2>
-              <p className="text-lg text-slate-600 leading-relaxed">
+              <p className="text-base md:text-lg text-slate-600 leading-relaxed">
                 As a graduate of Global University Institute, you belong to an elite network of professionals across every industry. We provide the resources to help you continue growing long after graduation.
               </p>
               
@@ -65,10 +65,10 @@ const AlumniNetwork = () => {
               </div>
 
               <div className="pt-4 flex flex-wrap gap-4">
-                <Button size="lg" className="h-14 px-10 rounded-full font-bold shadow-xl" asChild>
+                <Button size="lg" className="h-14 px-8 md:px-10 rounded-full font-bold shadow-xl w-full sm:w-auto" asChild>
                   <Link to="/signup">Join Alumni Portal</Link>
                 </Button>
-                <Button variant="outline" size="lg" className="h-14 px-10 rounded-full font-bold" asChild>
+                <Button variant="outline" size="lg" className="h-14 px-8 md:px-10 rounded-full font-bold w-full sm:w-auto" asChild>
                   <Link to="/giving">Support GUI</Link>
                 </Button>
               </div>
@@ -77,7 +77,7 @@ const AlumniNetwork = () => {
             <div className="relative group">
               <img 
                 src="https://images.unsplash.com/photo-1511632765486-a01980e01a18?auto=format&fit=crop&q=80&w=1000" 
-                className="rounded-[3.5rem] shadow-2xl transition-transform duration-500 group-hover:scale-[1.02]"
+                className="rounded-[2rem] md:rounded-[3.5rem] shadow-2xl transition-transform duration-500 group-hover:scale-[1.02]"
                 alt="Alumni Gathering"
               />
               <div className="absolute -bottom-10 -right-10 bg-white p-8 rounded-[2.5rem] shadow-2xl border border-slate-100 hidden md:block">
@@ -89,14 +89,14 @@ const AlumniNetwork = () => {
           </div>
 
           <div className="space-y-12">
-            <h3 className="text-3xl font-display font-bold text-center">Stay Involved</h3>
-            <div className="grid md:grid-cols-3 gap-8">
+            <h3 className="text-2xl md:text-3xl font-display font-bold text-center">Stay Involved</h3>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
               {[
                 { title: "Mentorship", icon: Users, desc: "Guide current students as they navigate their career paths." },
                 { title: "Events", icon: MessageSquare, desc: "Register for reunions, webinars, and networking mixers." },
                 { title: "Continuing Ed", icon: BookOpen, desc: "Alumni receive a 25% discount on all professional certifications." }
               ].map((item, i) => (
-                <Card key={i} className="rounded-[2.5rem] border-slate-100 hover:border-primary/20 transition-all overflow-hidden p-10 text-center space-y-6">
+                <Card key={i} className="rounded-[2rem] md:rounded-[2.5rem] border-slate-100 hover:border-primary/20 transition-all overflow-hidden p-6 md:p-10 text-center space-y-6">
                   <div className="h-16 w-16 bg-slate-50 rounded-2xl flex items-center justify-center text-primary mx-auto">
                     <item.icon className="h-8 w-8" />
                   </div>

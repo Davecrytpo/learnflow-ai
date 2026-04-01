@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+﻿import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
@@ -138,18 +138,18 @@ const InstructorQuizzes = () => {
       <div className="space-y-10 pb-32 max-w-6xl mx-auto">
         
         {/* Professional Header */}
-        <section className="relative overflow-hidden rounded-[3rem] border border-slate-800 bg-slate-950 p-12 text-white shadow-2xl">
+        <section className="relative overflow-hidden rounded-[2rem] md:rounded-[3rem] border border-slate-800 bg-slate-950 p-6 md:p-12 text-white shadow-2xl">
           <div className="absolute inset-0 bg-gradient-to-br from-indigo-950/50 via-slate-950 to-slate-950" />
           <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-8">
             <div className="flex items-center gap-8">
-              <div className="h-20 w-20 rounded-3xl bg-indigo-600/20 border border-indigo-500/30 flex items-center justify-center">
-                <HelpCircle className="h-10 w-10 text-indigo-400" />
+              <div className="h-16 md:h-20 w-16 md:w-20 rounded-3xl bg-indigo-600/20 border border-indigo-500/30 flex items-center justify-center">
+                <HelpCircle className="h-8 md:h-10 w-8 md:w-10 text-indigo-400" />
               </div>
               <div>
                 <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-500/10 text-indigo-400 text-[9px] font-black uppercase tracking-[0.2em] mb-3 border border-indigo-500/20">
                   Assessment Matrix
                 </div>
-                <h1 className="font-display text-4xl font-bold">Quiz Architect</h1>
+                <h1 className="font-display text-2xl md:text-4xl font-bold">Quiz Architect</h1>
                 <p className="mt-2 text-slate-400 font-medium max-w-xl">
                   Engineer automated scholarly evaluations. Use AI to scaffold rigorous testing logic and track real-time student mastery.
                 </p>
@@ -158,16 +158,16 @@ const InstructorQuizzes = () => {
 
             <Dialog open={open} onOpenChange={setOpen}>
               <DialogTrigger asChild>
-                <Button className="bg-indigo-600 hover:bg-indigo-500 text-white font-black h-16 px-10 rounded-2xl shadow-2xl shadow-indigo-500/20 transition-all hover:scale-105 active:scale-95 text-lg">
-                  <PlusCircle className="mr-3 h-6 w-6" /> Create Assessment
+                <Button className="bg-indigo-600 hover:bg-indigo-500 text-white font-black h-14 md:h-16 px-8 md:px-10 rounded-xl md:rounded-2xl shadow-2xl shadow-indigo-500/20 transition-all hover:scale-105 active:scale-95 text-base md:text-lg">
+                  <PlusCircle className="mr-3 h-5 md:h-6 w-5 md:w-6" /> Create Assessment
                 </Button>
               </DialogTrigger>
-              <DialogContent className="rounded-[2.5rem] p-10 max-w-lg border-slate-800 bg-slate-950 text-white">
+              <DialogContent className="rounded-2xl md:rounded-[2.5rem] p-6 md:p-10 max-w-lg border-slate-800 bg-slate-950 text-white">
                 <DialogHeader className="space-y-4">
-                  <DialogTitle className="text-3xl font-display font-bold">New Scholastic Quiz</DialogTitle>
+                  <DialogTitle className="text-2xl md:text-3xl font-display font-bold">New Scholastic Quiz</DialogTitle>
                   <DialogDescription className="text-slate-400">Initialize a new evaluation node for your curriculum.</DialogDescription>
                 </DialogHeader>
-                <form onSubmit={handleCreate} className="space-y-8 pt-6">
+                <form onSubmit={handleCreate} className="space-y-6 md:space-y-8 pt-4 md:pt-6">
                   <div className="space-y-3">
                     <Label className="text-[10px] font-black uppercase tracking-widest text-slate-500">Target Curriculum</Label>
                     <Select value={newQuiz.course_id} onValueChange={(v) => setNewQuiz({...newQuiz, course_id: v})}>
@@ -190,7 +190,7 @@ const InstructorQuizzes = () => {
                       {(aiGenerating || saving) ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : <Sparkles className="mr-2 h-5 w-5" />}
                       Execute AI Logic Scaffolding
                     </Button>
-                    <div className="grid grid-cols-2 gap-4 w-full">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full">
                        <Button variant="ghost" type="button" onClick={() => setOpen(false)} className="h-14 rounded-2xl text-slate-500 font-bold">Discard</Button>
                        <Button type="submit" disabled={saving} className="h-14 rounded-2xl bg-white text-slate-950 hover:bg-slate-100 font-black">
                         {saving ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : "Initialize"}
@@ -203,8 +203,8 @@ const InstructorQuizzes = () => {
           </div>
         </section>
 
-        <Card className="border-none shadow-sm bg-white rounded-[3rem] overflow-hidden">
-          <CardHeader className="p-10 pb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-8">
+        <Card className="border-none shadow-sm bg-white rounded-[2rem] md:rounded-[3rem] overflow-hidden">
+          <CardHeader className="p-6 md:p-10 pb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-8">
             <div>
               <CardTitle className="text-2xl font-bold flex items-center gap-3">
                 <Layout className="h-6 w-6 text-indigo-600" />
@@ -217,14 +217,14 @@ const InstructorQuizzes = () => {
               <Input placeholder="Filter registries..." value={search} onChange={e => setSearch(e.target.value)} className="h-14 pl-12 rounded-2xl bg-slate-50 border-slate-100 shadow-inner font-medium" />
             </div>
           </CardHeader>
-          <CardContent className="p-10 pt-4">
+          <CardContent className="p-6 md:p-10 pt-4">
             {loading ? (
               <div className="flex flex-col items-center justify-center py-20 gap-4">
                  <Loader2 className="h-10 w-10 animate-spin text-indigo-500" />
                  <p className="text-slate-400 font-black uppercase tracking-widest text-[9px]">Synchronizing Matrix...</p>
               </div>
             ) : filtered.length === 0 ? (
-              <div className="text-center py-24 bg-slate-50 rounded-[2.5rem] border-4 border-dashed border-slate-100">
+              <div className="text-center py-24 bg-slate-50 rounded-[1.5rem] md:rounded-[2.5rem] border-4 border-dashed border-slate-100">
                 <HelpCircle className="h-16 w-16 text-slate-200 mx-auto mb-4" />
                 <p className="text-slate-400 font-bold">No matching evaluations found in the current registry.</p>
               </div>
@@ -283,3 +283,4 @@ const InstructorQuizzes = () => {
 };
 
 export default InstructorQuizzes;
+

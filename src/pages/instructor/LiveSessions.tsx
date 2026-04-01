@@ -1,4 +1,4 @@
-import { useState } from "react";
+﻿import { useState } from "react";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import InstructorSidebar from "@/components/dashboard/InstructorSidebar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -62,7 +62,7 @@ const InstructorLiveSessions = () => {
                     <Label htmlFor="title">Session Title</Label>
                     <Input id="title" placeholder="e.g. Q&A on Module 4" required />
                   </div>
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label htmlFor="date">Date</Label>
                       <Input id="date" type="date" required />
@@ -131,7 +131,7 @@ const InstructorLiveSessions = () => {
                 </div>
                 <div className="flex items-center gap-3 text-xs text-muted-foreground">
                   <Badge className={badgeFor(session.status)} variant="secondary">{session.status}</Badge>
-                  <span className="hidden sm:flex items-center gap-2"><Calendar className="h-3.5 w-3.5" /> {session.date} · {session.time}</span>
+                  <span className="hidden sm:flex items-center gap-2"><Calendar className="h-3.5 w-3.5" /> {session.date} Â· {session.time}</span>
                   <Button size="sm" variant="outline" className="gap-2" onClick={() => toast({ title: session.status === "Recorded" ? "Opening Recording" : "Launching Zoom/Teams", description: "Redirecting to stream..." })}>
                     {session.status === "Recorded" ? <Play className="h-3.5 w-3.5" /> : <Video className="h-3.5 w-3.5" />}
                     {session.status === "Recorded" ? "Watch" : "Join"}
@@ -147,4 +147,5 @@ const InstructorLiveSessions = () => {
 };
 
 export default InstructorLiveSessions;
+
 

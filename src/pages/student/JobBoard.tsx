@@ -67,7 +67,7 @@ const StudentJobBoard = () => (
         </Card>
       </div>
 
-      <div className="grid gap-4 lg:grid-cols-2">
+      <div className="grid gap-4 grid-cols-1 lg:grid-cols-2">
         {jobs.map((job) => (
           <Card key={job.id} className="p-4">
             <CardContent className="flex items-center justify-between gap-4 p-0">
@@ -88,3 +88,4 @@ const StudentJobBoard = () => (
 );
 
 export default StudentJobBoard;
+dentJobBoard;
