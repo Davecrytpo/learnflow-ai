@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import AdminSidebar from "@/components/dashboard/AdminSidebar";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -10,6 +9,7 @@ import { RefreshCw, Plus, Users, Loader2, Trash2, Database } from "lucide-react"
 import { useToast } from "@/hooks/use-toast";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogTrigger } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
+import { apiClient } from "@/lib/api-client";
 
 const DirectorySync = () => {
   const { toast } = useToast();
@@ -21,47 +21,50 @@ const DirectorySync = () => {
 
   const fetchSyncs = async () => {
     setLoading(true);
-    const { data, error } = await (supabase
-      .from as any)("directory_syncs")
-      .select("*")
-      .order("created_at", { ascending: false });
-    
-    if (error) {
-      toast({ title: "Sync failed", description: error.message, variant: "destructive" });
-    } else {
+    try {
+      const data = await apiClient.db.from("directory_syncs").select("*").order("created_at", { ascending: false }).execute();
       setSyncs(data || []);
+    } catch (error: any) {
+      toast({ title: "Sync failed", description: error.message, variant: "destructive" });
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   useEffect(() => {
     fetchSyncs();
   }, []);
 
-  const handleCreate = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleCreate = async (event: React.FormEvent) => {
+    event.preventDefault();
     setSaving(true);
-    const { error } = await (supabase.from as any)("directory_syncs").insert({
-      source: newSync.source,
-      users_synced: parseInt(newSync.users_synced),
-      status: 'synced'
-    });
-    if (error) {
-      toast({ title: "Error", description: error.message, variant: "destructive" });
-    } else {
+    try {
+      await apiClient.db.from("directory_syncs").insert({
+        source: newSync.source,
+        users_synced: parseInt(newSync.users_synced, 10),
+        status: "synced",
+        last_sync: new Date().toISOString(),
+      }).execute();
       toast({ title: "Sync Connection Added", description: "The directory is now connected." });
       setIsModalOpen(false);
       setNewSync({ source: "", users_synced: "0" });
-      fetchSyncs();
+      await fetchSyncs();
+    } catch (error: any) {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    } finally {
+      setSaving(false);
     }
-    setSaving(false);
   };
 
   const deleteSync = async (id: string) => {
     if (!confirm("Terminate this directory sync connection?")) return;
-    await (supabase.from as any)("directory_syncs").delete().eq("id", id);
-    toast({ title: "Connection terminated" });
-    fetchSyncs();
+    try {
+      await apiClient.db.from("directory_syncs").delete().eq("id", id).execute();
+      toast({ title: "Connection terminated" });
+      await fetchSyncs();
+    } catch (error: any) {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    }
   };
 
   return (
@@ -86,11 +89,11 @@ const DirectorySync = () => {
                 <form onSubmit={handleCreate} className="space-y-4 pt-4">
                   <div className="space-y-2">
                     <Label>Source Name</Label>
-                    <Input placeholder="e.g. Campus AD, HR Oracle" value={newSync.source} onChange={e => setNewSync({...newSync, source: e.target.value})} required />
+                    <Input placeholder="e.g. Campus AD, HR Oracle" value={newSync.source} onChange={(e) => setNewSync({ ...newSync, source: e.target.value })} required />
                   </div>
                   <div className="space-y-2">
                     <Label>Initial User Count</Label>
-                    <Input type="number" value={newSync.users_synced} onChange={e => setNewSync({...newSync, users_synced: e.target.value})} />
+                    <Input type="number" value={newSync.users_synced} onChange={(e) => setNewSync({ ...newSync, users_synced: e.target.value })} />
                   </div>
                   <DialogFooter>
                     <Button variant="outline" type="button" onClick={() => setIsModalOpen(false)}>Cancel</Button>
@@ -112,7 +115,7 @@ const DirectorySync = () => {
               <Users className="h-4 w-4 text-primary" />
             </CardHeader>
             <CardContent>
-              <p className="text-2xl font-bold">{syncs.reduce((acc, curr) => acc + (curr.users_synced || 0), 0).toLocaleString()}</p>
+              <p className="text-2xl font-bold">{syncs.reduce((acc, sync) => acc + (sync.users_synced || 0), 0).toLocaleString()}</p>
             </CardContent>
           </Card>
           <Card>
@@ -135,26 +138,26 @@ const DirectorySync = () => {
             {loading ? (
               <div className="flex justify-center py-12"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>
             ) : syncs.length === 0 ? (
-              <div className="text-center py-12 border-2 border-dashed rounded-2xl text-muted-foreground">No directories connected.</div>
+              <div className="rounded-2xl border-2 border-dashed py-12 text-center text-muted-foreground">No directories connected.</div>
             ) : (
               <div className="space-y-3">
-                {syncs.map((s) => (
-                  <div key={s.id} className="flex items-center justify-between p-4 rounded-xl border border-border bg-card/50 hover:bg-accent/5 transition-all">
+                {syncs.map((sync) => (
+                  <div key={sync.id} className="flex items-center justify-between rounded-xl border border-border bg-card/50 p-4 transition-all hover:bg-accent/5">
                     <div className="flex items-center gap-4">
-                      <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
+                      <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 text-primary">
                         <Database className="h-5 w-5" />
                       </div>
                       <div>
-                        <p className="font-semibold text-sm text-foreground">{s.source}</p>
-                        <p className="text-xs text-muted-foreground">Last Sync: {new Date(s.last_sync).toLocaleString()}</p>
+                        <p className="text-sm font-semibold text-foreground">{sync.source}</p>
+                        <p className="text-xs text-muted-foreground">Last Sync: {sync.last_sync ? new Date(sync.last_sync).toLocaleString() : "Not recorded"}</p>
                       </div>
                     </div>
                     <div className="flex items-center gap-4">
-                      <div className="text-right mr-4">
-                        <p className="text-xs font-bold text-foreground">{s.users_synced} Users</p>
-                        <Badge variant="outline" className="text-[9px] uppercase mt-1">{s.status}</Badge>
+                      <div className="mr-4 text-right">
+                        <p className="text-xs font-bold text-foreground">{sync.users_synced || 0} Users</p>
+                        <Badge variant="outline" className="mt-1 text-[9px] uppercase">{sync.status}</Badge>
                       </div>
-                      <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:bg-destructive/10" onClick={() => deleteSync(s.id)}>
+                      <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:bg-destructive/10" onClick={() => deleteSync(sync.id)}>
                         <Trash2 className="h-4 w-4" />
                       </Button>
                     </div>

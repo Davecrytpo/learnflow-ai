@@ -1,13 +1,13 @@
 import { useEffect, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import AdminSidebar from "@/components/dashboard/AdminSidebar";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Bot, ShieldAlert, Zap, Loader2, Search, Trash2 } from "lucide-react";
+import { Bot, Zap, Loader2, Search, Trash2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Input } from "@/components/ui/input";
+import { apiClient } from "@/lib/api-client";
 
 const AIGovernance = () => {
   const { toast } = useToast();
@@ -17,17 +17,14 @@ const AIGovernance = () => {
 
   const fetchLogs = async () => {
     setLoading(true);
-    const { data, error } = await (supabase
-      .from as any)("ai_governance_logs")
-      .select("*")
-      .order("created_at", { ascending: false });
-    
-    if (error) {
-      toast({ title: "Audit failed", description: error.message, variant: "destructive" });
-    } else {
+    try {
+      const data = await apiClient.db.from("ai_governance_logs").select("*").order("created_at", { ascending: false }).execute();
       setLogs(data || []);
+    } catch (error: any) {
+      toast({ title: "Audit failed", description: error.message, variant: "destructive" });
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   useEffect(() => {
@@ -36,14 +33,19 @@ const AIGovernance = () => {
 
   const clearLogs = async () => {
     if (!confirm("Clear all governance logs? This is irreversible.")) return;
-    await (supabase.from as any)("ai_governance_logs").delete().neq("id", "00000000-0000-0000-0000-000000000000");
-    toast({ title: "Logs cleared" });
-    fetchLogs();
+    try {
+      await Promise.all((logs || []).map((log) => apiClient.db.from("ai_governance_logs").delete().eq("id", log.id).execute()));
+      toast({ title: "Logs cleared" });
+      await fetchLogs();
+    } catch (error: any) {
+      toast({ title: "Clear failed", description: error.message, variant: "destructive" });
+    }
   };
 
-  const filtered = logs.filter(l => 
-    l.model.toLowerCase().includes(search.toLowerCase()) || 
-    l.request_type?.toLowerCase().includes(search.toLowerCase())
+  const filtered = logs.filter((log) =>
+    [log.model, log.request_type]
+      .filter(Boolean)
+      .some((value) => String(value).toLowerCase().includes(search.toLowerCase())),
   );
 
   return (
@@ -70,7 +72,7 @@ const AIGovernance = () => {
               <Bot className="h-4 w-4 text-primary" />
             </CardHeader>
             <CardContent>
-              <p className="text-2xl font-bold">GPT-4o, Claude 3.5</p>
+              <p className="text-2xl font-bold">Platform AI</p>
             </CardContent>
           </Card>
           <Card>
@@ -79,7 +81,7 @@ const AIGovernance = () => {
               <Zap className="h-4 w-4 text-amber-500" />
             </CardHeader>
             <CardContent>
-              <p className="text-2xl font-bold">{logs.reduce((acc, curr) => acc + (curr.tokens_used || 0), 0).toLocaleString()}</p>
+              <p className="text-2xl font-bold">{logs.reduce((acc, log) => acc + Number(log.tokens_used || 0), 0).toLocaleString()}</p>
             </CardContent>
           </Card>
           <Card>
@@ -95,14 +97,14 @@ const AIGovernance = () => {
 
         <Card>
           <CardHeader>
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
               <div>
                 <CardTitle>Usage Logs</CardTitle>
                 <CardDescription>Real-time oversight of AI-assisted activities.</CardDescription>
               </div>
               <div className="relative w-full sm:w-64">
                 <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                <Input placeholder="Filter by model..." value={search} onChange={e => setSearch(e.target.value)} className="pl-10" />
+                <Input placeholder="Filter by model..." value={search} onChange={(e) => setSearch(e.target.value)} className="pl-10" />
               </div>
             </div>
           </CardHeader>
@@ -110,33 +112,31 @@ const AIGovernance = () => {
             {loading ? (
               <div className="flex justify-center py-12"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>
             ) : filtered.length === 0 ? (
-              <div className="text-center py-12 border-2 border-dashed rounded-2xl text-muted-foreground">No logs found.</div>
+              <div className="rounded-2xl border-2 border-dashed py-12 text-center text-muted-foreground">No logs found.</div>
             ) : (
-              <div className="rounded-xl border border-border overflow-hidden">
+              <div className="overflow-hidden rounded-xl border border-border">
                 <table className="w-full text-sm">
-                  <thead className="bg-secondary/40 text-muted-foreground font-medium border-b border-border">
+                  <thead className="border-b border-border bg-secondary/40 text-muted-foreground font-medium">
                     <tr>
-                      <th className="text-left p-4">Request Details</th>
-                      <th className="text-left p-4">Model</th>
-                      <th className="text-left p-4">Consumption</th>
-                      <th className="text-right p-4">Status</th>
+                      <th className="p-4 text-left">Request Details</th>
+                      <th className="p-4 text-left">Model</th>
+                      <th className="p-4 text-left">Consumption</th>
+                      <th className="p-4 text-right">Status</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-border/60">
-                    {filtered.map(l => (
-                      <tr key={l.id} className="hover:bg-accent/5 transition-colors">
+                    {filtered.map((log) => (
+                      <tr key={log.id} className="hover:bg-accent/5 transition-colors">
                         <td className="p-4">
-                          <p className="font-semibold text-foreground uppercase text-[10px] tracking-widest">{l.request_type}</p>
-                          <p className="text-xs text-muted-foreground mt-1">{new Date(l.created_at).toLocaleString()}</p>
+                          <p className="text-[10px] font-semibold uppercase tracking-widest text-foreground">{log.request_type || "request"}</p>
+                          <p className="mt-1 text-xs text-muted-foreground">{log.created_at ? new Date(log.created_at).toLocaleString() : "Unknown"}</p>
                         </td>
                         <td className="p-4">
-                          <Badge variant="outline" className="font-mono text-[10px]">{l.model}</Badge>
+                          <Badge variant="outline" className="font-mono text-[10px]">{log.model || "platform"}</Badge>
                         </td>
-                        <td className="p-4 font-mono text-xs">
-                          {l.tokens_used} tokens
-                        </td>
+                        <td className="p-4 font-mono text-xs">{log.tokens_used || 0} tokens</td>
                         <td className="p-4 text-right">
-                          <Badge variant="secondary" className="bg-emerald-500/10 text-emerald-600 text-[9px] uppercase tracking-tighter">{l.status}</Badge>
+                          <Badge variant="secondary" className="bg-emerald-500/10 text-[9px] uppercase tracking-tighter text-emerald-600">{log.status || "logged"}</Badge>
                         </td>
                       </tr>
                     ))}

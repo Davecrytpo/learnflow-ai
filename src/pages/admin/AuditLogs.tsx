@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import AdminSidebar from "@/components/dashboard/AdminSidebar";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -7,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Loader2, Shield, User, Clock, FileText, Search } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Badge } from "@/components/ui/badge";
+import { apiClient } from "@/lib/api-client";
 
 const AdminAuditLogs = () => {
   const { toast } = useToast();
@@ -17,33 +17,32 @@ const AdminAuditLogs = () => {
   useEffect(() => {
     const fetchLogs = async () => {
       try {
-        const { data, error } = await (supabase
-          .from as any)("audit_logs")
-          .select(`
-            *,
-            profiles:actor_id (
-              display_name,
-              email:user_id
-            )
-          `)
-          .order("created_at", { ascending: false })
-          .limit(100);
-        
-        if (error) throw error;
-        setLogs(data || []);
+        const [data, users] = await Promise.all([
+          apiClient.db.from("audit_logs").select("*").order("created_at", { ascending: false }).limit(100).execute(),
+          apiClient.fetch("/admin/users"),
+        ]);
+
+        const userMap = new Map((users || []).map((user: any) => [user._id || user.id, user]));
+        setLogs(
+          (data || []).map((log: any) => ({
+            ...log,
+            actor: userMap.get(log.actor_id) || null,
+          })),
+        );
       } catch (err: any) {
         toast({ title: "Failed to load logs", description: err.message, variant: "destructive" });
       } finally {
         setLoading(false);
       }
     };
-    fetchLogs();
-  }, []);
 
-  const filtered = logs.filter(l =>
-    (l.action || "").toLowerCase().includes(search.toLowerCase()) ||
-    (l.entity_type || "").toLowerCase().includes(search.toLowerCase()) ||
-    (l.profiles?.display_name || "").toLowerCase().includes(search.toLowerCase())
+    fetchLogs();
+  }, [toast]);
+
+  const filtered = logs.filter((log) =>
+    [log.action, log.entity_type, log.actor?.display_name, log.actor?.email]
+      .filter(Boolean)
+      .some((value) => String(value).toLowerCase().includes(search.toLowerCase())),
   );
 
   return (
@@ -61,17 +60,17 @@ const AdminAuditLogs = () => {
 
         <Card>
           <CardHeader>
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
               <div>
                 <CardTitle className="text-lg">System Activity</CardTitle>
                 <CardDescription>Latest 100 recorded events.</CardDescription>
               </div>
               <div className="relative w-full sm:w-72">
                 <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                <Input 
-                  placeholder="Search by action, user, or entity..." 
-                  value={search} 
-                  onChange={(e) => setSearch(e.target.value)} 
+                <Input
+                  placeholder="Search by action, user, or entity..."
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
                   className="pl-10"
                 />
               </div>
@@ -81,48 +80,46 @@ const AdminAuditLogs = () => {
             {loading ? (
               <div className="flex justify-center py-12"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>
             ) : filtered.length === 0 ? (
-              <div className="text-center py-12 border-2 border-dashed rounded-xl">
+              <div className="rounded-xl border-2 border-dashed py-12 text-center">
                 <Shield className="mx-auto h-12 w-12 text-muted-foreground/30" />
                 <p className="mt-2 text-sm text-muted-foreground">No audit logs found matching your criteria.</p>
               </div>
             ) : (
-              <div className="rounded-xl border border-border overflow-hidden">
+              <div className="overflow-hidden rounded-xl border border-border">
                 <table className="w-full text-sm">
-                  <thead className="bg-secondary/40 text-muted-foreground font-medium border-b border-border">
+                  <thead className="border-b border-border bg-secondary/40 text-muted-foreground font-medium">
                     <tr>
-                      <th className="text-left p-4">Action</th>
-                      <th className="text-left p-4">Actor</th>
-                      <th className="text-left p-4 hidden md:table-cell">Entity</th>
-                      <th className="text-right p-4">Timestamp</th>
+                      <th className="p-4 text-left">Action</th>
+                      <th className="p-4 text-left">Actor</th>
+                      <th className="hidden p-4 text-left md:table-cell">Entity</th>
+                      <th className="p-4 text-right">Timestamp</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-border/60">
-                    {filtered.map(l => (
-                      <tr key={l.id} className="hover:bg-accent/5 transition-colors">
+                    {filtered.map((log) => (
+                      <tr key={log.id} className="hover:bg-accent/5 transition-colors">
                         <td className="p-4">
-                          <div className="flex items-center gap-2">
-                            <Badge variant="outline" className="font-mono text-xs uppercase tracking-wider bg-primary/5 border-primary/20 text-primary">
-                              {l.action}
-                            </Badge>
-                          </div>
+                          <Badge variant="outline" className="bg-primary/5 font-mono text-xs uppercase tracking-wider text-primary">
+                            {log.action}
+                          </Badge>
                         </td>
                         <td className="p-4">
                           <div className="flex items-center gap-2">
                             <User className="h-3.5 w-3.5 text-muted-foreground" />
-                            <span className="font-medium text-foreground">{l.profiles?.display_name || "System"}</span>
+                            <span className="font-medium text-foreground">{log.actor?.display_name || log.actor?.email || "System"}</span>
                           </div>
                         </td>
-                        <td className="p-4 hidden md:table-cell">
+                        <td className="hidden p-4 md:table-cell">
                           <div className="flex items-center gap-2 text-muted-foreground">
                             <FileText className="h-3.5 w-3.5" />
-                            <span>{l.entity_type}</span>
-                            <span className="text-xs font-mono opacity-50">#{l.entity_id?.slice(0, 8)}</span>
+                            <span>{log.entity_type || "Record"}</span>
+                            <span className="text-xs font-mono opacity-50">#{String(log.entity_id || "").slice(0, 8) || "n/a"}</span>
                           </div>
                         </td>
                         <td className="p-4 text-right">
                           <div className="flex items-center justify-end gap-2 text-muted-foreground">
                             <Clock className="h-3.5 w-3.5" />
-                            <span>{new Date(l.created_at).toLocaleString()}</span>
+                            <span>{log.created_at ? new Date(log.created_at).toLocaleString() : "Unknown"}</span>
                           </div>
                         </td>
                       </tr>

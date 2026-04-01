@@ -1,15 +1,15 @@
 import { useEffect, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import AdminSidebar from "@/components/dashboard/AdminSidebar";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Network, Plus, Loader2, Trash2, Database, Play, CheckCircle } from "lucide-react";
+import { Network, Plus, Loader2, Trash2, Play, CheckCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogTrigger } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
+import { apiClient } from "@/lib/api-client";
 
 const DataPipelines = () => {
   const { toast } = useToast();
@@ -21,40 +21,47 @@ const DataPipelines = () => {
 
   const fetchPipelines = async () => {
     setLoading(true);
-    const { data } = await (supabase
-      .from as any)("data_pipelines")
-      .select("*")
-      .order("created_at", { ascending: false });
-    setPipelines(data || []);
-    setLoading(false);
+    try {
+      const data = await apiClient.db.from("data_pipelines").select("*").order("created_at", { ascending: false }).execute();
+      setPipelines(data || []);
+    } catch (error: any) {
+      toast({ title: "Operation failed", description: error.message, variant: "destructive" });
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
     fetchPipelines();
   }, []);
 
-  const handleCreate = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleCreate = async (event: React.FormEvent) => {
+    event.preventDefault();
     setSaving(true);
-    const { error } = await (supabase.from as any)("data_pipelines").insert({
-      ...newPipeline,
-      status: 'active'
-    });
-    if (error) {
-      toast({ title: "Operation failed", description: error.message, variant: "destructive" });
-    } else {
+    try {
+      await apiClient.db.from("data_pipelines").insert({
+        ...newPipeline,
+        status: "active",
+      }).execute();
       toast({ title: "Pipeline Activated", description: "Data flow has been initialized." });
       setIsModalOpen(false);
       setNewPipeline({ name: "", source: "", destination: "" });
-      fetchPipelines();
+      await fetchPipelines();
+    } catch (error: any) {
+      toast({ title: "Operation failed", description: error.message, variant: "destructive" });
+    } finally {
+      setSaving(false);
     }
-    setSaving(false);
   };
 
   const deletePipeline = async (id: string) => {
-    await (supabase.from as any)("data_pipelines").delete().eq("id", id);
-    toast({ title: "Pipeline removed" });
-    fetchPipelines();
+    try {
+      await apiClient.db.from("data_pipelines").delete().eq("id", id).execute();
+      toast({ title: "Pipeline removed" });
+      await fetchPipelines();
+    } catch (error: any) {
+      toast({ title: "Operation failed", description: error.message, variant: "destructive" });
+    }
   };
 
   return (
@@ -79,16 +86,16 @@ const DataPipelines = () => {
                 <form onSubmit={handleCreate} className="space-y-4 pt-4">
                   <div className="space-y-2">
                     <Label>Pipeline Name</Label>
-                    <Input placeholder="e.g. Student SIS Sync" value={newPipeline.name} onChange={e => setNewPipeline({...newPipeline, name: e.target.value})} required />
+                    <Input placeholder="e.g. Student SIS Sync" value={newPipeline.name} onChange={(e) => setNewPipeline({ ...newPipeline, name: e.target.value })} required />
                   </div>
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label>Source</Label>
-                      <Input placeholder="Origin system" value={newPipeline.source} onChange={e => setNewPipeline({...newPipeline, source: e.target.value})} required />
+                      <Input placeholder="Origin system" value={newPipeline.source} onChange={(e) => setNewPipeline({ ...newPipeline, source: e.target.value })} required />
                     </div>
                     <div className="space-y-2">
                       <Label>Destination</Label>
-                      <Input placeholder="Target system" value={newPipeline.destination} onChange={e => setNewPipeline({...newPipeline, destination: e.target.value})} required />
+                      <Input placeholder="Target system" value={newPipeline.destination} onChange={(e) => setNewPipeline({ ...newPipeline, destination: e.target.value })} required />
                     </div>
                   </div>
                   <DialogFooter>
@@ -113,31 +120,35 @@ const DataPipelines = () => {
             {loading ? (
               <div className="flex justify-center py-12"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>
             ) : pipelines.length === 0 ? (
-              <div className="text-center py-12 border-2 border-dashed rounded-2xl text-muted-foreground">No pipelines configured.</div>
+              <div className="rounded-2xl border-2 border-dashed py-12 text-center text-muted-foreground">No pipelines configured.</div>
             ) : (
               <div className="space-y-3">
-                {pipelines.map((p) => (
-                  <div key={p.id} className="flex items-center justify-between p-4 rounded-xl border border-border bg-card/50 hover:bg-accent/5 transition-all">
+                {pipelines.map((pipeline) => (
+                  <div key={pipeline.id} className="flex items-center justify-between rounded-xl border border-border bg-card/50 p-4 transition-all hover:bg-accent/5">
                     <div className="flex items-center gap-4">
-                      <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
+                      <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 text-primary">
                         <Network className="h-5 w-5" />
                       </div>
                       <div>
-                        <p className="font-semibold text-sm text-foreground">{p.name}</p>
-                        <p className="text-xs text-muted-foreground">{p.source} → {p.destination}</p>
+                        <p className="text-sm font-semibold text-foreground">{pipeline.name}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {pipeline.source}
+                          {" -> "}
+                          {pipeline.destination}
+                        </p>
                       </div>
                     </div>
                     <div className="flex items-center gap-4">
-                      <div className="hidden sm:block text-right mr-4">
-                        <Badge variant="outline" className="text-[10px] uppercase flex items-center gap-1">
-                          <CheckCircle className="h-2 w-2 text-emerald-500" /> {p.status}
+                      <div className="mr-4 hidden text-right sm:block">
+                        <Badge variant="outline" className="flex items-center gap-1 text-[10px] uppercase">
+                          <CheckCircle className="h-2 w-2 text-emerald-500" /> {pipeline.status}
                         </Badge>
-                        <p className="text-[10px] text-muted-foreground mt-1">Healthy</p>
+                        <p className="mt-1 text-[10px] text-muted-foreground">Healthy</p>
                       </div>
                       <Button variant="ghost" size="icon" className="h-8 w-8 text-primary">
                         <Play className="h-4 w-4" />
                       </Button>
-                      <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:bg-destructive/10" onClick={() => deletePipeline(p.id)}>
+                      <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:bg-destructive/10" onClick={() => deletePipeline(pipeline.id)}>
                         <Trash2 className="h-4 w-4" />
                       </Button>
                     </div>

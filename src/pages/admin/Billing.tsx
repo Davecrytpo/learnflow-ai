@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import AdminSidebar from "@/components/dashboard/AdminSidebar";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -7,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { CreditCard, DollarSign, Receipt, Loader2, Download } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { apiClient } from "@/lib/api-client";
 
 const AdminBilling = () => {
   const { toast } = useToast();
@@ -16,20 +16,18 @@ const AdminBilling = () => {
 
   const fetchBilling = async () => {
     setLoading(true);
-    const { data, error } = await (supabase
-      .from as any)("billing_invoices")
-      .select("*")
-      .order("created_at", { ascending: false });
-    
-    if (error) {
-      toast({ title: "Error loading billing", description: error.message, variant: "destructive" });
-    } else {
+    try {
+      const data = await apiClient.db.from("billing_invoices").select("*").order("created_at", { ascending: false }).execute();
       setInvoices(data || []);
-      const total = (data || []).reduce((acc: number, inv: any) => acc + Number(inv.amount || 0), 0);
-      const pending = (data || []).filter((inv: any) => inv.status === 'pending').length;
-      setStats({ total, pending });
+      setStats({
+        total: (data || []).reduce((acc: number, invoice: any) => acc + Number(invoice.amount || 0), 0),
+        pending: (data || []).filter((invoice: any) => invoice.status === "pending").length,
+      });
+    } catch (error: any) {
+      toast({ title: "Error loading billing", description: error.message, variant: "destructive" });
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   useEffect(() => {
@@ -102,18 +100,18 @@ const AdminBilling = () => {
             {loading ? (
               <div className="flex justify-center py-8"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>
             ) : invoices.length === 0 ? (
-              <div className="text-center py-8 text-muted-foreground">No invoices found.</div>
+              <div className="py-8 text-center text-muted-foreground">No invoices found.</div>
             ) : (
               <div className="space-y-3">
-                {invoices.map((inv) => (
-                  <div key={inv.id} className="flex items-center justify-between p-4 rounded-xl border border-border bg-card/50 hover:bg-accent/5 transition-all">
+                {invoices.map((invoice) => (
+                  <div key={invoice.id} className="flex items-center justify-between rounded-xl border border-border bg-card/50 p-4 transition-all hover:bg-accent/5">
                     <div>
-                      <p className="font-semibold text-foreground">{inv.invoice_id}</p>
-                      <p className="text-xs text-muted-foreground">{new Date(inv.created_at).toLocaleDateString()}</p>
+                      <p className="font-semibold text-foreground">{invoice.invoice_id || invoice.id}</p>
+                      <p className="text-xs text-muted-foreground">{invoice.created_at ? new Date(invoice.created_at).toLocaleDateString() : "Unknown"}</p>
                     </div>
                     <div className="flex items-center gap-4">
-                      <span className="font-mono font-medium">${inv.amount}</span>
-                      <Badge className={badgeFor(inv.status)} variant="secondary">{inv.status}</Badge>
+                      <span className="font-mono font-medium">${invoice.amount || 0}</span>
+                      <Badge className={badgeFor(invoice.status)} variant="secondary">{invoice.status}</Badge>
                       <Button variant="ghost" size="icon" className="h-8 w-8">
                         <Download className="h-4 w-4" />
                       </Button>

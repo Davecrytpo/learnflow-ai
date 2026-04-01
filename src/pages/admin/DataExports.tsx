@@ -1,16 +1,15 @@
 import { useEffect, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import AdminSidebar from "@/components/dashboard/AdminSidebar";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Database, Download, Plus, Loader2, Trash2, FileJson, FileSpreadsheet } from "lucide-react";
+import { Database, Download, Loader2, Trash2, FileJson, FileSpreadsheet } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogTrigger } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { apiClient } from "@/lib/api-client";
 
 const DataExports = () => {
   const { toast } = useToast();
@@ -22,41 +21,48 @@ const DataExports = () => {
 
   const fetchExports = async () => {
     setLoading(true);
-    const { data } = await (supabase
-      .from as any)("data_exports")
-      .select("*")
-      .order("created_at", { ascending: false });
-    setExports(data || []);
-    setLoading(false);
+    try {
+      const data = await apiClient.db.from("data_exports").select("*").order("created_at", { ascending: false }).execute();
+      setExports(data || []);
+    } catch (error: any) {
+      toast({ title: "Export load failed", description: error.message, variant: "destructive" });
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
     fetchExports();
   }, []);
 
-  const handleCreate = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleCreate = async (event: React.FormEvent) => {
+    event.preventDefault();
     setSaving(true);
-    const { error } = await (supabase.from as any)("data_exports").insert({
-      name: newExport.name,
-      format: newExport.format,
-      status: 'completed'
-    });
-    if (error) {
-      toast({ title: "Export failed", description: error.message, variant: "destructive" });
-    } else {
+    try {
+      await apiClient.db.from("data_exports").insert({
+        name: newExport.name,
+        format: newExport.format,
+        status: "completed",
+      }).execute();
       toast({ title: "Export Ready", description: "Your data bundle has been generated." });
       setIsModalOpen(false);
       setNewExport({ name: "", format: "csv" });
-      fetchExports();
+      await fetchExports();
+    } catch (error: any) {
+      toast({ title: "Export failed", description: error.message, variant: "destructive" });
+    } finally {
+      setSaving(false);
     }
-    setSaving(false);
   };
 
   const deleteExport = async (id: string) => {
-    await (supabase.from as any)("data_exports").delete().eq("id", id);
-    toast({ title: "Export removed" });
-    fetchExports();
+    try {
+      await apiClient.db.from("data_exports").delete().eq("id", id).execute();
+      toast({ title: "Export removed" });
+      await fetchExports();
+    } catch (error: any) {
+      toast({ title: "Export removal failed", description: error.message, variant: "destructive" });
+    }
   };
 
   return (
@@ -81,11 +87,11 @@ const DataExports = () => {
                 <form onSubmit={handleCreate} className="space-y-4 pt-4">
                   <div className="space-y-2">
                     <Label>Export Name</Label>
-                    <Input placeholder="e.g. Q1_Tuition_Report" value={newExport.name} onChange={e => setNewExport({...newExport, name: e.target.value})} required />
+                    <Input placeholder="e.g. Q1_Tuition_Report" value={newExport.name} onChange={(e) => setNewExport({ ...newExport, name: e.target.value })} required />
                   </div>
                   <div className="space-y-2">
                     <Label>Format</Label>
-                    <Select value={newExport.format} onValueChange={v => setNewExport({...newExport, format: v})}>
+                    <Select value={newExport.format} onValueChange={(value) => setNewExport({ ...newExport, format: value })}>
                       <SelectTrigger><SelectValue /></SelectTrigger>
                       <SelectContent>
                         <SelectItem value="csv">CSV Spreadsheet</SelectItem>
@@ -116,25 +122,27 @@ const DataExports = () => {
             {loading ? (
               <div className="flex justify-center py-12"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>
             ) : exports.length === 0 ? (
-              <div className="text-center py-12 border-2 border-dashed rounded-2xl text-muted-foreground">No exports found.</div>
+              <div className="rounded-2xl border-2 border-dashed py-12 text-center text-muted-foreground">No exports found.</div>
             ) : (
               <div className="space-y-3">
-                {exports.map((exp) => (
-                  <div key={exp.id} className="flex items-center justify-between p-4 rounded-xl border border-border bg-card/50 hover:bg-accent/5 transition-all">
+                {exports.map((exportItem) => (
+                  <div key={exportItem.id} className="flex items-center justify-between rounded-xl border border-border bg-card/50 p-4 transition-all hover:bg-accent/5">
                     <div className="flex items-center gap-4">
-                      <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
-                        {exp.format === 'json' ? <FileJson className="h-5 w-5" /> : <FileSpreadsheet className="h-5 w-5" />}
+                      <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                        {exportItem.format === "json" ? <FileJson className="h-5 w-5" /> : <FileSpreadsheet className="h-5 w-5" />}
                       </div>
                       <div>
-                        <p className="font-semibold text-sm text-foreground">{exp.name}</p>
-                        <p className="text-xs text-muted-foreground">{new Date(exp.created_at).toLocaleString()} • {exp.format.toUpperCase()}</p>
+                        <p className="text-sm font-semibold text-foreground">{exportItem.name}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {exportItem.created_at ? new Date(exportItem.created_at).toLocaleString() : "Unknown"} • {String(exportItem.format || "csv").toUpperCase()}
+                        </p>
                       </div>
                     </div>
                     <div className="flex gap-2">
                       <Button variant="ghost" size="icon" className="h-8 w-8 text-primary">
                         <Download className="h-4 w-4" />
                       </Button>
-                      <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:bg-destructive/10" onClick={() => deleteExport(exp.id)}>
+                      <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:bg-destructive/10" onClick={() => deleteExport(exportItem.id)}>
                         <Trash2 className="h-4 w-4" />
                       </Button>
                     </div>

@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import AdminSidebar from "@/components/dashboard/AdminSidebar";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -8,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { LifeBuoy, Search, Loader2, Trash2, User, MessageCircle, Clock } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Input } from "@/components/ui/input";
+import { apiClient } from "@/lib/api-client";
 
 const SupportCenter = () => {
   const { toast } = useToast();
@@ -17,15 +17,24 @@ const SupportCenter = () => {
 
   const fetchTickets = async () => {
     setLoading(true);
-    const { data } = await (supabase
-      .from as any)("support_tickets")
-      .select(`
-        *,
-        profiles:user_id (display_name)
-      `)
-      .order("created_at", { ascending: false });
-    setTickets(data || []);
-    setLoading(false);
+    try {
+      const [data, users] = await Promise.all([
+        apiClient.db.from("support_tickets").select("*").order("created_at", { ascending: false }).execute(),
+        apiClient.fetch("/admin/users"),
+      ]);
+
+      const userMap = new Map((users || []).map((user: any) => [user._id || user.id, user]));
+      setTickets(
+        (data || []).map((ticket: any) => ({
+          ...ticket,
+          user: userMap.get(ticket.user_id) || null,
+        })),
+      );
+    } catch (error: any) {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
@@ -33,20 +42,29 @@ const SupportCenter = () => {
   }, []);
 
   const resolveTicket = async (id: string) => {
-    await (supabase.from as any)("support_tickets").update({ status: 'resolved' }).eq("id", id);
-    toast({ title: "Ticket Resolved" });
-    fetchTickets();
+    try {
+      await apiClient.db.from("support_tickets").update({ status: "resolved" }).eq("id", id).execute();
+      toast({ title: "Ticket Resolved" });
+      await fetchTickets();
+    } catch (error: any) {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    }
   };
 
   const deleteTicket = async (id: string) => {
-    await (supabase.from as any)("support_tickets").delete().eq("id", id);
-    toast({ title: "Ticket Deleted" });
-    fetchTickets();
+    try {
+      await apiClient.db.from("support_tickets").delete().eq("id", id).execute();
+      toast({ title: "Ticket Deleted" });
+      await fetchTickets();
+    } catch (error: any) {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    }
   };
 
-  const filtered = tickets.filter(t => 
-    t.subject.toLowerCase().includes(search.toLowerCase()) || 
-    (t.profiles?.display_name || "").toLowerCase().includes(search.toLowerCase())
+  const filtered = tickets.filter((ticket) =>
+    [ticket.subject, ticket.user?.display_name, ticket.user?.email]
+      .filter(Boolean)
+      .some((value) => String(value).toLowerCase().includes(search.toLowerCase())),
   );
 
   return (
@@ -68,7 +86,7 @@ const SupportCenter = () => {
               <MessageCircle className="h-4 w-4 text-primary" />
             </CardHeader>
             <CardContent>
-              <p className="text-2xl font-bold">{tickets.filter(t => t.status === 'open').length}</p>
+              <p className="text-2xl font-bold">{tickets.filter((ticket) => ticket.status === "open").length}</p>
             </CardContent>
           </Card>
           <Card>
@@ -84,14 +102,14 @@ const SupportCenter = () => {
 
         <Card>
           <CardHeader>
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
               <div>
                 <CardTitle>Inquiry Queue</CardTitle>
                 <CardDescription>Priority-sorted list of incoming requests.</CardDescription>
               </div>
               <div className="relative w-full sm:w-64">
                 <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                <Input placeholder="Search subject or user..." value={search} onChange={e => setSearch(e.target.value)} className="pl-10" />
+                <Input placeholder="Search subject or user..." value={search} onChange={(e) => setSearch(e.target.value)} className="pl-10" />
               </div>
             </div>
           </CardHeader>
@@ -99,30 +117,32 @@ const SupportCenter = () => {
             {loading ? (
               <div className="flex justify-center py-12"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>
             ) : filtered.length === 0 ? (
-              <div className="text-center py-12 border-2 border-dashed rounded-2xl text-muted-foreground">No tickets in queue.</div>
+              <div className="rounded-2xl border-2 border-dashed py-12 text-center text-muted-foreground">No tickets in queue.</div>
             ) : (
               <div className="space-y-3">
-                {filtered.map(t => (
-                  <div key={t.id} className="flex items-center justify-between p-4 rounded-xl border border-border bg-card/50 hover:bg-accent/5 transition-all">
+                {filtered.map((ticket) => (
+                  <div key={ticket.id} className="flex items-center justify-between rounded-xl border border-border bg-card/50 p-4 transition-all hover:bg-accent/5">
                     <div className="flex items-center gap-4">
-                      <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
+                      <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 text-primary">
                         <LifeBuoy className="h-5 w-5" />
                       </div>
                       <div>
-                        <p className="font-semibold text-sm text-foreground">{t.subject}</p>
-                        <div className="flex items-center gap-2 mt-1">
+                        <p className="text-sm font-semibold text-foreground">{ticket.subject}</p>
+                        <div className="mt-1 flex items-center gap-2">
                           <User className="h-3 w-3 text-muted-foreground" />
-                          <span className="text-xs text-muted-foreground">{t.profiles?.display_name || "User"}</span>
-                          <span className="text-[10px] text-muted-foreground opacity-50">• {new Date(t.created_at).toLocaleDateString()}</span>
+                          <span className="text-xs text-muted-foreground">{ticket.user?.display_name || ticket.user?.email || "User"}</span>
+                          <span className="text-[10px] text-muted-foreground opacity-50">• {ticket.created_at ? new Date(ticket.created_at).toLocaleDateString() : "Unknown"}</span>
                         </div>
                       </div>
                     </div>
                     <div className="flex items-center gap-4">
-                      <Badge variant={t.priority === 'high' ? 'destructive' : 'outline'} className="text-[10px] uppercase">{t.priority}</Badge>
-                      <Badge variant="secondary" className="text-[10px] uppercase">{t.status}</Badge>
+                      <Badge variant={ticket.priority === "high" ? "destructive" : "outline"} className="text-[10px] uppercase">{ticket.priority || "normal"}</Badge>
+                      <Badge variant="secondary" className="text-[10px] uppercase">{ticket.status}</Badge>
                       <div className="flex gap-1">
-                        <Button size="sm" variant="outline" className="h-8 text-xs" onClick={() => resolveTicket(t.id)}>Resolve</Button>
-                        <Button size="icon" variant="ghost" className="h-8 w-8 text-destructive" onClick={() => deleteTicket(t.id)}><Trash2 className="h-4 w-4" /></Button>
+                        <Button size="sm" variant="outline" className="h-8 text-xs" onClick={() => resolveTicket(ticket.id)}>Resolve</Button>
+                        <Button size="icon" variant="ghost" className="h-8 w-8 text-destructive" onClick={() => deleteTicket(ticket.id)}>
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
                       </div>
                     </div>
                   </div>

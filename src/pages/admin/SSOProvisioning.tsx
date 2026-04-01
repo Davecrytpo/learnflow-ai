@@ -1,16 +1,16 @@
 import { useEffect, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import AdminSidebar from "@/components/dashboard/AdminSidebar";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { Key, Plus, ShieldCheck, Loader2, Trash2, Globe } from "lucide-react";
+import { Key, Plus, ShieldCheck, Loader2, Trash2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogTrigger } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { apiClient } from "@/lib/api-client";
 
 const SSOProvisioning = () => {
   const { toast } = useToast();
@@ -22,43 +22,45 @@ const SSOProvisioning = () => {
 
   const fetchProviders = async () => {
     setLoading(true);
-    const { data, error } = await (supabase
-      .from as any)("sso_providers")
-      .select("*")
-      .order("created_at", { ascending: false });
-    
-    if (error) {
-      toast({ title: "Sync failed", description: error.message, variant: "destructive" });
-    } else {
+    try {
+      const data = await apiClient.db.from("sso_providers").select("*").order("created_at", { ascending: false }).execute();
       setProviders(data || []);
+    } catch (error: any) {
+      toast({ title: "Sync failed", description: error.message, variant: "destructive" });
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   useEffect(() => {
     fetchProviders();
   }, []);
 
-  const handleCreate = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleCreate = async (event: React.FormEvent) => {
+    event.preventDefault();
     setSaving(true);
-    const { error } = await (supabase.from as any)("sso_providers").insert(newProvider);
-    if (error) {
-      toast({ title: "Error", description: error.message, variant: "destructive" });
-    } else {
+    try {
+      await apiClient.db.from("sso_providers").insert(newProvider).execute();
       toast({ title: "Provider added", description: "Identity provider registered successfully." });
       setIsModalOpen(false);
       setNewProvider({ name: "", protocol: "SAML", status: "active" });
-      fetchProviders();
+      await fetchProviders();
+    } catch (error: any) {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    } finally {
+      setSaving(false);
     }
-    setSaving(false);
   };
 
   const deleteProvider = async (id: string) => {
     if (!confirm("Remove this SSO configuration?")) return;
-    await (supabase.from as any)("sso_providers").delete().eq("id", id);
-    toast({ title: "Configuration removed" });
-    fetchProviders();
+    try {
+      await apiClient.db.from("sso_providers").delete().eq("id", id).execute();
+      toast({ title: "Configuration removed" });
+      await fetchProviders();
+    } catch (error: any) {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    }
   };
 
   return (
@@ -83,11 +85,11 @@ const SSOProvisioning = () => {
                 <form onSubmit={handleCreate} className="space-y-4 pt-4">
                   <div className="space-y-2">
                     <Label>Provider Name</Label>
-                    <Input placeholder="e.g. Azure AD, Okta" value={newProvider.name} onChange={e => setNewProvider({...newProvider, name: e.target.value})} required />
+                    <Input placeholder="e.g. Azure AD, Okta" value={newProvider.name} onChange={(e) => setNewProvider({ ...newProvider, name: e.target.value })} required />
                   </div>
                   <div className="space-y-2">
                     <Label>Protocol</Label>
-                    <Select value={newProvider.protocol} onValueChange={v => setNewProvider({...newProvider, protocol: v})}>
+                    <Select value={newProvider.protocol} onValueChange={(value) => setNewProvider({ ...newProvider, protocol: value })}>
                       <SelectTrigger><SelectValue /></SelectTrigger>
                       <SelectContent>
                         <SelectItem value="SAML">SAML 2.0</SelectItem>
@@ -139,23 +141,23 @@ const SSOProvisioning = () => {
             {loading ? (
               <div className="flex justify-center py-12"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>
             ) : providers.length === 0 ? (
-              <div className="text-center py-12 border-2 border-dashed rounded-2xl text-muted-foreground">No providers configured.</div>
+              <div className="rounded-2xl border-2 border-dashed py-12 text-center text-muted-foreground">No providers configured.</div>
             ) : (
               <div className="space-y-3">
-                {providers.map((p) => (
-                  <div key={p.id} className="flex items-center justify-between p-4 rounded-xl border border-border bg-card/50 hover:bg-accent/5 transition-all">
+                {providers.map((provider) => (
+                  <div key={provider.id} className="flex items-center justify-between rounded-xl border border-border bg-card/50 p-4 transition-all hover:bg-accent/5">
                     <div className="flex items-center gap-4">
-                      <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
+                      <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 text-primary">
                         <Key className="h-5 w-5" />
                       </div>
                       <div>
-                        <p className="font-semibold text-sm text-foreground">{p.name}</p>
-                        <p className="text-[10px] text-muted-foreground font-mono uppercase">{p.protocol}</p>
+                        <p className="text-sm font-semibold text-foreground">{provider.name}</p>
+                        <p className="font-mono text-[10px] uppercase text-muted-foreground">{provider.protocol}</p>
                       </div>
                     </div>
                     <div className="flex items-center gap-4">
-                      <Badge variant="outline" className="text-[10px] uppercase">{p.status}</Badge>
-                      <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:bg-destructive/10" onClick={() => deleteProvider(p.id)}>
+                      <Badge variant="outline" className="text-[10px] uppercase">{provider.status}</Badge>
+                      <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:bg-destructive/10" onClick={() => deleteProvider(provider.id)}>
                         <Trash2 className="h-4 w-4" />
                       </Button>
                     </div>
