@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import InstructorSidebar from "@/components/dashboard/InstructorSidebar";
@@ -10,6 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Loader2, Megaphone } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { apiClient } from "@/lib/api-client";
 
 const InstructorAnnouncements = () => {
   const { user } = useAuth();
@@ -25,13 +25,9 @@ const InstructorAnnouncements = () => {
   useEffect(() => {
     if (!user) return;
     const fetch = async () => {
-      const { data } = await supabase
-        .from("courses")
-        .select("id, title")
-        .eq("author_id", user.id)
-        .order("created_at", { ascending: false });
+      const data = await apiClient.fetch("/instructor/courses");
       setCourses(data || []);
-      if (data && data.length > 0) setSelectedCourse(data[0].id);
+      if (data && data.length > 0) setSelectedCourse(data[0].id || data[0]._id);
       setLoading(false);
     };
     fetch();
@@ -40,12 +36,8 @@ const InstructorAnnouncements = () => {
   useEffect(() => {
     if (!selectedCourse) return;
     const fetch = async () => {
-      const { data } = await (supabase
-        .from as any)("course_announcements")
-        .select("*")
-        .eq("course_id", selectedCourse)
-        .order("created_at", { ascending: false });
-      setAnnouncements(data || []);
+      const response = await apiClient.db.from("announcements").select("*").eq("course_id", selectedCourse).order("created_at", { ascending: false }).execute();
+      setAnnouncements(response.data || []);
     };
     fetch();
   }, [selectedCourse]);
@@ -53,20 +45,18 @@ const InstructorAnnouncements = () => {
   const createAnnouncement = async () => {
     if (!user || !selectedCourse || !title || !body) return;
     setSaving(true);
-    const { data, error } = await (supabase
-      .from as any)("course_announcements")
-      .insert({ course_id: selectedCourse, author_id: user.id, title, body })
-      .select()
-      .single();
-    setSaving(false);
-    if (error) {
+    try {
+      const response = await apiClient.db.from("announcements").insert({ course_id: selectedCourse, title, content: body }).execute();
+      const created = Array.isArray(response.data) ? response.data[0] : response.data;
+      setAnnouncements(created ? [created, ...announcements] : announcements);
+      setTitle("");
+      setBody("");
+      toast({ title: "Announcement posted" });
+    } catch (error: any) {
       toast({ title: "Error", description: error.message, variant: "destructive" });
-      return;
+    } finally {
+      setSaving(false);
     }
-    setAnnouncements([data, ...announcements]);
-    setTitle("");
-    setBody("");
-    toast({ title: "Announcement posted" });
   };
 
   return (
@@ -95,7 +85,7 @@ const InstructorAnnouncements = () => {
                 <Select value={selectedCourse} onValueChange={setSelectedCourse}>
                   <SelectTrigger><SelectValue placeholder="Select course" /></SelectTrigger>
                   <SelectContent>
-                    {courses.map(c => <SelectItem key={c.id} value={c.id}>{c.title}</SelectItem>)}
+                    {courses.map(c => <SelectItem key={c.id || c._id} value={c.id || c._id}>{c.title}</SelectItem>)}
                   </SelectContent>
                 </Select>
                 <Input placeholder="Announcement title" value={title} onChange={(e) => setTitle(e.target.value)} />
@@ -117,7 +107,7 @@ const InstructorAnnouncements = () => {
               <CardContent className="p-5">
                 <p className="text-xs text-muted-foreground">{new Date(a.created_at).toLocaleString()}</p>
                 <h3 className="mt-2 font-semibold text-foreground">{a.title}</h3>
-                <p className="mt-1 text-sm text-muted-foreground">{a.body}</p>
+                <p className="mt-1 text-sm text-muted-foreground">{a.content || a.body}</p>
               </CardContent>
             </Card>
           ))}

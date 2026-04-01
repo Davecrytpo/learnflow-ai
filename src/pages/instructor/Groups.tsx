@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import InstructorSidebar from "@/components/dashboard/InstructorSidebar";
@@ -9,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Loader2, Users } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { apiClient } from "@/lib/api-client";
 
 const InstructorGroups = () => {
   const { user } = useAuth();
@@ -23,13 +23,9 @@ const InstructorGroups = () => {
   useEffect(() => {
     if (!user) return;
     const fetch = async () => {
-      const { data } = await supabase
-        .from("courses")
-        .select("id, title")
-        .eq("author_id", user.id)
-        .order("created_at", { ascending: false });
+      const data = await apiClient.fetch("/instructor/courses");
       setCourses(data || []);
-      if (data && data.length > 0) setSelectedCourse(data[0].id);
+      if (data && data.length > 0) setSelectedCourse(data[0].id || data[0]._id);
       setLoading(false);
     };
     fetch();
@@ -38,11 +34,8 @@ const InstructorGroups = () => {
   useEffect(() => {
     if (!selectedCourse) return;
     const fetch = async () => {
-      const { data } = await (supabase.from as any)("course_groups")
-        .select("*")
-        .eq("course_id", selectedCourse)
-        .order("created_at", { ascending: false });
-      setGroups(data || []);
+      const response = await apiClient.db.from("course_groups").select("*").eq("course_id", selectedCourse).order("created_at", { ascending: false }).execute();
+      setGroups(response.data || []);
     };
     fetch();
   }, [selectedCourse]);
@@ -50,18 +43,17 @@ const InstructorGroups = () => {
   const createGroup = async () => {
     if (!user || !selectedCourse || !name) return;
     setSaving(true);
-    const { data, error } = await (supabase.from as any)("course_groups")
-      .insert({ course_id: selectedCourse, name })
-      .select()
-      .single();
-    setSaving(false);
-    if (error) {
+    try {
+      const response = await apiClient.db.from("course_groups").insert({ course_id: selectedCourse, name }).execute();
+      const created = Array.isArray(response.data) ? response.data[0] : response.data;
+      setGroups(created ? [created, ...groups] : groups);
+      setName("");
+      toast({ title: "Group created" });
+    } catch (error: any) {
       toast({ title: "Error", description: error.message, variant: "destructive" });
-      return;
+    } finally {
+      setSaving(false);
     }
-    setGroups([data, ...groups]);
-    setName("");
-    toast({ title: "Group created" });
   };
 
   return (
@@ -90,7 +82,7 @@ const InstructorGroups = () => {
                 <Select value={selectedCourse} onValueChange={setSelectedCourse}>
                   <SelectTrigger><SelectValue placeholder="Select course" /></SelectTrigger>
                   <SelectContent>
-                    {courses.map(c => <SelectItem key={c.id} value={c.id}>{c.title}</SelectItem>)}
+                    {courses.map(c => <SelectItem key={c.id || c._id} value={c.id || c._id}>{c.title}</SelectItem>)}
                   </SelectContent>
                 </Select>
                 <Input placeholder="Group name" value={name} onChange={(e) => setName(e.target.value)} />

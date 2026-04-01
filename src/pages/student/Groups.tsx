@@ -1,10 +1,10 @@
 import { useEffect, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import StudentSidebar from "@/components/dashboard/StudentSidebar";
 import { useAuth } from "@/hooks/useAuth";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Loader2, BookOpen } from "lucide-react";
+import { apiClient } from "@/lib/api-client";
 
 const StudentGroups = () => {
   const { user } = useAuth();
@@ -14,19 +14,21 @@ const StudentGroups = () => {
   useEffect(() => {
     if (!user) return;
     const fetch = async () => {
-      const { data: memberships } = await (supabase.from as any)("group_members")
-        .select("group_id")
-        .eq("student_id", user.id);
-      const groupIds = (memberships || []).map((m: any) => m.group_id);
+      const [membershipRes, groupRes, enrollmentRes] = await Promise.all([
+        apiClient.db.from("group_members").select("*").eq("student_id", user.id).execute(),
+        apiClient.db.from("course_groups").select("*").order("created_at", { ascending: false }).execute(),
+        apiClient.fetch("/enrollments/me")
+      ]);
+      const groupIds = (membershipRes.data || []).map((m: any) => m.group_id);
       if (groupIds.length === 0) {
         setGroups([]);
         setLoading(false);
         return;
       }
-      const { data } = await (supabase.from as any)("course_groups")
-        .select("*, courses(title)")
-        .in("id", groupIds)
-        .order("created_at", { ascending: false });
+      const courseMap = new Map((enrollmentRes || []).map((e: any) => [e.course_id?._id || e.course_id, e.course_id?.title || "Untitled Course"]));
+      const data = (groupRes.data || [])
+        .filter((g: any) => groupIds.includes(g.id))
+        .map((g: any) => ({ ...g, courses: { title: courseMap.get(g.course_id) || "Course Group" } }));
       setGroups(data || []);
       setLoading(false);
     };

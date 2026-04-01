@@ -1,10 +1,10 @@
 import { useEffect, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import StudentSidebar from "@/components/dashboard/StudentSidebar";
 import { useAuth } from "@/hooks/useAuth";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Loader2, Link as LinkIcon } from "lucide-react";
+import { apiClient } from "@/lib/api-client";
 
 const StudentResources = () => {
   const { user } = useAuth();
@@ -14,22 +14,21 @@ const StudentResources = () => {
   useEffect(() => {
     if (!user) return;
     const fetch = async () => {
-      const { data: enrollments } = await supabase.from("enrollments").select("course_id, status").eq("student_id", user.id);
-      const activeEnrollments = (enrollments || []).filter((enrollment: any) =>
-        ["active", "approved", "completed"].includes(enrollment.status || "active")
-      );
-      const courseIds = activeEnrollments.map((e: any) => e.course_id);
+      const [enrollments, resourceRes] = await Promise.all([
+        apiClient.fetch("/enrollments/me"),
+        apiClient.db.from("course_resources").select("*").order("created_at", { ascending: false }).execute()
+      ]);
+      const courseIds = (enrollments || []).map((e: any) => e.course_id?._id || e.course_id);
       if (courseIds.length === 0) {
         setResources([]);
         setLoading(false);
         return;
       }
-      const { data } = await supabase
-        .from("course_resources")
-        .select("*, courses(title)")
-        .in("course_id", courseIds)
-        .order("created_at", { ascending: false });
-      setResources(data || []);
+      const courses = new Map((enrollments || []).map((e: any) => [e.course_id?._id || e.course_id, e.course_id?.title || "Untitled Course"]));
+      const filtered = (resourceRes.data || [])
+        .filter((item: any) => courseIds.includes(item.course_id))
+        .map((item: any) => ({ ...item, courses: { title: courses.get(item.course_id) || "Untitled Course" } }));
+      setResources(filtered);
       setLoading(false);
     };
     fetch();

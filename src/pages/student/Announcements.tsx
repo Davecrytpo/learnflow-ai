@@ -1,10 +1,10 @@
 import { useEffect, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import StudentSidebar from "@/components/dashboard/StudentSidebar";
 import { useAuth } from "@/hooks/useAuth";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Loader2, Megaphone } from "lucide-react";
+import { apiClient } from "@/lib/api-client";
 
 const StudentAnnouncements = () => {
   const { user } = useAuth();
@@ -14,23 +14,18 @@ const StudentAnnouncements = () => {
   useEffect(() => {
     if (!user) return;
     const fetch = async () => {
-      const { data: enrollments } = await supabase
-        .from("enrollments")
-        .select("course_id")
-        .eq("student_id", user.id)
-        .in("status", ["active", "approved", "completed"]);
-      const courseIds = (enrollments || []).map((e) => e.course_id);
+      const [enrollmentRes, announcementRes] = await Promise.all([
+        apiClient.fetch("/enrollments/me"),
+        apiClient.fetch("/announcements?limit=50")
+      ]);
+      const courseIds = (enrollmentRes || []).map((e: any) => e.course_id?._id || e.course_id);
       if (courseIds.length === 0) {
         setAnnouncements([]);
         setLoading(false);
         return;
       }
-      const { data } = await supabase
-        .from("announcements")
-        .select("*, courses:course_id(title)")
-        .in("course_id", courseIds)
-        .order("created_at", { ascending: false });
-      setAnnouncements(data || []);
+      const filtered = (announcementRes || []).filter((item: any) => courseIds.includes(item.course_id?._id || item.course_id));
+      setAnnouncements(filtered || []);
       setLoading(false);
     };
     fetch();
@@ -63,9 +58,10 @@ const StudentAnnouncements = () => {
               <div className="space-y-2">
                 {announcements.map(a => (
                   <div key={a.id} className="rounded-xl border border-border p-3 text-sm">
-                    <p className="text-xs text-muted-foreground">{a.courses?.title}</p>
+                    <p className="text-xs text-muted-foreground">{a.course_id?.title || a.courses?.title}</p>
                     <p className="font-medium text-foreground">{a.title}</p>
                     <p className="text-xs text-muted-foreground">{new Date(a.created_at).toLocaleString()}</p>
+                    <p className="mt-2 text-sm text-muted-foreground">{a.content || a.body || ""}</p>
                   </div>
                 ))}
               </div>

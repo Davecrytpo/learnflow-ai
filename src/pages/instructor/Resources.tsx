@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import InstructorSidebar from "@/components/dashboard/InstructorSidebar";
 import { useAuth } from "@/hooks/useAuth";
@@ -9,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Button } from "@/components/ui/button";
 import { Loader2, Link as LinkIcon } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { apiClient } from "@/lib/api-client";
 
 const InstructorResources = () => {
   const { user } = useAuth();
@@ -25,9 +25,9 @@ const InstructorResources = () => {
   useEffect(() => {
     if (!user) return;
     const fetch = async () => {
-      const { data } = await supabase.from("courses").select("id, title").eq("author_id", user.id).order("created_at", { ascending: false });
+      const data = await apiClient.fetch("/instructor/courses");
       setCourses(data || []);
-      if (data && data.length > 0) setSelectedCourse(data[0].id);
+      if (data && data.length > 0) setSelectedCourse(data[0].id || data[0]._id);
       setLoading(false);
     };
     fetch();
@@ -36,8 +36,8 @@ const InstructorResources = () => {
   useEffect(() => {
     if (!selectedCourse) return;
     const fetch = async () => {
-      const { data } = await (supabase.from as any)("course_resources").select("*").eq("course_id", selectedCourse).order("created_at", { ascending: false });
-      setResources(data || []);
+      const response = await apiClient.db.from("course_resources").select("*").eq("course_id", selectedCourse).order("created_at", { ascending: false }).execute();
+      setResources(response.data || []);
     };
     fetch();
   }, [selectedCourse]);
@@ -45,17 +45,21 @@ const InstructorResources = () => {
   const addResource = async () => {
     if (!selectedCourse || !title || !url) return;
     setSaving(true);
-    const { data, error } = await (supabase.from as any)("course_resources").insert({ course_id: selectedCourse, title, url, type }).select().single();
-    setSaving(false);
-    if (error) {
+    try {
+      const response = await apiClient.db.from("course_resources").insert({ course_id: selectedCourse, title, url, type }).execute();
+      const created = Array.isArray(response.data) ? response.data[0] : response.data;
+      setResources(created ? [created, ...resources] : resources);
+      setTitle("");
+      setUrl("");
+      toast({ title: "Resource added" });
+    } catch (error: any) {
       toast({ title: "Error", description: error.message, variant: "destructive" });
-      return;
+    } finally {
+      setSaving(false);
     }
-    setResources([data, ...resources]);
-    setTitle("");
-    setUrl("");
-    toast({ title: "Resource added" });
   };
+
+  const currentCourseId = selectedCourse;
 
   return (
     <DashboardLayout allowedRoles={["instructor"]} sidebar={<InstructorSidebar />}>
@@ -83,7 +87,7 @@ const InstructorResources = () => {
                 <Select value={selectedCourse} onValueChange={setSelectedCourse}>
                   <SelectTrigger><SelectValue placeholder="Select course" /></SelectTrigger>
                   <SelectContent>
-                    {courses.map(c => <SelectItem key={c.id} value={c.id}>{c.title}</SelectItem>)}
+                    {courses.map(c => <SelectItem key={c.id || c._id} value={c.id || c._id}>{c.title}</SelectItem>)}
                   </SelectContent>
                 </Select>
                 <Input placeholder="Title" value={title} onChange={(e) => setTitle(e.target.value)} />
@@ -96,7 +100,7 @@ const InstructorResources = () => {
                     <SelectItem value="video">Video</SelectItem>
                   </SelectContent>
                 </Select>
-                <Button onClick={addResource} disabled={saving || !title || !url}>
+                <Button onClick={addResource} disabled={saving || !title || !url || !currentCourseId}>
                   {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                   Add resource
                 </Button>
@@ -114,7 +118,7 @@ const InstructorResources = () => {
                 <CardContent className="p-5">
                   <p className="text-xs text-muted-foreground">{r.type}</p>
                   <p className="font-medium text-foreground">{r.title}</p>
-                  <a href={r.url} className="text-xs text-primary hover:underline" target="_blank" rel="noreferrer">{r.url}</a>
+                  <a href={r.url} className="break-all text-xs text-primary hover:underline" target="_blank" rel="noreferrer">{r.url}</a>
                 </CardContent>
               </Card>
             ))

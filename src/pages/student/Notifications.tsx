@@ -1,10 +1,10 @@
 import { useEffect, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import StudentSidebar from "@/components/dashboard/StudentSidebar";
 import { useAuth } from "@/hooks/useAuth";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Loader2, Bell } from "lucide-react";
+import { apiClient } from "@/lib/api-client";
 
 const StudentNotifications = () => {
   const { user } = useAuth();
@@ -14,12 +14,13 @@ const StudentNotifications = () => {
   useEffect(() => {
     if (!user) return;
     const fetch = async () => {
-      const { data } = await supabase
+      const response = await apiClient.db
         .from("notifications")
         .select("*")
         .eq("user_id", user.id)
-        .order("created_at", { ascending: false });
-      setNotifications(data || []);
+        .order("created_at", { ascending: false })
+        .execute();
+      setNotifications(response.data || []);
       setLoading(false);
     };
     fetch();

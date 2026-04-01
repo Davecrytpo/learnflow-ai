@@ -28,7 +28,7 @@ const StudentProgress = () => {
     avgCompletion: 0,
     lessonsDone: 0,
     totalLessons: 0,
-    streak: 11 // Mock streak as we don't have it in DB yet
+    streak: 0
   });
 
   useEffect(() => {
@@ -43,12 +43,21 @@ const StudentProgress = () => {
 
         const enrs = enrRes.data || [];
         const lessonProg = lessonProgRes.data || [];
+        const lessonCounts = await Promise.all(
+          enrs.map(async (enr: any) => {
+            const lessons = await apiClient.fetch(`/courses/${enr.course_id}/lessons`);
+            return {
+              courseId: enr.course_id,
+              totalLessons: (lessons || []).length
+            };
+          })
+        );
+        const lessonCountMap = new Map(lessonCounts.map((item) => [item.courseId, item.totalLessons]));
         
-        // Calculate mock progress based on lesson_progress
         const processedEnrs = enrs.map((enr: any) => {
-          const courseLessons = lessonProg.filter((lp: any) => lp.course_id === enr.course_id);
-          // For now, let's assume each course has 10 lessons for mock progress calculation
-          const progress = Math.min(100, (courseLessons.length / 10) * 100);
+          const courseLessons = lessonProg.filter((lp: any) => lp.course_id === enr.course_id && lp.completed);
+          const totalLessonsForCourse = lessonCountMap.get(enr.course_id) || 0;
+          const progress = totalLessonsForCourse > 0 ? Math.min(100, (courseLessons.length / totalLessonsForCourse) * 100) : 0;
           return {
             ...enr,
             title: enr.courses?.title || "Untitled Course",
@@ -58,13 +67,27 @@ const StudentProgress = () => {
         });
 
         setEnrollments(processedEnrs);
-        
+
         const totalProg = processedEnrs.reduce((acc: number, curr: any) => acc + curr.progress, 0);
+        const totalLessons = lessonCounts.reduce((acc, curr) => acc + curr.totalLessons, 0);
+        const completionDays = Array.from(new Set(
+          lessonProg
+            .filter((item: any) => item.completed_at)
+            .map((item: any) => new Date(item.completed_at).toISOString().slice(0, 10))
+        )).sort();
+
+        let streak = 0;
+        let cursor = new Date();
+        while (completionDays.includes(cursor.toISOString().slice(0, 10))) {
+          streak += 1;
+          cursor.setDate(cursor.getDate() - 1);
+        }
+
         setStats({
           avgCompletion: processedEnrs.length > 0 ? Math.round(totalProg / processedEnrs.length) : 0,
-          lessonsDone: lessonProg.length,
-          totalLessons: processedEnrs.length * 10,
-          streak: 11
+          lessonsDone: lessonProg.filter((item: any) => item.completed).length,
+          totalLessons,
+          streak
         });
       } catch (error) {
         console.error("Error fetching progress:", error);

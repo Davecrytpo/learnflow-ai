@@ -2,7 +2,7 @@ import { ReactNode, useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useAuthContext } from "@/contexts/AuthContext";
 import { AppRole } from "@/hooks/useUserRole";
-import { Loader2, LogOut, Moon, Sun, Bell, Search, Settings, User, BookOpen, Award, Shield } from "lucide-react";
+import { Loader2, LogOut, Moon, Sun, Bell, Search, Settings, BookOpen, Shield, CalendarClock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { apiClient } from "@/lib/api-client";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
@@ -23,6 +23,7 @@ const DashboardLayout = ({ children, allowedRoles, sidebar }: DashboardLayoutPro
   const { theme, setTheme } = useTheme();
   const { toast } = useToast();
   const [searchQuery, setSearchQuery] = useState("");
+  const [notifications, setNotifications] = useState<any[]>([]);
 
   useEffect(() => {
     if (loading) return;
@@ -30,6 +31,31 @@ const DashboardLayout = ({ children, allowedRoles, sidebar }: DashboardLayoutPro
     if (!role) { navigate("/onboarding", { replace: true }); return; }
     if (allowedRoles && !allowedRoles.includes(role)) navigate("/dashboard", { replace: true });
   }, [user, role, loading, navigate, allowedRoles]);
+
+  useEffect(() => {
+    if (!user) {
+      setNotifications([]);
+      return;
+    }
+
+    const fetchNotifications = async () => {
+      try {
+        const response = await apiClient.db
+          .from("notifications")
+          .select("*")
+          .eq("user_id", user.id)
+          .order("created_at", { ascending: false })
+          .limit(5)
+          .execute();
+
+        setNotifications(response.data || []);
+      } catch {
+        setNotifications([]);
+      }
+    };
+
+    fetchNotifications();
+  }, [user]);
 
   if (loading) {
     return (
@@ -72,7 +98,7 @@ const DashboardLayout = ({ children, allowedRoles, sidebar }: DashboardLayoutPro
           >
             Skip to content
           </a>
-          <header className="flex h-16 items-center justify-between gap-4 border-b border-border bg-card/60 px-4 md:px-6 backdrop-blur-sm sticky top-0 z-40">
+          <header className="sticky top-0 z-40 flex min-h-16 items-center justify-between gap-3 border-b border-border bg-card/60 px-3 backdrop-blur-sm sm:px-4 md:px-6">
             <div className="flex items-center gap-2 md:gap-4">
               <SidebarTrigger className="text-muted-foreground hover:text-foreground" />
               <div className="h-6 w-px bg-border hidden md:block" />
@@ -110,7 +136,7 @@ const DashboardLayout = ({ children, allowedRoles, sidebar }: DashboardLayoutPro
               </Sheet>
             </div>
             
-            <Link to="/" className="flex items-center gap-2 absolute left-1/2 -translate-x-1/2">
+            <Link to="/" className="hidden items-center gap-2 md:absolute md:left-1/2 md:flex md:-translate-x-1/2">
               <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-brand shadow-lg shadow-primary/20 shrink-0">
                 <svg className="h-4 w-4 text-primary-foreground" viewBox="0 0 24 24" fill="none">
                   <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
@@ -121,6 +147,15 @@ const DashboardLayout = ({ children, allowedRoles, sidebar }: DashboardLayoutPro
             </Link>
             
             <div className="flex items-center gap-1 sm:gap-3">
+              <Link to="/" className="flex items-center gap-2 md:hidden">
+                <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-brand shadow-lg shadow-primary/20 shrink-0">
+                  <svg className="h-4 w-4 text-primary-foreground" viewBox="0 0 24 24" fill="none">
+                    <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                </div>
+                <span className="font-display text-sm font-bold text-foreground">GUI</span>
+              </Link>
+
               <Button 
                 variant="ghost" 
                 size="icon" 
@@ -143,22 +178,26 @@ const DashboardLayout = ({ children, allowedRoles, sidebar }: DashboardLayoutPro
                     <SheetTitle className="text-xl font-bold text-left">Notifications</SheetTitle>
                   </SheetHeader>
                   <div className="mt-6 space-y-4">
-                    {[
-                      { t: "Institutional Update", d: "Academic calendar for Fall 2026 released", time: "1h ago", icon: Shield },
-                      { t: "New Course Accredited", d: "Quantum Computing 101 is now live", time: "3h ago", icon: BookOpen },
-                      { t: "System Maintenance", d: "Brief downtime scheduled for midnight", time: "1d ago", icon: Settings },
-                    ].map((n, i) => (
-                      <div key={i} className="flex gap-3 p-3 rounded-xl border border-border bg-card/50 hover:bg-accent/5 transition-all cursor-pointer group">
+                    {notifications.length === 0 ? (
+                      <div className="rounded-xl border border-border bg-card/50 p-6 text-sm text-muted-foreground">
+                        No notifications yet.
+                      </div>
+                    ) : notifications.map((n, i) => {
+                      const icon = i % 3 === 0 ? Shield : i % 3 === 1 ? BookOpen : CalendarClock;
+                      return (
+                      <div key={n.id || i} className="flex gap-3 p-3 rounded-xl border border-border bg-card/50 hover:bg-accent/5 transition-all cursor-pointer group">
                         <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
-                          <n.icon className="h-5 w-5" />
+                          {icon === Shield ? <Shield className="h-5 w-5" /> : icon === BookOpen ? <BookOpen className="h-5 w-5" /> : <CalendarClock className="h-5 w-5" />}
                         </div>
                         <div className="min-w-0">
-                          <p className="text-sm font-semibold text-foreground truncate">{n.t}</p>
-                          <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{n.d}</p>
-                          <p className="text-[10px] font-medium text-primary mt-2 uppercase tracking-wider">{n.time}</p>
+                          <p className="text-sm font-semibold text-foreground truncate">{n.title || "Notification"}</p>
+                          <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{n.message || "Platform update"}</p>
+                          <p className="text-[10px] font-medium text-primary mt-2 uppercase tracking-wider">
+                            {n.created_at ? new Date(n.created_at).toLocaleString() : "Recent"}
+                          </p>
                         </div>
                       </div>
-                    ))}
+                    )})}
                     <Button variant="outline" className="w-full mt-4" onClick={() => navigate("/dashboard/notifications")}>View all notifications</Button>
                   </div>
                 </SheetContent>
