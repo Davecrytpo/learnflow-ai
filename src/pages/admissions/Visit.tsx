@@ -15,19 +15,22 @@ const Visit = () => {
       title: "Guided Campus Tour",
       time: "10:00 AM & 2:00 PM",
       desc: "A 90-minute walking tour led by our student ambassadors.",
-      icon: Navigation
+      icon: Navigation,
+      subject: "Guided Campus Tour"
     },
     {
       title: "Self-Guided Tour",
       time: "Anytime (9 AM - 6 PM)",
       desc: "Explore at your own pace with our interactive digital map.",
-      icon: MapIcon
+      icon: MapIcon,
+      subject: "Self-Guided Tour"
     },
     {
       title: "Virtual Reality Tour",
       time: "Online 24/7",
       desc: "Experience 360-degree views of our labs and libraries.",
-      icon: Camera
+      icon: Camera,
+      subject: "Virtual Reality Tour"
     }
   ];
 
@@ -117,7 +120,7 @@ const Visit = () => {
                         <p className="text-slate-500 text-sm leading-relaxed">{tour.desc}</p>
                       </div>
                       <Button variant="ghost" className="font-bold text-primary" asChild>
-                        <Link to="/admissions/contact">Learn More</Link>
+                        <Link to={`/admissions/contact?subject=${encodeURIComponent(tour.subject)}`}>Learn More</Link>
                       </Button>
                     </CardContent>
                   </Card>

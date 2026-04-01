@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import PageLayout from "@/components/layout/PageLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,7 +9,7 @@ import GraduationCapIcon from "@/components/icons/GraduationCapIcon";
 import { apiClient } from "@/lib/api-client";
 import { useToast } from "@/hooks/use-toast";
 import { motion } from "framer-motion";
-import { useSearchParams } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 
 const Contact = () => {
   const [searchParams] = useSearchParams();
@@ -24,6 +24,11 @@ const Contact = () => {
     message: "",
     context: "admissions"
   });
+
+  useEffect(() => {
+    const subject = searchParams.get("subject") || "";
+    setFormData((current) => ({ ...current, subject }));
+  }, [searchParams]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
