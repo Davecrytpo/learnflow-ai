@@ -3,7 +3,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { 
   MapPin, Calendar, Clock, Camera, Coffee, 
-  Map as MapIcon, Navigation, Bus, Info 
+  Map as MapIcon, Navigation, Bus, Info,
+  CheckCircle 
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
@@ -73,8 +74,8 @@ const Visit = () => {
                 <Button size="lg" className="h-14 px-10 rounded-full font-bold shadow-xl" asChild>
                   <Link to="/admissions/contact?subject=Schedule a Tour">Book a Guided Tour</Link>
                 </Button>
-                <Button variant="outline" size="lg" className="h-14 px-10 rounded-full font-bold" asChild>
-                  <a href="/public/campus-map.pdf" target="_blank">Download Map</a>
+                <Button variant="outline" size="lg" className="h-14 px-10 rounded-full font-bold shadow-sm hover:shadow-md transition-all" asChild>
+                  <Link to="/admissions/contact?subject=Request Campus Map">Request Campus Map</Link>
                 </Button>
               </div>
             </div>

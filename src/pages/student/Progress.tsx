@@ -77,7 +77,7 @@ const StudentProgress = () => {
         )).sort();
 
         let streak = 0;
-        let cursor = new Date();
+        const cursor = new Date();
         while (completionDays.includes(cursor.toISOString().slice(0, 10))) {
           streak += 1;
           cursor.setDate(cursor.getDate() - 1);

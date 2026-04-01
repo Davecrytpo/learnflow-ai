@@ -93,7 +93,7 @@ export const apiClient = {
     from(table: string) {
       return {
         select(columns: string = '*') {
-          let _filters: any[] = [];
+          const _filters: any[] = [];
           let _order: any = null;
           let _limit: number | null = null;
           let _single = false;
@@ -160,7 +160,7 @@ export const apiClient = {
         },
 
         update(payload: any) {
-          let _filters: any[] = [];
+          const _filters: any[] = [];
           const builder = {
             eq(column: string, value: any) {
               _filters.push({ column, value, type: 'eq' });
@@ -185,7 +185,7 @@ export const apiClient = {
         },
 
         delete() {
-          let _filters: any[] = [];
+          const _filters: any[] = [];
           const builder = {
             eq(column: string, value: any) {
               _filters.push({ column, value, type: 'eq' });

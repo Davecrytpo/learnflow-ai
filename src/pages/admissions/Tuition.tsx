@@ -86,7 +86,7 @@ const Tuition = () => {
                   </li>
                 </ul>
                 <Button variant="outline" className="w-full h-12 rounded-xl font-bold border-slate-200" asChild>
-                  <Link to="/academics/online-learning">Explore Courses</Link>
+                  <Link to="/academics/online">Explore Courses</Link>
                 </Button>
               </CardContent>
             </Card>
